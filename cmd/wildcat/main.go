@@ -5,6 +5,7 @@ import (
 	"os"
 
 	flag "github.com/spf13/pflag"
+	"github.com/tamada/wildcat"
 )
 
 // VERSION represents the version of this project.
@@ -41,15 +42,45 @@ type countingOptions struct {
 	words      bool
 }
 
+func (co *countingOptions) generateCounter() wildcat.Counter {
+	var ct wildcat.CounterType = 0
+	if co.bytes {
+		ct = ct | wildcat.Bytes
+	}
+	if co.lines {
+		ct = ct | wildcat.Lines
+	}
+	if co.characters {
+		ct = ct | wildcat.Characters
+	}
+	if co.words {
+		ct = ct | wildcat.Words
+	}
+	if ct == 0 {
+		ct = wildcat.Bytes | wildcat.Lines | wildcat.Words | wildcat.Characters
+	}
+	return wildcat.NewCounter(ct)
+}
+
 type runtimeOptions struct {
+	filelist bool
 	noIgnore bool
-	format   string
+	args     []string
 }
 
 type cliOptions struct {
-	filelist bool
-	help     bool
-	args     []string
+	help   bool
+	format string
+}
+
+func (ro *runtimeOptions) constructTarget(ec *wildcat.ErrorCenter) wildcat.Target {
+	if ro.filelist {
+		return wildcat.NewTargetFromFileList(ro.args, ec)
+	}
+	if len(ro.args) > 0 {
+		return wildcat.NewTarget(ro.args, ec)
+	}
+	return wildcat.NewStdinTarget()
 }
 
 type options struct {
@@ -71,9 +102,9 @@ func buildFlagSet() (*flag.FlagSet, *options) {
 	flags.BoolVarP(&opts.count.words, "word", "w", false, "prints the number of words in each input file.")
 	flags.BoolVarP(&opts.count.characters, "character", "c", false, "prints the number of characters in each input file.")
 	flags.BoolVarP(&opts.runtime.noIgnore, "no-ignore", "n", false, "Does not respect ignore files (.gitignore)")
-	flags.BoolVarP(&opts.cli.filelist, "filelist", "@", false, "treats the contents of arguments' file as file list")
+	flags.BoolVarP(&opts.runtime.filelist, "filelist", "@", false, "treats the contents of arguments' file as file list")
 	flags.BoolVarP(&opts.cli.help, "help", "h", false, "prints this message")
-	flags.StringVarP(&opts.runtime.format, "format", "f", "default", "specifies the resultant format")
+	flags.StringVarP(&opts.cli.format, "format", "f", "default", "specifies the resultant format")
 	return flags, opts
 }
 
@@ -82,11 +113,40 @@ func parseOptions(args []string) (*options, error) {
 	if err := flags.Parse(args); err != nil {
 		return nil, err
 	}
-	opts.cli.args = flags.Args()
+	opts.runtime.args = flags.Args()[1:]
 	if err := validateOptions(opts); err != nil {
 		return nil, err
 	}
 	return opts, nil
+}
+
+func printAll(cli *cliOptions, targets wildcat.Target, rs *wildcat.ResultSet) int {
+	index := 0
+	printer := wildcat.NewPrinter(os.Stdout)
+	printer.PrintHeader()
+	for file := range targets.Iter() {
+		name := file.Name()
+		printer.PrintEach(name, rs.Counter(name), index)
+		index++
+	}
+	if targets.Size() > 1 {
+		printer.PrintTotal(rs)
+	}
+	printer.PrintFooter()
+	return 0
+}
+
+func perform(opts *options) int {
+	ec := wildcat.NewErrorCenter()
+	targets := opts.runtime.constructTarget(ec)
+	rs := wildcat.NewResultSet()
+	for file := range targets.Iter() {
+		counter := opts.count.generateCounter()
+		file.Count(counter)
+		rs.Push(file, counter)
+		fmt.Fprintf(os.Stderr, "%s: %v\n", file.Name(), counter)
+	}
+	return printAll(opts.cli, targets, rs)
 }
 
 func goMain(args []string) int {

@@ -1,6 +1,8 @@
 package main
 
-import "testing"
+import (
+	"testing"
+)
 
 // Not implements yet.
 func Ignore_Example_wildcat() {
@@ -51,7 +53,9 @@ func TestParseOptions(t *testing.T) {
 		{[]string{"../../testdata/"}, false, []string{"../../testdata"}, "default", false},
 	}
 	for _, td := range testdata {
-		opts, err := parseOptions(td.giveArgs)
+		args := []string{"wildcat"}
+		args = append(args, td.giveArgs...)
+		opts, err := parseOptions(args)
 		if err == nil && td.invalid || err != nil && !td.invalid {
 			t.Errorf("parseOptions(%v) wont invalid: %v, got %v, err: %v", td.giveArgs, td.invalid, err == nil, err)
 		}
@@ -61,8 +65,8 @@ func TestParseOptions(t *testing.T) {
 		if opts.isHelpRequested() != td.wantHelp {
 			t.Errorf("parseOptions(%v) help wanted: %v, got %v", td.giveArgs, td.wantHelp, opts.isHelpRequested())
 		}
-		if opts.runtime.format != td.wantFormat {
-			t.Errorf("parseOptions(%v) format did not match, want %s, got %s", td.giveArgs, td.wantFormat, opts.runtime.format)
+		if opts.cli.format != td.wantFormat {
+			t.Errorf("parseOptions(%v) format did not match, want %s, got %s", td.giveArgs, td.wantFormat, opts.cli.format)
 		}
 	}
 }
