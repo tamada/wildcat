@@ -42,33 +42,37 @@ type countingOptions struct {
 }
 
 type runtimeOptions struct {
-	filelist bool
 	noIgnore bool
 	format   string
+}
+
+type cliOptions struct {
+	filelist bool
 	help     bool
+	args     []string
 }
 
 type options struct {
 	count   *countingOptions
 	runtime *runtimeOptions
-	args    []string
+	cli     *cliOptions
 }
 
 func (opts *options) isHelpRequested() bool {
-	return opts.runtime.help
+	return opts.cli.help
 }
 
 func buildFlagSet() (*flag.FlagSet, *options) {
-	opts := &options{count: &countingOptions{}, runtime: &runtimeOptions{}}
+	opts := &options{count: &countingOptions{}, runtime: &runtimeOptions{}, cli: &cliOptions{}}
 	flags := flag.NewFlagSet("wildcat", flag.ContinueOnError)
 	flags.Usage = func() { fmt.Println(helpMessage("wildcat")) }
 	flags.BoolVarP(&opts.count.lines, "line", "l", false, "prints the number of lines in each input file.")
 	flags.BoolVarP(&opts.count.bytes, "byte", "b", false, "prints the number of bytes in each input file.")
 	flags.BoolVarP(&opts.count.words, "word", "w", false, "prints the number of words in each input file.")
 	flags.BoolVarP(&opts.count.characters, "character", "c", false, "prints the number of characters in each input file.")
-	flags.BoolVarP(&opts.runtime.filelist, "filelist", "@", false, "treats the contents of arguments' file as file list")
 	flags.BoolVarP(&opts.runtime.noIgnore, "no-ignore", "n", false, "Does not respect ignore files (.gitignore)")
-	flags.BoolVarP(&opts.runtime.help, "help", "h", false, "prints this message")
+	flags.BoolVarP(&opts.cli.filelist, "filelist", "@", false, "treats the contents of arguments' file as file list")
+	flags.BoolVarP(&opts.cli.help, "help", "h", false, "prints this message")
 	flags.StringVarP(&opts.runtime.format, "format", "f", "default", "specifies the resultant format")
 	return flags, opts
 }
@@ -78,7 +82,7 @@ func parseOptions(args []string) (*options, error) {
 	if err := flags.Parse(args); err != nil {
 		return nil, err
 	}
-	opts.args = flags.Args()[1:]
+	opts.cli.args = flags.Args()
 	if err := validateOptions(opts); err != nil {
 		return nil, err
 	}
