@@ -2,15 +2,36 @@ package wildcat
 
 type ResultSet struct {
 	results map[string]Counter
+	list    []string
 	total   *totalCounter
 }
 
 func NewResultSet() *ResultSet {
-	return &ResultSet{results: map[string]Counter{}, total: &totalCounter{}}
+	return &ResultSet{results: map[string]Counter{}, list: []string{}, total: &totalCounter{}}
+}
+
+func (rs *ResultSet) CounterType() CounterType {
+	return rs.total.ct
+}
+
+func (rs *ResultSet) Print(printer Printer) error {
+	index := 0
+	printer.PrintHeader(rs.total.ct)
+	for _, name := range rs.list {
+		printer.PrintEach(name, rs.Counter(name), index)
+		index++
+	}
+	if index > 1 {
+		printer.PrintTotal(rs)
+	}
+	printer.PrintFooter()
+	return nil
 }
 
 func (rs *ResultSet) Push(file File, counter Counter) {
-	rs.results[file.Name()] = counter
+	name := file.Name()
+	rs.results[name] = counter
+	rs.list = append(rs.list, name)
 	updateTotal(rs.total, counter)
 }
 

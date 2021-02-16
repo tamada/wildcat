@@ -24,6 +24,10 @@ const (
 	Lines                  = 8
 )
 
+func (ct CounterType) IsType(ct2 CounterType) bool {
+	return ct&ct2 == ct2
+}
+
 // NewCounter generates Counter by CounterTypes.
 func NewCounter(counterType CounterType) Counter {
 	counter := &multipleCounter{ct: counterType, counters: map[CounterType]Counter{}}

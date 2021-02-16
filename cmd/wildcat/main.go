@@ -121,18 +121,8 @@ func parseOptions(args []string) (*options, error) {
 }
 
 func printAll(cli *cliOptions, targets wildcat.Target, rs *wildcat.ResultSet) int {
-	index := 0
-	printer := wildcat.NewPrinter(os.Stdout)
-	printer.PrintHeader()
-	for file := range targets.Iter() {
-		name := file.Name()
-		printer.PrintEach(name, rs.Counter(name), index)
-		index++
-	}
-	if targets.Size() > 1 {
-		printer.PrintTotal(rs)
-	}
-	printer.PrintFooter()
+	printer := wildcat.NewPrinter(os.Stdout, cli.format)
+	rs.Print(printer)
 	return 0
 }
 
