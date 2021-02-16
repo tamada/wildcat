@@ -18,6 +18,8 @@ func NewPrinter(dest io.Writer, printerType string) Printer {
 	switch strings.ToLower(printerType) {
 	case "json":
 		return &JsonPrinter{dest: dest}
+	case "xml":
+		return &XmlPrinter{dest: dest}
 	default:
 		return &DefaultPrinter{dest: dest}
 	}
@@ -28,8 +30,7 @@ type DefaultPrinter struct {
 }
 
 func (dp *DefaultPrinter) PrintHeader(ct CounterType) {
-	types := []CounterType{Lines, Words, Characters, Bytes}
-	for index, label := range []string{"lines", "words", "characters", "bytes"} {
+	for index, label := range labels {
 		if ct.IsType(types[index]) {
 			fmt.Fprintf(dp.dest, " %10s", label)
 		}
@@ -38,7 +39,7 @@ func (dp *DefaultPrinter) PrintHeader(ct CounterType) {
 }
 
 func (dp *DefaultPrinter) PrintEach(fileName string, counter Counter, index int) {
-	for _, t := range []CounterType{Lines, Words, Characters, Bytes} {
+	for _, t := range types {
 		if counter.IsType(t) {
 			fmt.Fprintf(dp.dest, " %10d", counter.count(t))
 		}
@@ -48,7 +49,7 @@ func (dp *DefaultPrinter) PrintEach(fileName string, counter Counter, index int)
 
 func (dp *DefaultPrinter) PrintTotal(rs *ResultSet) {
 	ct := rs.CounterType()
-	for _, t := range []CounterType{Lines, Words, Characters, Bytes} {
+	for _, t := range types {
 		if ct.IsType(t) {
 			fmt.Fprintf(dp.dest, " %10d", rs.total.count(t))
 		}
@@ -58,6 +59,33 @@ func (dp *DefaultPrinter) PrintTotal(rs *ResultSet) {
 
 func (dp *DefaultPrinter) PrintFooter() {
 	// do nothing.
+}
+
+type XmlPrinter struct {
+	dest io.Writer
+}
+
+func (xp *XmlPrinter) PrintHeader(ct CounterType) {
+	fmt.Fprintln(xp.dest, `<?xml version="1.0"?>`)
+	fmt.Fprintf(xp.dest, "<wildcat><timestamp>%s</timestamp><results>", now())
+}
+
+func (xp *XmlPrinter) PrintEach(fileName string, counter Counter, index int) {
+	fmt.Fprintf(xp.dest, "<result><file-name>%s</file-name>", fileName)
+	for index, label := range labels {
+		if counter.IsType(types[index]) {
+			fmt.Fprintf(xp.dest, "<%s>%d</%s>", label, counter.count(types[index]), label)
+		}
+	}
+	fmt.Fprintf(xp.dest, "</result>")
+}
+
+func (xp *XmlPrinter) PrintTotal(rs *ResultSet) {
+	xp.PrintEach("total", rs.total, 1)
+}
+
+func (xp *XmlPrinter) PrintFooter() {
+	fmt.Fprintln(xp.dest, "</results></wildcat>")
 }
 
 type JsonPrinter struct {
@@ -77,14 +105,16 @@ func (jp *JsonPrinter) PrintEach(fileName string, counter Counter, index int) {
 		fmt.Fprint(jp.dest, ",")
 	}
 	fmt.Fprintf(jp.dest, `{"filename":"%s"`, fileName)
-	labels := []string{"lines", "words", "characters", "bytes"}
-	for i, ct := range []CounterType{Lines, Words, Characters, Bytes} {
+	for i, ct := range types {
 		if counter.IsType(ct) {
 			fmt.Fprintf(jp.dest, `,"%s":%d`, labels[i], counter.count(ct))
 		}
 	}
 	fmt.Fprintf(jp.dest, `}`)
 }
+
+var labels = []string{"lines", "words", "characters", "bytes"}
+var types = []CounterType{Lines, Words, Characters, Bytes}
 
 func (jp *JsonPrinter) PrintTotal(rs *ResultSet) {
 	jp.PrintEach("total", rs.total, 1)
