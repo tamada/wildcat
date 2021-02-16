@@ -10,7 +10,7 @@ import (
 )
 
 func TestStdin(t *testing.T) {
-	file, _ := os.Open("../../testdata/london_bridge_is_broken_down.txt")
+	file, _ := os.Open("../../testdata/wc/london_bridge_is_broken_down.txt")
 	origStdin := os.Stdin
 	os.Stdin = file
 	defer func() {
@@ -42,24 +42,24 @@ func Example_wildcat2() {
 		os.Stdin = origStdin
 		os.Remove(temp.Name())
 	}()
-	temp.Write([]byte(`../../testdata/humpty_dumpty.txt
-../../testdata/ja/sakura_sakura.txt`))
+	temp.Write([]byte(`../../testdata/wc/humpty_dumpty.txt
+../../testdata/wc/ja/sakura_sakura.txt`))
 	temp.Seek(0, 0)
 
 	goMain([]string{"wildcat", "-@", "-f", "csv", "-b", "-w", "--character"})
 	// Output:
 	// file name,words,characters,bytes
-	// ../../testdata/humpty_dumpty.txt,26,142,142
-	// ../../testdata/ja/sakura_sakura.txt,26,118,298
+	// ../../testdata/wc/humpty_dumpty.txt,26,142,142
+	// ../../testdata/wc/ja/sakura_sakura.txt,26,118,298
 	// total,52,260,440
 }
 
 func Example_wildcat() {
-	goMain([]string{"wildcat", "../../testdata/humpty_dumpty.txt", "../../testdata/ja/sakura_sakura.txt", "-l", "-b", "-c", "-w"})
+	goMain([]string{"wildcat", "../../testdata/wc/humpty_dumpty.txt", "../../testdata/wc/ja/sakura_sakura.txt", "-l", "-b", "-c", "-w"})
 	// Output:
 	//       lines      words characters      bytes
-	//           4         26        142        142 ../../testdata/humpty_dumpty.txt
-	//          15         26        118        298 ../../testdata/ja/sakura_sakura.txt
+	//           4         26        142        142 ../../testdata/wc/humpty_dumpty.txt
+	//          15         26        118        298 ../../testdata/wc/ja/sakura_sakura.txt
 	//          19         52        260        440 total
 }
 

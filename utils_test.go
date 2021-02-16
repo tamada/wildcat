@@ -7,9 +7,9 @@ func TestExistFile(t *testing.T) {
 		givePath string
 		wontFlag bool
 	}{
-		{"testdata/humpty_dumpty.txt", true},
-		{"testdata/london_bridge_is_broken_down.txt", true},
-		{"testdata/ja/sakura_sakura.txt", true},
+		{"testdata/wc/humpty_dumpty.txt", true},
+		{"testdata/wc/london_bridge_is_broken_down.txt", true},
+		{"testdata/wc/ja/sakura_sakura.txt", true},
 		{"testdata", false},
 		{"no_file_or_directory", false},
 	}
@@ -27,9 +27,9 @@ func TestExistDir(t *testing.T) {
 		givePath string
 		wontFlag bool
 	}{
-		{"testdata/humpty_dumpty.txt", false},
-		{"testdata/london_bridge_is_broken_down.txt", false},
-		{"testdata/ja/sakura_sakura.txt", false},
+		{"testdata/wc/humpty_dumpty.txt", false},
+		{"testdata/wc/london_bridge_is_broken_down.txt", false},
+		{"testdata/wc/ja/sakura_sakura.txt", false},
 		{"testdata", true},
 		{"no_file_or_directory", false},
 	}
