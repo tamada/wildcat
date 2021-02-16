@@ -80,7 +80,10 @@ func (ro *runtimeOptions) constructTarget(ec *wildcat.ErrorCenter) wildcat.Targe
 		return wildcat.NewTargetFromFileList(ro.args, ec)
 	}
 	if len(ro.args) > 0 {
-		return wildcat.NewTarget(ro.args, ec)
+		if ro.noIgnore {
+			return wildcat.NewTarget(ro.args, ec)
+		}
+		return wildcat.NewTargetWithIgnoreFile(ro.args, ec)
 	}
 	return wildcat.NewStdinTarget()
 }
