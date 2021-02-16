@@ -144,7 +144,6 @@ func perform(opts *options) int {
 		counter := opts.count.generateCounter()
 		file.Count(counter)
 		rs.Push(file, counter)
-		fmt.Fprintf(os.Stderr, "%s: %v\n", file.Name(), counter)
 	}
 	return printAll(opts.cli, targets, rs)
 }
