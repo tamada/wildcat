@@ -137,18 +137,19 @@ func printAll(cli *cliOptions, targets wildcat.Target, rs *wildcat.ResultSet) er
 	return rs.Print(printer)
 }
 
-func performImpl(opts *options) error {
+func performImpl(opts *options) *wildcat.ErrorCenter {
 	ec := wildcat.NewErrorCenter()
 	targets := opts.runtime.constructTarget(ec)
 	rs := targets.Count(func() wildcat.Counter {
 		return opts.count.generateCounter()
 	})
-	return printAll(opts.cli, targets, rs)
+	ec.Push(printAll(opts.cli, targets, rs))
+	return ec
 }
 
 func perform(opts *options) int {
 	err := performImpl(opts)
-	if err != nil {
+	if !err.IsEmpty() {
 		fmt.Println(err.Error())
 		return 1
 	}

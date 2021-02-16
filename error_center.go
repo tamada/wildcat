@@ -3,6 +3,7 @@ package wildcat
 import (
 	"fmt"
 	"io"
+	"strings"
 )
 
 type ErrorCenter struct {
@@ -18,6 +19,16 @@ func (ec *ErrorCenter) Push(err error) bool {
 		ec.errs = append(ec.errs, err)
 	}
 	return err != nil
+}
+
+func (ec *ErrorCenter) IsEmpty() bool {
+	return len(ec.errs) == 0
+}
+
+func (ec *ErrorCenter) Error() string {
+	dest := new(strings.Builder)
+	ec.Println(dest)
+	return dest.String()
 }
 
 func (ec *ErrorCenter) Println(dest io.Writer) {

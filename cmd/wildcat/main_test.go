@@ -3,28 +3,59 @@ package main
 import (
 	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
+
+	"github.com/tamada/wildcat"
 )
+
+func TestStdin(t *testing.T) {
+	file, _ := os.Open("../../testdata/london_bridge_is_broken_down.txt")
+	origStdin := os.Stdin
+	os.Stdin = file
+	defer func() {
+		os.Stdin = origStdin
+		file.Close()
+	}()
+	goMain([]string{"wildcat", "-d", "hoge.txt", "-f", "json"})
+	if !wildcat.ExistFile("hoge.txt") {
+		t.Errorf("destination hoge.txt not found")
+	}
+
+	dest, _ := os.Open("hoge.txt")
+	defer func() {
+		dest.Close()
+		os.Remove("hoge.txt")
+	}()
+	data, _ := ioutil.ReadAll(dest)
+	result := strings.TrimSpace(string(data))
+	if !strings.HasSuffix(result, `,"results":[{"filename":"<stdin>","lines":59,"words":260,"characters":1341,"bytes":1341}]}`) {
+		t.Errorf("result did not match, got %s", result)
+	}
+}
 
 func Example_wildcat2() {
 	temp, _ := ioutil.TempFile("", "temp")
 	origStdin := os.Stdin
 	os.Stdin = temp
-	defer func() { os.Stdin = origStdin }()
+	defer func() {
+		os.Stdin = origStdin
+		os.Remove(temp.Name())
+	}()
 	temp.Write([]byte(`../../testdata/humpty_dumpty.txt
 ../../testdata/ja/sakura_sakura.txt`))
 	temp.Seek(0, 0)
 
-	goMain([]string{"wildcat", "-@", "-f", "csv", "-b", "-w", "-l", "--character"})
+	goMain([]string{"wildcat", "-@", "-f", "csv", "-b", "-w", "--character"})
 	// Output:
-	// file name,lines,words,characters,bytes
-	// ../../testdata/humpty_dumpty.txt,4,26,142,142
-	// ../../testdata/ja/sakura_sakura.txt,15,26,118,298
-	// total,19,52,260,440
+	// file name,words,characters,bytes
+	// ../../testdata/humpty_dumpty.txt,26,142,142
+	// ../../testdata/ja/sakura_sakura.txt,26,118,298
+	// total,52,260,440
 }
 
 func Example_wildcat() {
-	goMain([]string{"wildcat", "../../testdata/humpty_dumpty.txt", "../../testdata/ja/sakura_sakura.txt"})
+	goMain([]string{"wildcat", "../../testdata/humpty_dumpty.txt", "../../testdata/ja/sakura_sakura.txt", "-l", "-b", "-c", "-w"})
 	// Output:
 	//       lines      words characters      bytes
 	//           4         26        142        142 ../../testdata/humpty_dumpty.txt
