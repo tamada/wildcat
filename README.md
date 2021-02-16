@@ -42,6 +42,24 @@ If no arguments are specified, the standard input is used.
 Moreover, -@ option is specified, the content of given files are the target files.
 ```
 
+### Results
+
+#### Json
+
+```JSON
+{
+    "timestamp": "2021-02-15T14:42:51+9:00",
+    results: [
+        {
+            "filename": "testdata/humpty_dumpty.txt",
+            "lines": 4,
+            "words": 26,
+            "bytes": 142
+        }
+    ]
+}
+```
+
 ## :walking: Demo
 
 ## :anchor: Install

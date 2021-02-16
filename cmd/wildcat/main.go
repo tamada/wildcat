@@ -5,6 +5,7 @@ import (
 	"os"
 
 	flag "github.com/spf13/pflag"
+	"github.com/tamada/wildcat"
 )
 
 // VERSION represents the version of this project.
@@ -20,12 +21,13 @@ OPTIONS
                              If the current locale does not support multibyte characters,
                              this option is equal to the -c option.
     -w, --word               prints the number of words in each input file.
+    -d, --dest <DEST>        specifies the destination of the result.  Default is standard output.
     -@, --filelist           treats the contents of arguments' file as file list.
     -n, --no-ignore          Does not respect ignore files (.gitignore).
     -f, --format <FORMAT>    prints results in a specified format.  Available formats are:
                              csv, json, xml, and default. Default is default.
 
-    -h, --help          prints this message.
+    -h, --help               prints this message.
 ARGUMENTS
     FILEs...            specifies counting targets.
     DIRs...             files in the given directory are as the input files.
@@ -41,15 +43,46 @@ type countingOptions struct {
 	words      bool
 }
 
+func (co *countingOptions) generateCounter() wildcat.Counter {
+	var ct wildcat.CounterType = 0
+	if co.bytes {
+		ct = ct | wildcat.Bytes
+	}
+	if co.lines {
+		ct = ct | wildcat.Lines
+	}
+	if co.characters {
+		ct = ct | wildcat.Characters
+	}
+	if co.words {
+		ct = ct | wildcat.Words
+	}
+	if ct == 0 {
+		ct = wildcat.All
+	}
+	return wildcat.NewCounter(ct)
+}
+
 type runtimeOptions struct {
+	filelist bool
 	noIgnore bool
-	format   string
+	args     []string
 }
 
 type cliOptions struct {
-	filelist bool
-	help     bool
-	args     []string
+	help   bool
+	dest   string
+	format string
+}
+
+func (ro *runtimeOptions) constructTarget(ec *wildcat.ErrorCenter) wildcat.Target {
+	if ro.filelist {
+		return wildcat.NewTargetFromFileList(ro.args, ec)
+	}
+	if len(ro.args) > 0 {
+		return wildcat.NewTarget(ro.args, ec)
+	}
+	return wildcat.NewStdinTarget()
 }
 
 type options struct {
@@ -71,9 +104,10 @@ func buildFlagSet() (*flag.FlagSet, *options) {
 	flags.BoolVarP(&opts.count.words, "word", "w", false, "prints the number of words in each input file.")
 	flags.BoolVarP(&opts.count.characters, "character", "c", false, "prints the number of characters in each input file.")
 	flags.BoolVarP(&opts.runtime.noIgnore, "no-ignore", "n", false, "Does not respect ignore files (.gitignore)")
-	flags.BoolVarP(&opts.cli.filelist, "filelist", "@", false, "treats the contents of arguments' file as file list")
+	flags.BoolVarP(&opts.runtime.filelist, "filelist", "@", false, "treats the contents of arguments' file as file list")
 	flags.BoolVarP(&opts.cli.help, "help", "h", false, "prints this message")
-	flags.StringVarP(&opts.runtime.format, "format", "f", "default", "specifies the resultant format")
+	flags.StringVarP(&opts.cli.dest, "dest", "d", "", "specifies the destination of the result")
+	flags.StringVarP(&opts.cli.format, "format", "f", "default", "specifies the resultant format")
 	return flags, opts
 }
 
@@ -82,11 +116,44 @@ func parseOptions(args []string) (*options, error) {
 	if err := flags.Parse(args); err != nil {
 		return nil, err
 	}
-	opts.cli.args = flags.Args()
+	opts.runtime.args = flags.Args()[1:]
 	if err := validateOptions(opts); err != nil {
 		return nil, err
 	}
 	return opts, nil
+}
+
+func printAll(cli *cliOptions, targets wildcat.Target, rs *wildcat.ResultSet) error {
+	dest := os.Stdout
+	if cli.dest != "" {
+		file, err := os.Create(cli.dest)
+		if err != nil {
+			return err
+		}
+		dest = file
+		defer file.Close()
+	}
+	printer := wildcat.NewPrinter(dest, cli.format)
+	return rs.Print(printer)
+}
+
+func performImpl(opts *options) *wildcat.ErrorCenter {
+	ec := wildcat.NewErrorCenter()
+	targets := opts.runtime.constructTarget(ec)
+	rs := targets.Count(func() wildcat.Counter {
+		return opts.count.generateCounter()
+	})
+	ec.Push(printAll(opts.cli, targets, rs))
+	return ec
+}
+
+func perform(opts *options) int {
+	err := performImpl(opts)
+	if !err.IsEmpty() {
+		fmt.Println(err.Error())
+		return 1
+	}
+	return 0
 }
 
 func goMain(args []string) int {

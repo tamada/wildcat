@@ -6,7 +6,7 @@ import (
 )
 
 func validateOptions(opts *options) error {
-	return validateFormat(opts.runtime.format)
+	return validateFormat(opts.cli.format)
 }
 
 func validateFormat(givenFormat string) error {

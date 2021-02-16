@@ -11,7 +11,6 @@ jobs:
                 os:
                     - ubuntu-latest
                     - macOS-latest
-                    - windows-latest
         steps:
             - name: setup go
               uses: actions/setup-go@v1
