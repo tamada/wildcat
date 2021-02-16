@@ -9,12 +9,12 @@ import (
 )
 
 type Target interface {
-	Iter() <-chan File
+	Iter() <-chan file
 	Count(counterGenerator func() Counter) *ResultSet
 	Size() int
 }
 
-type File interface {
+type file interface {
 	Name() string
 	Count(counter Counter)
 }
@@ -43,7 +43,7 @@ type defaultFile struct {
 	err    error
 }
 
-func newDefaultFile(name string) File {
+func newDefaultFile(name string) file {
 	return &defaultFile{name: name, reader: nil, err: nil}
 }
 
@@ -79,8 +79,8 @@ func (st *sliceTarget) Count(counterGenerator func() Counter) *ResultSet {
 	return countImpl(st, counterGenerator)
 }
 
-func (st *sliceTarget) Iter() <-chan File {
-	ch := make(chan File)
+func (st *sliceTarget) Iter() <-chan file {
+	ch := make(chan file)
 	go func() {
 		for _, t := range st.targets {
 			ch <- newDefaultFile(t)
@@ -111,8 +111,8 @@ func (stdinT *stdinTarget) Size() int {
 	return 1
 }
 
-func (stdinT *stdinTarget) Iter() <-chan File {
-	ch := make(chan File)
+func (stdinT *stdinTarget) Iter() <-chan file {
+	ch := make(chan file)
 	go func() {
 		ch <- &stdinFile{}
 		close(ch)
@@ -121,20 +121,25 @@ func (stdinT *stdinTarget) Iter() <-chan File {
 }
 
 func readFilesInDir(dirName string, ec *ErrorCenter) []string {
-	targets := []string{}
 	fileInfos, err := ioutil.ReadDir(dirName)
 	if err != nil {
 		ec.Push(err)
 		return []string{}
 	}
+	targets := []string{}
 	for _, fileInfo := range fileInfos {
 		newName := filepath.Join(dirName, fileInfo.Name())
-		if fileInfo.IsDir() {
-			files := readFilesInDir(newName, ec)
-			targets = append(targets, files...)
-		} else if fileInfo.Mode().IsRegular() {
-			targets = append(targets, newName)
-		}
+		targets = appendTargets(targets, newName, ec)
+	}
+	return targets
+}
+
+func appendTargets(targets []string, arg string, ec *ErrorCenter) []string {
+	if ExistDir(arg) {
+		files := readFilesInDir(arg, ec)
+		targets = append(targets, files...)
+	} else if ExistFile(arg) {
+		targets = append(targets, arg)
 	}
 	return targets
 }
@@ -142,12 +147,7 @@ func readFilesInDir(dirName string, ec *ErrorCenter) []string {
 func NewTarget(args []string, ec *ErrorCenter) Target {
 	targets := []string{}
 	for _, arg := range args {
-		if ExistDir(arg) {
-			files := readFilesInDir(arg, ec)
-			targets = append(targets, files...)
-		} else if ExistFile(arg) {
-			targets = append(targets, arg)
-		}
+		targets = appendTargets(targets, arg, ec)
 	}
 	return &sliceTarget{targets: targets}
 }

@@ -4,17 +4,19 @@ import (
 	"unicode/utf8"
 )
 
-type Calculator interface {
+type calculator interface {
 	calculate(data []byte) int64
 }
 
+// Counter shows
 type Counter interface {
 	IsType(ct CounterType) bool
 	Type() CounterType
 	update(data []byte)
-	count(ct CounterType) int64
+	Count(ct CounterType) int64
 }
 
+// CounterType represents the types of counting.
 type CounterType int
 
 const (
@@ -68,29 +70,29 @@ func (mc *multipleCounter) update(data []byte) {
 	}
 }
 
-func (mc *multipleCounter) count(ct CounterType) int64 {
+func (mc *multipleCounter) Count(ct CounterType) int64 {
 	counter, ok := mc.counters[ct]
 	if !ok {
 		return -1
 	}
-	return counter.count(ct)
+	return counter.Count(ct)
 }
 
 type singleCounter struct {
 	ct         CounterType
 	number     int64
-	calculator Calculator
+	calculator calculator
 }
 
 func (sc *singleCounter) IsType(ct CounterType) bool {
-	return sc.ct&ct == ct
+	return sc.ct.IsType(ct)
 }
 
 func (sc *singleCounter) Type() CounterType {
 	return sc.ct
 }
 
-func (sc *singleCounter) count(ct CounterType) int64 {
+func (sc *singleCounter) Count(ct CounterType) int64 {
 	return sc.number
 }
 

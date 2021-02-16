@@ -28,7 +28,7 @@ func (rs *ResultSet) Print(printer Printer) error {
 	return nil
 }
 
-func (rs *ResultSet) Push(file File, counter Counter) {
+func (rs *ResultSet) Push(file file, counter Counter) {
 	name := file.Name()
 	rs.results[name] = counter
 	rs.list = append(rs.list, name)
@@ -41,10 +41,10 @@ func (rs *ResultSet) Counter(fileName string) Counter {
 
 func updateTotal(total *totalCounter, counter Counter) {
 	total.ct = counter.Type()
-	total.lines += counter.count(Lines)
-	total.words += counter.count(Words)
-	total.characters += counter.count(Characters)
-	total.bytes += counter.count(Bytes)
+	total.lines += counter.Count(Lines)
+	total.words += counter.Count(Words)
+	total.characters += counter.Count(Characters)
+	total.bytes += counter.Count(Bytes)
 }
 
 type totalCounter struct {
@@ -67,7 +67,7 @@ func (tc *totalCounter) update(data []byte) {
 	// do nothing
 }
 
-func (tc *totalCounter) count(ct CounterType) int64 {
+func (tc *totalCounter) Count(ct CounterType) int64 {
 	switch ct {
 	case Lines:
 		return tc.lines
