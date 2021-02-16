@@ -20,6 +20,8 @@ func NewPrinter(dest io.Writer, printerType string) Printer {
 		return &JsonPrinter{dest: dest}
 	case "xml":
 		return &XmlPrinter{dest: dest}
+	case "csv":
+		return &CsvPrinter{dest: dest}
 	default:
 		return &DefaultPrinter{dest: dest}
 	}
@@ -58,6 +60,38 @@ func (dp *DefaultPrinter) PrintTotal(rs *ResultSet) {
 }
 
 func (dp *DefaultPrinter) PrintFooter() {
+	// do nothing.
+}
+
+type CsvPrinter struct {
+	dest io.Writer
+}
+
+func (cp *CsvPrinter) PrintHeader(ct CounterType) {
+	fmt.Fprint(cp.dest, "file name")
+	for index, label := range labels {
+		if ct.IsType(types[index]) {
+			fmt.Fprintf(cp.dest, ",%s", label)
+		}
+	}
+	fmt.Fprintln(cp.dest)
+}
+
+func (cp *CsvPrinter) PrintEach(fileName string, counter Counter, index int) {
+	fmt.Fprint(cp.dest, fileName)
+	for _, t := range types {
+		if counter.IsType(t) {
+			fmt.Fprintf(cp.dest, ",%d", counter.count(t))
+		}
+	}
+	fmt.Fprintln(cp.dest)
+}
+
+func (cp *CsvPrinter) PrintTotal(rs *ResultSet) {
+	cp.PrintEach("total", rs.total, 1)
+}
+
+func (cp *CsvPrinter) PrintFooter() {
 	// do nothing.
 }
 
