@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// Printer prints the result through ResultSet.
 type Printer interface {
 	PrintHeader(ct CounterType)
 	PrintEach(fileName string, counter Counter, index int)
@@ -14,6 +15,9 @@ type Printer interface {
 	PrintFooter()
 }
 
+// NewPrinter generates the suitable printer specified by given printerType to given dest.
+// Available printerType are: "json", "xml", "csv", and "default" (case insensitive).
+// If unknown type was given, the DefaultPrinter is returned.
 func NewPrinter(dest io.Writer, printerType string) Printer {
 	switch strings.ToLower(printerType) {
 	case "json":
@@ -27,6 +31,7 @@ func NewPrinter(dest io.Writer, printerType string) Printer {
 	}
 }
 
+// DefaultPrinter prints the result as the same format of wc command.
 type DefaultPrinter struct {
 	dest io.Writer
 }
@@ -155,5 +160,5 @@ func (jp *JsonPrinter) PrintTotal(rs *ResultSet) {
 }
 
 func (jp *JsonPrinter) PrintFooter() {
-	fmt.Fprintf(jp.dest, `]}`)
+	fmt.Fprintln(jp.dest, `]}`)
 }

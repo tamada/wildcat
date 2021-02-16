@@ -1,14 +1,35 @@
 package main
 
 import (
+	"io/ioutil"
+	"os"
 	"testing"
 )
 
-// Not implements yet.
-func Ignore_Example_wildcat() {
-	goMain([]string{"wildcat", "../../testdata/humpty_dumpty.txt"})
+func Example_wildcat2() {
+	temp, _ := ioutil.TempFile("", "temp")
+	origStdin := os.Stdin
+	os.Stdin = temp
+	defer func() { os.Stdin = origStdin }()
+	temp.Write([]byte(`../../testdata/humpty_dumpty.txt
+../../testdata/ja/sakura_sakura.txt`))
+	temp.Seek(0, 0)
+
+	goMain([]string{"wildcat", "-@", "-f", "csv", "-b", "-w", "-l", "--character"})
 	// Output:
-	//        4      26     142 ../../testdata/humpty_dumpty.txt
+	// file name,lines,words,characters,bytes
+	// ../../testdata/humpty_dumpty.txt,4,26,142,142
+	// ../../testdata/ja/sakura_sakura.txt,15,26,118,298
+	// total,19,52,260,440
+}
+
+func Example_wildcat() {
+	goMain([]string{"wildcat", "../../testdata/humpty_dumpty.txt", "../../testdata/ja/sakura_sakura.txt"})
+	// Output:
+	//       lines      words characters      bytes
+	//           4         26        142        142 ../../testdata/humpty_dumpty.txt
+	//          15         26        118        298 ../../testdata/ja/sakura_sakura.txt
+	//          19         52        260        440 total
 }
 
 func Example_help() {
@@ -23,12 +44,13 @@ func Example_help() {
 	//                              If the current locale does not support multibyte characters,
 	//                              this option is equal to the -c option.
 	//     -w, --word               prints the number of words in each input file.
+	//     -d, --dest <DEST>        specifies the destination of the result.  Default is standard output.
 	//     -@, --filelist           treats the contents of arguments' file as file list.
 	//     -n, --no-ignore          Does not respect ignore files (.gitignore).
 	//     -f, --format <FORMAT>    prints results in a specified format.  Available formats are:
 	//                              csv, json, xml, and default. Default is default.
 	//
-	//     -h, --help          prints this message.
+	//     -h, --help               prints this message.
 	// ARGUMENTS
 	//     FILEs...            specifies counting targets.
 	//     DIRs...             files in the given directory are as the input files.

@@ -22,6 +22,7 @@ const (
 	Characters             = 2
 	Words                  = 4
 	Lines                  = 8
+	All                    = Lines | Words | Characters | Bytes
 )
 
 func (ct CounterType) IsType(ct2 CounterType) bool {

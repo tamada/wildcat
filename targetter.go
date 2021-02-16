@@ -10,6 +10,7 @@ import (
 
 type Target interface {
 	Iter() <-chan File
+	Count(counterGenerator func() Counter) *ResultSet
 	Size() int
 }
 
@@ -74,6 +75,10 @@ func (st *sliceTarget) Size() int {
 	return len(st.targets)
 }
 
+func (st *sliceTarget) Count(counterGenerator func() Counter) *ResultSet {
+	return countImpl(st, counterGenerator)
+}
+
 func (st *sliceTarget) Iter() <-chan File {
 	ch := make(chan File)
 	go func() {
@@ -85,7 +90,21 @@ func (st *sliceTarget) Iter() <-chan File {
 	return ch
 }
 
+func countImpl(targets Target, counterGenerator func() Counter) *ResultSet {
+	rs := NewResultSet()
+	for file := range targets.Iter() {
+		counter := counterGenerator()
+		file.Count(counter)
+		rs.Push(file, counter)
+	}
+	return rs
+}
+
 type stdinTarget struct {
+}
+
+func (stdinT *stdinTarget) Count(counterGenerator func() Counter) *ResultSet {
+	return countImpl(stdinT, counterGenerator)
 }
 
 func (stdinT *stdinTarget) Size() int {

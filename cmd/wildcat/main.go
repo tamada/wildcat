@@ -21,12 +21,13 @@ OPTIONS
                              If the current locale does not support multibyte characters,
                              this option is equal to the -c option.
     -w, --word               prints the number of words in each input file.
+    -d, --dest <DEST>        specifies the destination of the result.  Default is standard output.
     -@, --filelist           treats the contents of arguments' file as file list.
     -n, --no-ignore          Does not respect ignore files (.gitignore).
     -f, --format <FORMAT>    prints results in a specified format.  Available formats are:
                              csv, json, xml, and default. Default is default.
 
-    -h, --help          prints this message.
+    -h, --help               prints this message.
 ARGUMENTS
     FILEs...            specifies counting targets.
     DIRs...             files in the given directory are as the input files.
@@ -57,7 +58,7 @@ func (co *countingOptions) generateCounter() wildcat.Counter {
 		ct = ct | wildcat.Words
 	}
 	if ct == 0 {
-		ct = wildcat.Bytes | wildcat.Lines | wildcat.Words | wildcat.Characters
+		ct = wildcat.All
 	}
 	return wildcat.NewCounter(ct)
 }
@@ -70,6 +71,7 @@ type runtimeOptions struct {
 
 type cliOptions struct {
 	help   bool
+	dest   string
 	format string
 }
 
@@ -104,6 +106,7 @@ func buildFlagSet() (*flag.FlagSet, *options) {
 	flags.BoolVarP(&opts.runtime.noIgnore, "no-ignore", "n", false, "Does not respect ignore files (.gitignore)")
 	flags.BoolVarP(&opts.runtime.filelist, "filelist", "@", false, "treats the contents of arguments' file as file list")
 	flags.BoolVarP(&opts.cli.help, "help", "h", false, "prints this message")
+	flags.StringVarP(&opts.cli.dest, "dest", "d", "", "specifies the destination of the result")
 	flags.StringVarP(&opts.cli.format, "format", "f", "default", "specifies the resultant format")
 	return flags, opts
 }
@@ -120,22 +123,36 @@ func parseOptions(args []string) (*options, error) {
 	return opts, nil
 }
 
-func printAll(cli *cliOptions, targets wildcat.Target, rs *wildcat.ResultSet) int {
-	printer := wildcat.NewPrinter(os.Stdout, cli.format)
-	rs.Print(printer)
-	return 0
+func printAll(cli *cliOptions, targets wildcat.Target, rs *wildcat.ResultSet) error {
+	dest := os.Stdout
+	if cli.dest != "" {
+		file, err := os.Create(cli.dest)
+		if err != nil {
+			return err
+		}
+		dest = file
+		defer file.Close()
+	}
+	printer := wildcat.NewPrinter(dest, cli.format)
+	return rs.Print(printer)
+}
+
+func performImpl(opts *options) error {
+	ec := wildcat.NewErrorCenter()
+	targets := opts.runtime.constructTarget(ec)
+	rs := targets.Count(func() wildcat.Counter {
+		return opts.count.generateCounter()
+	})
+	return printAll(opts.cli, targets, rs)
 }
 
 func perform(opts *options) int {
-	ec := wildcat.NewErrorCenter()
-	targets := opts.runtime.constructTarget(ec)
-	rs := wildcat.NewResultSet()
-	for file := range targets.Iter() {
-		counter := opts.count.generateCounter()
-		file.Count(counter)
-		rs.Push(file, counter)
+	err := performImpl(opts)
+	if err != nil {
+		fmt.Println(err.Error())
+		return 1
 	}
-	return printAll(opts.cli, targets, rs)
+	return 0
 }
 
 func goMain(args []string) int {
