@@ -75,12 +75,12 @@ func Example_help() {
 	//                              If the current locale does not support multibyte characters,
 	//                              this option is equal to the -c option.
 	//     -w, --word               prints the number of words in each input file.
-	//     -d, --dest <DEST>        specifies the destination of the result.  Default is standard output.
-	//     -@, --filelist           treats the contents of arguments' file as file list.
-	//     -n, --no-ignore          Does not respect ignore files (.gitignore).
-	//                              If this option was specified, wildcat read .gitignore.
 	//     -f, --format <FORMAT>    prints results in a specified format.  Available formats are:
 	//                              csv, json, xml, and default. Default is default.
+	//     -n, --no-ignore          Does not respect ignore files (.gitignore).
+	//                              If this option was specified, wildcat read .gitignore.
+	//     -o, --output <DEST>      specifies the destination of the result.  Default is standard output.
+	//     -@, --filelist           treats the contents of arguments' file as file list.
 	//
 	//     -h, --help               prints this message.
 	// ARGUMENTS

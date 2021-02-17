@@ -52,7 +52,10 @@ func (tt *tarTraverser) traverse(fileName string, rs *ResultSet, generator func(
 	}
 	defer reader.Close()
 	in := wrapReader(reader, fileName)
-	tar := tar.NewReader(in)
+	traverseTarImpl(tar.NewReader(in), fileName, rs, generator)
+}
+
+func traverseTarImpl(tar *tar.Reader, fileName string, rs *ResultSet, generator func() Counter) {
 	for {
 		header, err := tar.Next()
 		if err == io.EOF {
