@@ -84,8 +84,8 @@ func Example_help() {
 	//
 	//     -h, --help               prints this message.
 	// ARGUMENTS
-	//     FILEs...            specifies counting targets. wildcat accepts zip/tar/tar.gz/tar.bz2/jar files.
-	//     DIRs...             files in the given directory are as the input files.
+	//     FILEs...                 specifies counting targets. wildcat accepts zip/tar/tar.gz/tar.bz2/jar files.
+	//     DIRs...                  files in the given directory are as the input files.
 	//
 	// If no arguments are specified, the standard input is used.
 	// Moreover, -@ option is specified, the content of given files are the target files.

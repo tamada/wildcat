@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	flag "github.com/spf13/pflag"
 	"github.com/tamada/wildcat"
@@ -30,8 +31,8 @@ OPTIONS
 
     -h, --help               prints this message.
 ARGUMENTS
-    FILEs...            specifies counting targets. wildcat accepts zip/tar/tar.gz/tar.bz2/jar files.
-    DIRs...             files in the given directory are as the input files.
+    FILEs...                 specifies counting targets. wildcat accepts zip/tar/tar.gz/tar.bz2/jar files.
+    DIRs...                  files in the given directory are as the input files.
 
 If no arguments are specified, the standard input is used.
 Moreover, -@ option is specified, the content of given files are the target files.`, name, VERSION, name)
@@ -196,7 +197,7 @@ func goMain(args []string) int {
 		return 1
 	}
 	if opts.isHelpRequested() {
-		fmt.Println(helpMessage(args[0]))
+		fmt.Println(helpMessage(filepath.Base(args[0])))
 		return 0
 	}
 	return perform(opts)
