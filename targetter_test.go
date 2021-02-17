@@ -32,3 +32,17 @@ func TestReadFilesInDirWithIgnore(t *testing.T) {
 		}
 	}
 }
+
+func TestReadFilesInDirWithoutIgnore(t *testing.T) {
+	ec := NewErrorCenter()
+	targets := readFilesInDir("testdata/ignores", ec, false, &noIgnore{})
+	if len(targets) != 7 {
+		t.Errorf("readFilesInDir(\"testdata/ignores\") size did not match, wont %d, got %d", 7, len(targets))
+	}
+	testdata := []string{"notIgnore.txt", "subdir/notIgnore.txt"}
+	for _, td := range testdata {
+		if !Contains(targets, filepath.Join("testdata/ignores/", td)) {
+			t.Errorf("readFilesInDir did not contains %s", td)
+		}
+	}
+}

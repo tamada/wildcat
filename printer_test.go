@@ -6,8 +6,7 @@ import (
 )
 
 func createResultSetForTest() *ResultSet {
-	ec := NewErrorCenter()
-	target := NewTarget([]string{"testdata/wc/humpty_dumpty.txt", "testdata/wc/ja/sakura_sakura.txt"}, ec)
+	target := &sliceTarget{targets: []string{"testdata/wc/humpty_dumpty.txt", "testdata/wc/ja/sakura_sakura.txt"}}
 	return target.Count(func() Counter { return NewCounter(All) })
 }
 

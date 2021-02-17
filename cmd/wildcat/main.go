@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	flag "github.com/spf13/pflag"
 	"github.com/tamada/wildcat"
@@ -21,16 +22,17 @@ OPTIONS
                              If the current locale does not support multibyte characters,
                              this option is equal to the -c option.
     -w, --word               prints the number of words in each input file.
-    -d, --dest <DEST>        specifies the destination of the result.  Default is standard output.
-    -@, --filelist           treats the contents of arguments' file as file list.
-    -n, --no-ignore          Does not respect ignore files (.gitignore).
     -f, --format <FORMAT>    prints results in a specified format.  Available formats are:
                              csv, json, xml, and default. Default is default.
+    -n, --no-ignore          Does not respect ignore files (.gitignore).
+                             If this option was specified, wildcat read .gitignore.
+    -o, --output <DEST>      specifies the destination of the result.  Default is standard output.
+    -@, --filelist           treats the contents of arguments' file as file list.
 
     -h, --help               prints this message.
 ARGUMENTS
-    FILEs...            specifies counting targets.
-    DIRs...             files in the given directory are as the input files.
+    FILEs...                 specifies counting targets. wildcat accepts zip/tar/tar.gz/tar.bz2/jar files.
+    DIRs...                  files in the given directory are as the input files.
 
 If no arguments are specified, the standard input is used.
 Moreover, -@ option is specified, the content of given files are the target files.`, name, VERSION, name)
@@ -75,17 +77,28 @@ type cliOptions struct {
 	format string
 }
 
-func (ro *runtimeOptions) constructTarget(ec *wildcat.ErrorCenter) wildcat.Target {
+func (ro *runtimeOptions) constructTargets(ec *wildcat.ErrorCenter) []wildcat.Target {
+	targets := []wildcat.Target{}
 	if ro.filelist {
-		return wildcat.NewTargetFromFileList(ro.args, ec)
+		return []wildcat.Target{wildcat.NewTargetFromFileList(ro.args, ec)}
 	}
-	if len(ro.args) > 0 {
-		if ro.noIgnore {
-			return wildcat.NewTarget(ro.args, ec)
+	for _, arg := range ro.args {
+		target := ro.constructTarget(arg, ec)
+		if target != nil {
+			targets = append(targets, target)
 		}
-		return wildcat.NewTargetWithIgnoreFile(ro.args, ec)
 	}
-	return wildcat.NewStdinTarget()
+	if len(targets) == 0 {
+		targets = []wildcat.Target{wildcat.NewStdinTarget()}
+	}
+	return targets
+}
+
+func (ro *runtimeOptions) constructTarget(fileName string, ec *wildcat.ErrorCenter) wildcat.Target {
+	if ro.noIgnore {
+		return wildcat.NewTarget(fileName, ec)
+	}
+	return wildcat.NewTargetWithIgnoreFile(fileName, ec)
 }
 
 type options struct {
@@ -126,7 +139,7 @@ func parseOptions(args []string) (*options, error) {
 	return opts, nil
 }
 
-func printAll(cli *cliOptions, targets wildcat.Target, rs *wildcat.ResultSet) error {
+func printAll(cli *cliOptions, rs *wildcat.ResultSet) error {
 	dest := os.Stdout
 	if cli.dest != "" {
 		file, err := os.Create(cli.dest)
@@ -140,13 +153,34 @@ func printAll(cli *cliOptions, targets wildcat.Target, rs *wildcat.ResultSet) er
 	return rs.Print(printer)
 }
 
+func countAll(targets []wildcat.Target, count *countingOptions, ec *wildcat.ErrorCenter) []*wildcat.ResultSet {
+	rss := []*wildcat.ResultSet{}
+	for _, target := range targets {
+		rs := target.Count(func() wildcat.Counter {
+			return count.generateCounter()
+		})
+		rss = append(rss, rs)
+	}
+	return rss
+}
+
+func mergeResultSet(rss []*wildcat.ResultSet) *wildcat.ResultSet {
+	result := wildcat.NewResultSet()
+	for _, rs := range rss {
+		result.Merge(rs)
+	}
+	return result
+}
+
 func performImpl(opts *options) *wildcat.ErrorCenter {
 	ec := wildcat.NewErrorCenter()
-	targets := opts.runtime.constructTarget(ec)
-	rs := targets.Count(func() wildcat.Counter {
-		return opts.count.generateCounter()
-	})
-	ec.Push(printAll(opts.cli, targets, rs))
+	targets := opts.runtime.constructTargets(ec)
+	if !ec.IsEmpty() {
+		return ec
+	}
+	results := countAll(targets, opts.count, ec)
+	rs := mergeResultSet(results)
+	ec.Push(printAll(opts.cli, rs))
 	return ec
 }
 
@@ -162,11 +196,11 @@ func perform(opts *options) int {
 func goMain(args []string) int {
 	opts, err := parseOptions(args)
 	if err != nil {
-		fmt.Printf(err.Error())
+		fmt.Println(err.Error())
 		return 1
 	}
 	if opts.isHelpRequested() {
-		fmt.Println(helpMessage(args[0]))
+		fmt.Println(helpMessage(filepath.Base(args[0])))
 		return 0
 	}
 	return perform(opts)

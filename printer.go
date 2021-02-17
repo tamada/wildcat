@@ -7,6 +7,9 @@ import (
 	"time"
 )
 
+var labels = []string{"lines", "words", "characters", "bytes"}
+var types = []CounterType{Lines, Words, Characters, Bytes}
+
 // Printer prints the result through ResultSet.
 type Printer interface {
 	PrintHeader(ct CounterType)
@@ -150,9 +153,6 @@ func (jp *jsonPrinter) PrintEach(fileName string, counter Counter, index int) {
 	}
 	fmt.Fprintf(jp.dest, `}`)
 }
-
-var labels = []string{"lines", "words", "characters", "bytes"}
-var types = []CounterType{Lines, Words, Characters, Bytes}
 
 func (jp *jsonPrinter) PrintTotal(rs *ResultSet) {
 	jp.PrintEach("total", rs.total, 1)

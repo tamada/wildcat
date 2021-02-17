@@ -19,7 +19,8 @@ Also, it respects the ignore files, such as `.gitignore`.
 The excellent points than `wc` are as follows.
 
 * handles the files in the directories,
-* respects the ignore files, such as `.gitignore`,
+* respects the `.gitignore` file,
+* reads files in the archive file such as jar, tar.gz, and etc.,
 * supports the several output formats, and
 * accepts file list from file and stdin.
 
@@ -30,25 +31,26 @@ Note that this product is an example project for implementing Open Source Softwa
 ## :runner: Usage
 
 ```shell
-./wildcat version 1.0.0
-./wildcat [OPTIONS] [FILEs...|DIRs...]
+wildcat version 1.0.0
+wildcat [OPTIONS] [FILEs...|DIRs...]
 OPTIONS
     -b, --byte               prints the number of bytes in each input file.
     -l, --line               prints the number of lines in each input file.
     -c, --character          prints the number of characters in each input file.
                              If the current locale does not support multibyte characters,
                              this option is equal to the -c option.
-    -w, --word               prints the number of words in each input file.
-    -d, --dest <DEST>        specifies the destination of the result.  Default is standard output.
-    -@, --filelist           treats the contents of arguments' file as file list.
-    -n, --no-ignore          Does not respect ignore files (.gitignore).
     -f, --format <FORMAT>    prints results in a specified format.  Available formats are:
                              csv, json, xml, and default. Default is default.
+    -n, --no-ignore          Does not respect ignore files (.gitignore).
+                             If this option was specified, wildcat read .gitignore.
+    -w, --word               prints the number of words in each input file.
+    -o, --output <DEST>      specifies the destination of the result.  Default is standard output.
+    -@, --filelist           treats the contents of arguments' file as file list.
 
     -h, --help               prints this message.
 ARGUMENTS
-    FILEs...            specifies counting targets.
-    DIRs...             files in the given directory are as the input files.
+    FILEs...                 specifies counting targets. wildcat accepts zip/tar/tar.gz/tar.bz2/jar files.
+    DIRs...                  files in the given directory are as the input files.
 
 If no arguments are specified, the standard input is used.
 Moreover, -@ option is specified, the content of given files are the target files.
@@ -57,15 +59,17 @@ Moreover, -@ option is specified, the content of given files are the target file
 ### Results
 
 The available result formats are default, csv, json and xml.
-The examples of results are as follows.
+The examples of results are as follows by executing `wildcat testdata/wc --format <FORMAT>`.
 
 #### Default
 
+Default format is almost same as the result of `wc`.
+
 ```shell
 lines      words characters      bytes
-    4         26        142        142 testdata/humpty_dumpty.txt
-   15         26        118        298 testdata/ja/sakura_sakura.txt
-   59        260       1341       1341 testdata/london_bridge_is_broken_down.txt
+    4         26        142        142 testdata/wc/humpty_dumpty.txt
+   15         26        118        298 testdata/wc/ja/sakura_sakura.txt
+   59        260       1341       1341 testdata/wc/london_bridge_is_broken_down.txt
    78        312       1601       1781 total
 ```
 
@@ -73,9 +77,9 @@ lines      words characters      bytes
 
 ```csv
 file name,lines,words,characters,bytes
-testdata/humpty_dumpty.txt,4,26,142,142
-testdata/ja/sakura_sakura.txt,15,26,118,298
-testdata/london_bridge_is_broken_down.txt,59,260,1341,1341
+testdata/wc/humpty_dumpty.txt,4,26,142,142
+testdata/wc/ja/sakura_sakura.txt,15,26,118,298
+testdata/wc/london_bridge_is_broken_down.txt,59,260,1341,1341
 total,78,312,1601,1781
 ```
 
@@ -88,21 +92,21 @@ The following json is formatted by `jq .`.
   "timestamp": "2021-02-16T14:59:40+09:00",
   "results": [
     {
-      "filename": "testdata/humpty_dumpty.txt",
+      "filename": "testdata/wc/humpty_dumpty.txt",
       "lines": 4,
       "words": 26,
       "characters": 142,
       "bytes": 142
     },
     {
-      "filename": "testdata/ja/sakura_sakura.txt",
+      "filename": "testdata/wc/ja/sakura_sakura.txt",
       "lines": 15,
       "words": 26,
       "characters": 118,
       "bytes": 298
     },
     {
-      "filename": "testdata/london_bridge_is_broken_down.txt",
+      "filename": "testdata/wc/london_bridge_is_broken_down.txt",
       "lines": 59,
       "words": 260,
       "characters": 1341,
@@ -129,21 +133,21 @@ The following xml is formatted by `xmllint --format -`
   <timestamp>2021-02-16T14:58:06+09:00</timestamp>
   <results>
     <result>
-      <file-name>testdata/humpty_dumpty.txt</file-name>
+      <file-name>testdata/wc/humpty_dumpty.txt</file-name>
       <lines>4</lines>
       <words>26</words>
       <characters>142</characters>
       <bytes>142</bytes>
     </result>
     <result>
-      <file-name>testdata/ja/sakura_sakura.txt</file-name>
+      <file-name>testdata/wc/ja/sakura_sakura.txt</file-name>
       <lines>15</lines>
       <words>26</words>
       <characters>118</characters>
       <bytes>298</bytes>
     </result>
     <result>
-      <file-name>testdata/london_bridge_is_broken_down.txt</file-name>
+      <file-name>testdata/wc/london_bridge_is_broken_down.txt</file-name>
       <lines>59</lines>
       <words>260</words>
       <characters>1341</characters>

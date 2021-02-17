@@ -2,6 +2,7 @@ package wildcat
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -9,9 +10,7 @@ import (
 )
 
 type Target interface {
-	Iter() <-chan file
 	Count(counterGenerator func() Counter) *ResultSet
-	Size() int
 }
 
 type file interface {
@@ -19,18 +18,12 @@ type file interface {
 	Count(counter Counter)
 }
 
-type stdinFile struct {
-}
-
-func (stdin *stdinFile) Name() string {
-	return "<stdin>"
-}
-
-func (stdin *stdinFile) Count(counter Counter) {
-	reader := bufio.NewReader(os.Stdin)
+func drainDataFromReader(in io.Reader, counter Counter) {
+	reader := bufio.NewReader(in)
 	for {
 		line, err := reader.ReadBytes('\n')
 		if err == io.EOF {
+			counter.update(line)
 			break
 		}
 		counter.update(line)
@@ -57,45 +50,20 @@ func (df *defaultFile) Count(counter Counter) {
 		return
 	}
 	defer reader.Close()
-	in := bufio.NewReader(reader)
-	for {
-		data, err := in.ReadBytes('\n')
-		if err == io.EOF {
-			break
-		}
-		counter.update(data)
-	}
+	drainDataFromReader(reader, counter)
 }
 
 type sliceTarget struct {
 	targets []string
 }
 
-func (st *sliceTarget) Size() int {
-	return len(st.targets)
-}
-
 func (st *sliceTarget) Count(counterGenerator func() Counter) *ResultSet {
-	return countImpl(st, counterGenerator)
-}
-
-func (st *sliceTarget) Iter() <-chan file {
-	ch := make(chan file)
-	go func() {
-		for _, t := range st.targets {
-			ch <- newDefaultFile(t)
-		}
-		close(ch)
-	}()
-	return ch
-}
-
-func countImpl(targets Target, counterGenerator func() Counter) *ResultSet {
 	rs := NewResultSet()
-	for file := range targets.Iter() {
+	for _, t := range st.targets {
 		counter := counterGenerator()
+		file := newDefaultFile(t)
 		file.Count(counter)
-		rs.Push(file, counter)
+		rs.Push(t, counter)
 	}
 	return rs
 }
@@ -104,20 +72,15 @@ type stdinTarget struct {
 }
 
 func (stdinT *stdinTarget) Count(counterGenerator func() Counter) *ResultSet {
-	return countImpl(stdinT, counterGenerator)
+	rs := NewResultSet()
+	counter := counterGenerator()
+	drainDataFromReader(os.Stdin, counter)
+	rs.Push("<stdin>", counter)
+	return rs
 }
 
 func (stdinT *stdinTarget) Size() int {
 	return 1
-}
-
-func (stdinT *stdinTarget) Iter() <-chan file {
-	ch := make(chan file)
-	go func() {
-		ch <- &stdinFile{}
-		close(ch)
-	}()
-	return ch
 }
 
 func readFilesInDir(dirName string, ec *ErrorCenter, withIgnoreFile bool, ignore Ignore) []string {
@@ -137,7 +100,7 @@ func readFilesInDir(dirName string, ec *ErrorCenter, withIgnoreFile bool, ignore
 
 func ignores(dir string, withIgnoreFile bool, parent Ignore) Ignore {
 	if withIgnoreFile {
-		return NewIgnore(dir)
+		return newIgnore(dir)
 	}
 	return &noIgnore{parent: parent}
 }
@@ -153,20 +116,30 @@ func appendTargets(targets []string, arg string, ec *ErrorCenter, withIgnoreFile
 	return targets
 }
 
-func NewTargetWithIgnoreFile(args []string, ec *ErrorCenter) Target {
-	targets := []string{}
-	for _, arg := range args {
-		targets = appendTargets(targets, arg, ec, true, &noIgnore{})
+func findTargets(arg string, ec *ErrorCenter, withIgnoreFile bool, ignore Ignore) []string {
+	if ExistDir(arg) {
+		ignore := ignores(arg, withIgnoreFile, ignore)
+		return readFilesInDir(arg, ec, withIgnoreFile, ignore)
+	} else if ExistFile(arg) {
+		return []string{arg}
 	}
-	return &sliceTarget{targets: targets}
+	ec.Push(fmt.Errorf("%s: file or directory not found", arg))
+	return []string{}
 }
 
-func NewTarget(args []string, ec *ErrorCenter) Target {
-	targets := []string{}
-	for _, arg := range args {
-		targets = appendTargets(targets, arg, ec, false, &noIgnore{})
+func NewTargetWithIgnoreFile(arg string, ec *ErrorCenter) Target {
+	return newTarget(arg, ec, true)
+}
+
+func NewTarget(arg string, ec *ErrorCenter) Target {
+	return newTarget(arg, ec, false)
+}
+
+func newTarget(fileName string, ec *ErrorCenter, withIgnoreFile bool) Target {
+	if IsArchiveFile(fileName) {
+		return newArchiveTarget(fileName, ec)
 	}
-	return &sliceTarget{targets: targets}
+	return &sliceTarget{targets: findTargets(fileName, ec, withIgnoreFile, &noIgnore{})}
 }
 
 func readFileList(fileName string, ec *ErrorCenter) []string {
