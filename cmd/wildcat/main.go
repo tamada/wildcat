@@ -153,7 +153,7 @@ func printAll(cli *cliOptions, rs *wildcat.ResultSet) error {
 	return rs.Print(printer)
 }
 
-func countAll(targets []wildcat.Target, count *countingOptions) []*wildcat.ResultSet {
+func countAll(targets []wildcat.Target, count *countingOptions, ec *wildcat.ErrorCenter) []*wildcat.ResultSet {
 	rss := []*wildcat.ResultSet{}
 	for _, target := range targets {
 		rs := target.Count(func() wildcat.Counter {
@@ -175,7 +175,10 @@ func mergeResultSet(rss []*wildcat.ResultSet) *wildcat.ResultSet {
 func performImpl(opts *options) *wildcat.ErrorCenter {
 	ec := wildcat.NewErrorCenter()
 	targets := opts.runtime.constructTargets(ec)
-	results := countAll(targets, opts.count)
+	if !ec.IsEmpty() {
+		return ec
+	}
+	results := countAll(targets, opts.count, ec)
 	rs := mergeResultSet(results)
 	ec.Push(printAll(opts.cli, rs))
 	return ec

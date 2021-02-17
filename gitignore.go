@@ -52,7 +52,7 @@ func (gi *gitIgnore) IsIgnore(path string) bool {
 	return true
 }
 
-func NewIgnoreWithParent(dirPath string, parent Ignore) Ignore {
+func newIgnoreWithParent(dirPath string, parent Ignore) Ignore {
 	gitIgnoreFile := filepath.Join(dirPath, ".gitignore")
 	if ExistFile(gitIgnoreFile) {
 		return newGitIgnore(gitIgnoreFile, parent)
@@ -60,8 +60,8 @@ func NewIgnoreWithParent(dirPath string, parent Ignore) Ignore {
 	return &noIgnore{parent: parent}
 }
 
-func NewIgnore(dirPath string) Ignore {
-	return NewIgnoreWithParent(dirPath, nil)
+func newIgnore(dirPath string) Ignore {
+	return newIgnoreWithParent(dirPath, nil)
 }
 
 func newGitIgnore(gitIgnoreFilePath string, parent Ignore) Ignore {
