@@ -120,7 +120,7 @@ func (stdinT *stdinTarget) Iter() <-chan file {
 	return ch
 }
 
-func readFilesInDir(dirName string, ec *ErrorCenter) []string {
+func readFilesInDir(dirName string, ec *ErrorCenter, withIgnoreFile bool, ignore Ignore) []string {
 	fileInfos, err := ioutil.ReadDir(dirName)
 	if err != nil {
 		ec.Push(err)
@@ -129,14 +129,23 @@ func readFilesInDir(dirName string, ec *ErrorCenter) []string {
 	targets := []string{}
 	for _, fileInfo := range fileInfos {
 		newName := filepath.Join(dirName, fileInfo.Name())
-		targets = appendTargets(targets, newName, ec)
+		targets = appendTargets(targets, newName, ec, withIgnoreFile, ignore)
+		targets = ignore.Filter(targets)
 	}
 	return targets
 }
 
-func appendTargets(targets []string, arg string, ec *ErrorCenter) []string {
+func ignores(dir string, withIgnoreFile bool, parent Ignore) Ignore {
+	if withIgnoreFile {
+		return NewIgnore(dir)
+	}
+	return &noIgnore{parent: parent}
+}
+
+func appendTargets(targets []string, arg string, ec *ErrorCenter, withIgnoreFile bool, ignore Ignore) []string {
 	if ExistDir(arg) {
-		files := readFilesInDir(arg, ec)
+		ignore := ignores(arg, withIgnoreFile, ignore)
+		files := readFilesInDir(arg, ec, withIgnoreFile, ignore)
 		targets = append(targets, files...)
 	} else if ExistFile(arg) {
 		targets = append(targets, arg)
@@ -144,10 +153,18 @@ func appendTargets(targets []string, arg string, ec *ErrorCenter) []string {
 	return targets
 }
 
+func NewTargetWithIgnoreFile(args []string, ec *ErrorCenter) Target {
+	targets := []string{}
+	for _, arg := range args {
+		targets = appendTargets(targets, arg, ec, true, &noIgnore{})
+	}
+	return &sliceTarget{targets: targets}
+}
+
 func NewTarget(args []string, ec *ErrorCenter) Target {
 	targets := []string{}
 	for _, arg := range args {
-		targets = appendTargets(targets, arg, ec)
+		targets = appendTargets(targets, arg, ec, false, &noIgnore{})
 	}
 	return &sliceTarget{targets: targets}
 }
