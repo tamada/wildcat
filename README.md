@@ -19,7 +19,8 @@ Also, it respects the ignore files, such as `.gitignore`.
 The excellent points than `wc` are as follows.
 
 * handles the files in the directories,
-* respects the ignore files, such as `.gitignore`,
+* respects the `.gitignore` file,
+* reads files in the archive file such as jar, tar.gz, and etc.,
 * supports the several output formats, and
 * accepts file list from file and stdin.
 
@@ -42,12 +43,13 @@ OPTIONS
     -d, --dest <DEST>        specifies the destination of the result.  Default is standard output.
     -@, --filelist           treats the contents of arguments' file as file list.
     -n, --no-ignore          Does not respect ignore files (.gitignore).
+                             If this option was specified, wildcat read .gitignore.
     -f, --format <FORMAT>    prints results in a specified format.  Available formats are:
                              csv, json, xml, and default. Default is default.
 
     -h, --help               prints this message.
 ARGUMENTS
-    FILEs...            specifies counting targets.
+    FILEs...            specifies counting targets. wildcat accepts zip/tar/tar.gz/tar.bz2/jar files.
     DIRs...             files in the given directory are as the input files.
 
 If no arguments are specified, the standard input is used.

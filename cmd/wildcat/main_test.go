@@ -78,12 +78,13 @@ func Example_help() {
 	//     -d, --dest <DEST>        specifies the destination of the result.  Default is standard output.
 	//     -@, --filelist           treats the contents of arguments' file as file list.
 	//     -n, --no-ignore          Does not respect ignore files (.gitignore).
+	//                              If this option was specified, wildcat read .gitignore.
 	//     -f, --format <FORMAT>    prints results in a specified format.  Available formats are:
 	//                              csv, json, xml, and default. Default is default.
 	//
 	//     -h, --help               prints this message.
 	// ARGUMENTS
-	//     FILEs...            specifies counting targets.
+	//     FILEs...            specifies counting targets. wildcat accepts zip/tar/tar.gz/tar.bz2/jar files.
 	//     DIRs...             files in the given directory are as the input files.
 	//
 	// If no arguments are specified, the standard input is used.

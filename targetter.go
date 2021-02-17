@@ -2,6 +2,7 @@ package wildcat
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -95,7 +96,7 @@ func countImpl(targets Target, counterGenerator func() Counter) *ResultSet {
 	for file := range targets.Iter() {
 		counter := counterGenerator()
 		file.Count(counter)
-		rs.Push(file, counter)
+		rs.Push(file.Name(), counter)
 	}
 	return rs
 }
@@ -153,20 +154,23 @@ func appendTargets(targets []string, arg string, ec *ErrorCenter, withIgnoreFile
 	return targets
 }
 
-func NewTargetWithIgnoreFile(args []string, ec *ErrorCenter) Target {
-	targets := []string{}
-	for _, arg := range args {
-		targets = appendTargets(targets, arg, ec, true, &noIgnore{})
+func findTargets(arg string, ec *ErrorCenter, withIgnoreFile bool, ignore Ignore) []string {
+	if ExistDir(arg) {
+		ignore := ignores(arg, withIgnoreFile, ignore)
+		return readFilesInDir(arg, ec, withIgnoreFile, ignore)
+	} else if ExistFile(arg) {
+		return []string{arg}
 	}
-	return &sliceTarget{targets: targets}
+	ec.Push(fmt.Errorf("%s: file or directory not found", arg))
+	return []string{}
 }
 
-func NewTarget(args []string, ec *ErrorCenter) Target {
-	targets := []string{}
-	for _, arg := range args {
-		targets = appendTargets(targets, arg, ec, false, &noIgnore{})
-	}
-	return &sliceTarget{targets: targets}
+func NewTargetWithIgnoreFile(arg string, ec *ErrorCenter) Target {
+	return &sliceTarget{targets: findTargets(arg, ec, true, &noIgnore{})}
+}
+
+func NewTarget(arg string, ec *ErrorCenter) Target {
+	return &sliceTarget{targets: findTargets(arg, ec, false, &noIgnore{})}
 }
 
 func readFileList(fileName string, ec *ErrorCenter) []string {

@@ -14,6 +14,12 @@ func (rs *ResultSet) CounterType() CounterType {
 	return rs.total.ct
 }
 
+func (rs *ResultSet) Merge(other *ResultSet) {
+	for _, name := range other.list {
+		rs.Push(name, other.results[name])
+	}
+}
+
 func (rs *ResultSet) Print(printer Printer) error {
 	index := 0
 	printer.PrintHeader(rs.total.ct)
@@ -28,10 +34,9 @@ func (rs *ResultSet) Print(printer Printer) error {
 	return nil
 }
 
-func (rs *ResultSet) Push(file file, counter Counter) {
-	name := file.Name()
-	rs.results[name] = counter
-	rs.list = append(rs.list, name)
+func (rs *ResultSet) Push(fileName string, counter Counter) {
+	rs.results[fileName] = counter
+	rs.list = append(rs.list, fileName)
 	updateTotal(rs.total, counter)
 }
 
