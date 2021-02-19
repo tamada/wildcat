@@ -67,25 +67,28 @@ func Example_help() {
 	goMain([]string{"wildcat", "--help"})
 	// Output:
 	// wildcat version 1.0.0
-	// wildcat [OPTIONS] [FILEs...|DIRs...]
+	// wildcat [OPTIONS] [FILEs...|DIRs...|URLs...]
 	// OPTIONS
-	//     -b, --byte               prints the number of bytes in each input file.
-	//     -l, --line               prints the number of lines in each input file.
-	//     -c, --character          prints the number of characters in each input file.
-	//                              If the current locale does not support multibyte characters,
-	//                              this option is equal to the -c option.
-	//     -w, --word               prints the number of words in each input file.
-	//     -f, --format <FORMAT>    prints results in a specified format.  Available formats are:
-	//                              csv, json, xml, and default. Default is default.
-	//     -n, --no-ignore          Does not respect ignore files (.gitignore).
-	//                              If this option was specified, wildcat read .gitignore.
-	//     -o, --output <DEST>      specifies the destination of the result.  Default is standard output.
-	//     -@, --filelist           treats the contents of arguments' file as file list.
+	//     -b, --byte                  prints the number of bytes in each input file.
+	//     -l, --line                  prints the number of lines in each input file.
+	//     -c, --character             prints the number of characters in each input file.
+	//                                 If the current locale does not support multibyte characters,
+	//                                 this option is equal to the -c option.
+	//     -w, --word                  prints the number of words in each input file.
+	//     -f, --format <FORMAT>       prints results in a specified format.  Available formats are:
+	//                                 csv, json, xml, and default. Default is default.
+	//     -n, --no-ignore             Does not respect ignore files (.gitignore).
+	//                                 If this option was specified, wildcat read .gitignore.
+	//     -N, --no-extract-archive    Does not extract archive files. If this option was specified,
+	//                                 wildcat treats archive files as the single binary file.
+	//     -o, --output <DEST>         specifies the destination of the result.  Default is standard output.
+	//     -@, --filelist              treats the contents of arguments' file as file list.
 	//
-	//     -h, --help               prints this message.
+	//     -h, --help                  prints this message.
 	// ARGUMENTS
-	//     FILEs...                 specifies counting targets. wildcat accepts zip/tar/tar.gz/tar.bz2/jar files.
-	//     DIRs...                  files in the given directory are as the input files.
+	//     FILEs...                    specifies counting targets. wildcat accepts zip/tar/tar.gz/tar.bz2/jar files.
+	//     DIRs...                     files in the given directory are as the input files.
+	//     URLs...                     specifies the urls for counting files (accept archive files).
 	//
 	// If no arguments are specified, the standard input is used.
 	// Moreover, -@ option is specified, the content of given files are the target files.
@@ -109,7 +112,8 @@ func TestParseOptions(t *testing.T) {
 	for _, td := range testdata {
 		args := []string{"wildcat"}
 		args = append(args, td.giveArgs...)
-		opts, err := parseOptions(args)
+		arguments := wildcat.NewArguments()
+		opts, err := parseOptions(args, arguments)
 		if err == nil && td.invalid || err != nil && !td.invalid {
 			t.Errorf("parseOptions(%v) wont invalid: %v, got %v, err: %v", td.giveArgs, td.invalid, err == nil, err)
 		}

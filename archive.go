@@ -3,10 +3,13 @@ package wildcat
 import (
 	"archive/tar"
 	"archive/zip"
+	"bytes"
 	"compress/bzip2"
 	"compress/gzip"
+	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"strings"
 )
@@ -26,8 +29,14 @@ func hasSuffix(fileName string, suffixes ...string) bool {
 	return false
 }
 
+type file interface {
+	Name() string
+	Count(counter Counter)
+}
+
 type archiveTraverser interface {
-	traverse(fileName string, rs *ResultSet, counterGenerator func() Counter)
+	traverse(fileName string, r *result)
+	traverseSource(s *source, r *result)
 }
 
 type tarTraverser struct {
@@ -44,25 +53,30 @@ func wrapReader(reader io.Reader, fileName string) io.Reader {
 	return reader
 }
 
-func (tt *tarTraverser) traverse(fileName string, rs *ResultSet, generator func() Counter) {
+func (tt *tarTraverser) traverseSource(s *source, r *result) {
+	in := wrapReader(s.in, s.name)
+	traverseTarImpl(tar.NewReader(in), s.name, r)
+}
+
+func (tt *tarTraverser) traverse(fileName string, r *result) {
 	reader, err := os.Open(fileName)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, err.Error())
+		r.ec.Push(err)
 		return
 	}
 	defer reader.Close()
 	in := wrapReader(reader, fileName)
-	traverseTarImpl(tar.NewReader(in), fileName, rs, generator)
+	traverseTarImpl(tar.NewReader(in), fileName, r)
 }
 
-func traverseTarImpl(tar *tar.Reader, fileName string, rs *ResultSet, generator func() Counter) {
+func traverseTarImpl(tar *tar.Reader, fileName string, r *result) {
 	for {
 		header, err := tar.Next()
 		if err == io.EOF {
 			break
 		}
 		name := fmt.Sprintf("%s!%s", fileName, header.Name)
-		countEach(&tarFile{tar: tar, name: name}, rs, generator)
+		countEach(&tarFile{tar: tar, name: name}, r)
 	}
 }
 
@@ -82,22 +96,75 @@ func (tf *tarFile) Name() string {
 type zipTraverser struct {
 }
 
-func (zt *zipTraverser) traverse(fileName string, rs *ResultSet, generator func() Counter) {
-	r, err := zip.OpenReader(fileName)
+type myReaderAt struct {
+	r io.Reader
+	n int64
+}
+
+func newMyReaderAt(r io.Reader) io.ReaderAt {
+	return &myReaderAt{r: r}
+}
+
+func (u *myReaderAt) ReadAt(p []byte, off int64) (n int, err error) {
+	if off < u.n {
+		return 0, errors.New("invalid offset")
+	}
+	diff := off - u.n
+	written, err := io.CopyN(ioutil.Discard, u.r, diff)
+	u.n += written
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
+		return 0, err
+	}
+
+	n, err = u.r.Read(p)
+	u.n += int64(n)
+	return
+}
+
+func copyDataFromSource(s *source) (io.ReaderAt, int64, error) {
+	buff := bytes.NewBuffer([]byte{})
+	size, err := io.Copy(buff, s.in)
+	if err != nil {
+		return nil, 0, err
+	}
+	return bytes.NewReader(buff.Bytes()), size, nil
+}
+
+func createZipReader(s *source) (*zip.Reader, error) {
+	reader, size, err := copyDataFromSource(s)
+	if err != nil {
+		return nil, err
+	}
+	return zip.NewReader(reader, size)
+}
+
+func (zt *zipTraverser) traverseSource(s *source, r *result) {
+	rr, err := createZipReader(s)
+	if err != nil {
+		r.ec.Push(err)
 		return
 	}
-	defer r.Close()
-	for _, f := range r.File {
-		countEach(&zipFile{zipFileName: fileName, file: f}, rs, generator)
+	for _, f := range rr.File {
+		countEach(&zipFile{zipFileName: s.name, file: f}, r)
 	}
 }
 
-func countEach(f file, rs *ResultSet, generator func() Counter) {
-	counter := generator()
+func (zt *zipTraverser) traverse(fileName string, r *result) {
+	rr, err := zip.OpenReader(fileName)
+	if err != nil {
+		r.ec.Push(err)
+		return
+	}
+	defer rr.Close()
+	for _, f := range rr.File {
+		countEach(&zipFile{zipFileName: fileName, file: f}, r)
+	}
+}
+
+func countEach(f file, r *result) {
+	counter := r.gen()
 	f.Count(counter)
-	rs.Push(f.Name(), counter)
+	r.rs.Push(f.Name(), counter)
 }
 
 type zipFile struct {
@@ -119,24 +186,12 @@ func (zf *zipFile) Count(counter Counter) {
 	drainDataFromReader(reader, counter)
 }
 
-func newArchiveTarget(fileName string, ec *ErrorCenter) Target {
+func newArchiveTraverser(fileName string) archiveTraverser {
 	if hasSuffix(fileName, ".jar", ".zip") {
-		return &archiveTarget{fileName: fileName, traverser: &zipTraverser{}}
+		return &zipTraverser{}
 	}
 	if hasSuffix(fileName, ".tar", ".tar.gz", ".tar.bz2") {
-		return &archiveTarget{fileName: fileName, traverser: &tarTraverser{}}
+		return &tarTraverser{}
 	}
-	ec.Push(fmt.Errorf("%s: unsupported archive file", fileName)) // never reach here!
 	return nil
-}
-
-type archiveTarget struct {
-	fileName  string
-	traverser archiveTraverser
-}
-
-func (at *archiveTarget) Count(counterGenerator func() Counter) *ResultSet {
-	rs := NewResultSet()
-	at.traverser.traverse(at.fileName, rs, counterGenerator)
-	return rs
 }

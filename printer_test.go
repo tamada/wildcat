@@ -6,8 +6,10 @@ import (
 )
 
 func createResultSetForTest() *ResultSet {
-	target := &sliceTarget{targets: []string{"testdata/wc/humpty_dumpty.txt", "testdata/wc/ja/sakura_sakura.txt"}}
-	return target.Count(func() Counter { return NewCounter(All) })
+	args := NewArguments()
+	args.Args = []string{"testdata/wc/humpty_dumpty.txt", "testdata/wc/ja/sakura_sakura.txt"}
+	ec := NewErrorCenter()
+	return args.CountAll(func() Counter { return NewCounter(All) }, ec)
 }
 
 func TestXmlPrinter(t *testing.T) {

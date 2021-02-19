@@ -2,6 +2,24 @@ package wildcat
 
 import "testing"
 
+func TestIsUrl(t *testing.T) {
+	testdata := []struct {
+		giveString string
+		wontUrl    bool
+	}{
+		{"http://github.com/tamada", true},
+		{"github.com/tamada", false},
+		{"/hoge/path", false},
+		{"https://github.com/tamada", true},
+	}
+	for _, td := range testdata {
+		gotFlag := IsUrl(td.giveString)
+		if gotFlag != td.wontUrl {
+			t.Errorf(`IsUrl("%s") did not match, wont %v, got %v`, td.giveString, td.wontUrl, gotFlag)
+		}
+	}
+}
+
 func TestExistFile(t *testing.T) {
 	testdata := []struct {
 		givePath string
