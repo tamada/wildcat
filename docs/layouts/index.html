@@ -1,0 +1,19 @@
+{{ define "main" }}
+
+<h1>{{ .Title | emojify }}</h1>
+
+{{ .Content | emojify }}
+
+<ul>
+{{ $pages := where site.RegularPages "Type" "in" site.Params.mainSections }}
+{{ range $pages.ByPublishDate.Reverse }}
+  <li>
+    {{ $dateFormat := $.Site.Params.dateFormat | default "Jan 2, 2006" }}
+    {{ .PublishDate.Format $dateFormat }}
+    <a href="{{ .Permalink }}">
+      {{ .Title | emojify }}
+    </a>
+  </li>        
+{{ end }}
+</ul>
+{{ end }}
