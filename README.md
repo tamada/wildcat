@@ -8,6 +8,9 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg?logo=spdx)](https://github.com/tamada/tjdoe/blob/master/LICENSE)
 [![Version](https://img.shields.io/badge/Version-1.0.0-green.svg)](https://github.com/tamada/tjdoe/releases/tag/v1.0.0)
 
+[![Docker](https://img.shields.io/badge/docker-ghcr.io%2Ftamada%2Fwildcat%3A1.0.0-green?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
+
+
 Another implementation of `wc` (word count).
 
 ![wildcat](docs/static/images/logo.svg)
