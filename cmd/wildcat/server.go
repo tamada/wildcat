@@ -50,16 +50,20 @@ func (me *myEntry) Open() (io.ReadCloser, error) {
 	return me.reader, nil
 }
 
+func createResultJSON(rs *wildcat.ResultSet) []byte {
+	buffer := bytes.NewBuffer([]byte{})
+	printer := wildcat.NewPrinter(buffer, "json")
+	rs.Print(printer)
+	return buffer.Bytes()
+}
+
 func respond(rs *wildcat.ResultSet, err error, res http.ResponseWriter) {
 	updateHeader(res)
 	if err != nil {
 		respondImpl(res, 400, []byte(fmt.Sprintf(`{"message":"%s"}`, err.Error())))
-		return
+	} else {
+		respondImpl(res, 200, createResultJSON(rs))
 	}
-	buffer := bytes.NewBuffer([]byte{})
-	printer := wildcat.NewPrinter(buffer, "json")
-	rs.Print(printer)
-	respondImpl(res, 200, buffer.Bytes())
 }
 
 func respondImpl(res http.ResponseWriter, statusCode int, message []byte) {
@@ -75,7 +79,7 @@ func countsBody(res http.ResponseWriter, req *http.Request, opts *wildcat.ReadOp
 	}
 	ds := wildcat.NewDataSink(wildcat.DefaultGenerator, ec)
 	opts.HandleArg(&myEntry{name: fileName, reader: req.Body}, ds, nil)
-	return ds.ResultSet(), nil
+	return ds.ResultSet(), ds.Error()
 }
 
 func counts(res http.ResponseWriter, req *http.Request) {
@@ -110,8 +114,7 @@ func countsMultipartBody(res http.ResponseWriter, req *http.Request, reader *wil
 	}
 	argf := wildcat.Argf{Entries: entries, Options: reader}
 	ec := wildcat.NewErrorCenter()
-	rs := argf.CountAll(wildcat.DefaultGenerator, ec)
-	return rs, nil
+	return argf.CountAll(wildcat.DefaultGenerator, ec)
 }
 
 func wrapHandler(h http.Handler) http.HandlerFunc {
@@ -134,11 +137,14 @@ func optionsHandler(res http.ResponseWriter, req *http.Request) {
 	res.Write([]byte{})
 }
 
+func registerHandlers(router *mux.Router) {
+	router.HandleFunc("/counts", counts).Methods("POST")
+	router.HandleFunc("/counts", optionsHandler).Methods("OPTIONS")
+}
+
 func createRestAPIServer() *mux.Router {
 	router := mux.NewRouter()
-	subRouter := router.PathPrefix("/wildcat/api/").Subrouter()
-	subRouter.HandleFunc("/counts", counts).Methods("POST")
-	subRouter.HandleFunc("/counts", optionsHandler).Methods("OPTIONS")
+	registerHandlers(router.PathPrefix("/wildcat/api/").Subrouter())
 	router.PathPrefix("/wildcat/").Handler(fileServer())
 	return router
 }

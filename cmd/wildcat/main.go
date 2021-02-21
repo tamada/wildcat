@@ -144,7 +144,7 @@ func printAll(cli *cliOptions, rs *wildcat.ResultSet) error {
 
 func performImpl(opts *options, argf *wildcat.Argf) *wildcat.ErrorCenter {
 	ec := wildcat.NewErrorCenter()
-	rs := argf.CountAll(func() wildcat.Counter {
+	rs, _ := argf.CountAll(func() wildcat.Counter {
 		return opts.count.generateCounter()
 	}, ec)
 	ec.Push(printAll(opts.cli, rs))
@@ -160,8 +160,12 @@ func perform(opts *options, argf *wildcat.Argf) int {
 	return 0
 }
 
-func execute(opts *options, argf *wildcat.Argf) int {
-	if opts.server.server {
+func execute(prog string, opts *options, argf *wildcat.Argf) int {
+	if opts.isHelpRequested() {
+		fmt.Println(helpMessage(filepath.Base(prog)))
+		return 0
+	}
+	if IsServerMode(opts.server) {
 		return opts.server.launchServer()
 	}
 	return perform(opts, argf)
@@ -174,14 +178,7 @@ func goMain(args []string) int {
 		fmt.Println(err.Error())
 		return 1
 	}
-	if opts.isHelpRequested() {
-		fmt.Println(helpMessage(filepath.Base(args[0])))
-		return 0
-	}
-	if IsServerMode(opts.server) {
-		return opts.server.launchServer()
-	}
-	return execute(opts, argf)
+	return execute(args[0], opts, argf)
 }
 
 func main() {

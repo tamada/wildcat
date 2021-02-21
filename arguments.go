@@ -78,6 +78,13 @@ func (ds *DataSink) ResultSet() *ResultSet {
 	return ds.rs
 }
 
+func (ds *DataSink) Error() error {
+	if ds.ec.IsEmpty() {
+		return nil
+	}
+	return ds.ec
+}
+
 func NewDataSink(gen Generator, ec *ErrorCenter) *DataSink {
 	return &DataSink{gen: gen, ec: ec, rs: NewResultSet()}
 }
@@ -272,7 +279,7 @@ func (argf *Argf) handleArgs(r *DataSink, ignore Ignore) *DataSink {
 	return r
 }
 
-func (argf *Argf) CountAll(generator func() Counter, ec *ErrorCenter) *ResultSet {
+func (argf *Argf) CountAll(generator func() Counter, ec *ErrorCenter) (*ResultSet, error) {
 	r := NewDataSink(generator, ec)
 	ignore := ignores(".", !argf.Options.NoIgnore, nil)
 	if len(argf.Entries) == 0 {
@@ -280,5 +287,5 @@ func (argf *Argf) CountAll(generator func() Counter, ec *ErrorCenter) *ResultSet
 	} else {
 		argf.handleArgs(r, ignore)
 	}
-	return r.rs
+	return r.rs, r.Error()
 }

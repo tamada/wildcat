@@ -8,7 +8,8 @@ import (
 func createResultSetForTest() *ResultSet {
 	args := NewArgf([]string{"testdata/wc/humpty_dumpty.txt", "testdata/wc/ja/sakura_sakura.txt"}, &ReadOptions{})
 	ec := NewErrorCenter()
-	return args.CountAll(func() Counter { return NewCounter(All) }, ec)
+	rs, _ := args.CountAll(func() Counter { return NewCounter(All) }, ec)
+	return rs
 }
 
 func TestXmlPrinter(t *testing.T) {

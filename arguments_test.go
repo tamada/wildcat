@@ -43,7 +43,7 @@ func TestStdin(t *testing.T) {
 		}()
 		argf := NewArgf([]string{}, td.opts)
 		ec := NewErrorCenter()
-		rs := argf.CountAll(func() Counter { return NewCounter(All) }, ec)
+		rs, _ := argf.CountAll(func() Counter { return NewCounter(All) }, ec)
 
 		if len(rs.list) != td.listSize {
 			t.Errorf("ResultSet size did not match, wont %d, got %d (%v)", td.listSize, len(rs.list), rs.list)
@@ -77,7 +77,7 @@ func TestCountAll(t *testing.T) {
 	for _, td := range testdata {
 		argf := NewArgf(td.args, td.opts)
 		ec := NewErrorCenter()
-		rs := argf.CountAll(func() Counter { return NewCounter(All) }, ec)
+		rs, _ := argf.CountAll(func() Counter { return NewCounter(All) }, ec)
 
 		if len(rs.list) != td.listSize {
 			t.Errorf("ResultSet size did not match, wont %d, got %d (%v)", td.listSize, len(rs.list), rs.list)
