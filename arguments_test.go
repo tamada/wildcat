@@ -41,10 +41,9 @@ func TestStdin(t *testing.T) {
 			os.Stdin = origStdin
 			file.Close()
 		}()
-		args := NewArguments()
-		args.Options = td.opts
+		argf := NewArgf([]string{}, td.opts)
 		ec := NewErrorCenter()
-		rs := args.CountAll(func() Counter { return NewCounter(All) }, ec)
+		rs, _ := argf.CountAll(func() Counter { return NewCounter(All) }, ec)
 
 		if len(rs.list) != td.listSize {
 			t.Errorf("ResultSet size did not match, wont %d, got %d (%v)", td.listSize, len(rs.list), rs.list)
@@ -73,13 +72,12 @@ func TestCountAll(t *testing.T) {
 		{[]string{"testdata/filelist.txt"}, &ReadOptions{true, false, false}, 3, []string{"humpty_dumpty.txt", "sakura_sakura.txt", "london_bridge_is_broken_down.txt"}, 0},
 		{[]string{"testdata/not_found.txt"}, &ReadOptions{true, false, false}, 0, []string{}, 1},
 		{[]string{"https://example.com/not_found"}, &ReadOptions{false, false, false}, 0, []string{}, 1},
+		{[]string{"https://github.com/tamada/wildcat/raw/main/testdata/archives/wc.jar"}, &ReadOptions{false, false, false}, 4, []string{"humpty_dumpty.txt", "sakura_sakura.txt", "london_bridge_is_broken_down.txt"}, 0},
 	}
 	for _, td := range testdata {
-		args := NewArguments()
-		args.Args = td.args
-		args.Options = td.opts
+		argf := NewArgf(td.args, td.opts)
 		ec := NewErrorCenter()
-		rs := args.CountAll(func() Counter { return NewCounter(All) }, ec)
+		rs, _ := argf.CountAll(func() Counter { return NewCounter(All) }, ec)
 
 		if len(rs.list) != td.listSize {
 			t.Errorf("ResultSet size did not match, wont %d, got %d (%v)", td.listSize, len(rs.list), rs.list)

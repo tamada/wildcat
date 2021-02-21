@@ -67,8 +67,8 @@ func Example_help() {
 	goMain([]string{"wildcat", "--help"})
 	// Output:
 	// wildcat version 1.0.0
-	// wildcat [OPTIONS] [FILEs...|DIRs...|URLs...]
-	// OPTIONS
+	// wildcat [CLI_MODE_OPTIONS|SERVER_MODE_OPTIONS] [FILEs...|DIRs...|URLs...]
+	// CLI_MODE_OPTIONS
 	//     -b, --byte                  prints the number of bytes in each input file.
 	//     -l, --line                  prints the number of lines in each input file.
 	//     -c, --character             prints the number of characters in each input file.
@@ -85,6 +85,11 @@ func Example_help() {
 	//     -@, --filelist              treats the contents of arguments' file as file list.
 	//
 	//     -h, --help                  prints this message.
+	// SERVER_MODE_OPTIONS
+	//     -p, --port <PORT>           specifies the port number of server.  Default is 8080.
+	//                                 If '--server' option did not specified, wildcat ignores this option.
+	//     -s, --server                launches wildcat in the server mode. With this option, wildcat ignores
+	//                                 CLI_MODE_OPTIONS and arguments.
 	// ARGUMENTS
 	//     FILEs...                    specifies counting targets. wildcat accepts zip/tar/tar.gz/tar.bz2/jar files.
 	//     DIRs...                     files in the given directory are as the input files.
@@ -112,8 +117,8 @@ func TestParseOptions(t *testing.T) {
 	for _, td := range testdata {
 		args := []string{"wildcat"}
 		args = append(args, td.giveArgs...)
-		arguments := wildcat.NewArguments()
-		opts, err := parseOptions(args, arguments)
+		reads := &wildcat.ReadOptions{}
+		_, opts, err := parseOptions(args, reads)
 		if err == nil && td.invalid || err != nil && !td.invalid {
 			t.Errorf("parseOptions(%v) wont invalid: %v, got %v, err: %v", td.giveArgs, td.invalid, err == nil, err)
 		}

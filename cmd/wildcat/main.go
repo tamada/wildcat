@@ -14,8 +14,8 @@ const VERSION = "1.0.0"
 
 func helpMessage(name string) string {
 	return fmt.Sprintf(`%s version %s
-%s [OPTIONS] [FILEs...|DIRs...|URLs...]
-OPTIONS
+%s [CLI_MODE_OPTIONS|SERVER_MODE_OPTIONS] [FILEs...|DIRs...|URLs...]
+CLI_MODE_OPTIONS
     -b, --byte                  prints the number of bytes in each input file.
     -l, --line                  prints the number of lines in each input file.
     -c, --character             prints the number of characters in each input file.
@@ -32,6 +32,11 @@ OPTIONS
     -@, --filelist              treats the contents of arguments' file as file list.
 
     -h, --help                  prints this message.
+SERVER_MODE_OPTIONS
+    -p, --port <PORT>           specifies the port number of server.  Default is 8080.
+                                If '--server' option did not specified, wildcat ignores this option.
+    -s, --server                launches wildcat in the server mode. With this option, wildcat ignores
+                                CLI_MODE_OPTIONS and arguments.
 ARGUMENTS
     FILEs...                    specifies counting targets. wildcat accepts zip/tar/tar.gz/tar.bz2/jar files.
     DIRs...                     files in the given directory are as the input files.
@@ -74,42 +79,53 @@ type cliOptions struct {
 	format string
 }
 
+type serverOptions struct {
+	server bool
+	port   int
+}
+
+func IsServerMode(so *serverOptions) bool {
+	return so.server
+}
+
 type options struct {
-	count *countingOptions
-	cli   *cliOptions
+	count  *countingOptions
+	server *serverOptions
+	cli    *cliOptions
 }
 
 func (opts *options) isHelpRequested() bool {
 	return opts.cli.help
 }
 
-func buildFlagSet(arguments *wildcat.Arguments) (*flag.FlagSet, *options) {
-	opts := &options{count: &countingOptions{}, cli: &cliOptions{}}
+func buildFlagSet(reads *wildcat.ReadOptions) (*flag.FlagSet, *options) {
+	opts := &options{count: &countingOptions{}, cli: &cliOptions{}, server: &serverOptions{}}
 	flags := flag.NewFlagSet("wildcat", flag.ContinueOnError)
 	flags.Usage = func() { fmt.Println(helpMessage("wildcat")) }
 	flags.BoolVarP(&opts.count.lines, "line", "l", false, "prints the number of lines in each input file.")
 	flags.BoolVarP(&opts.count.bytes, "byte", "b", false, "prints the number of bytes in each input file.")
 	flags.BoolVarP(&opts.count.words, "word", "w", false, "prints the number of words in each input file.")
 	flags.BoolVarP(&opts.count.characters, "character", "c", false, "prints the number of characters in each input file.")
-	flags.BoolVarP(&arguments.Options.NoIgnore, "no-ignore", "n", false, "Does not respect ignore files (.gitignore)")
-	flags.BoolVarP(&arguments.Options.NoExtract, "no-extract-archive", "N", false, "Does not extract archive files")
-	flags.BoolVarP(&arguments.Options.FileList, "filelist", "@", false, "treats the contents of arguments' file as file list")
+	flags.BoolVarP(&reads.NoIgnore, "no-ignore", "n", false, "Does not respect ignore files (.gitignore)")
+	flags.BoolVarP(&reads.NoExtract, "no-extract-archive", "N", false, "Does not extract archive files")
+	flags.BoolVarP(&reads.FileList, "filelist", "@", false, "treats the contents of arguments' file as file list")
+	flags.BoolVarP(&opts.server.server, "server", "s", false, "launches wildcat in the server mode.")
+	flags.IntVarP(&opts.server.port, "port", "p", 8080, "specifies the port number of server.")
 	flags.BoolVarP(&opts.cli.help, "help", "h", false, "prints this message")
 	flags.StringVarP(&opts.cli.dest, "dest", "d", "", "specifies the destination of the result")
 	flags.StringVarP(&opts.cli.format, "format", "f", "default", "specifies the resultant format")
 	return flags, opts
 }
 
-func parseOptions(args []string, arguments *wildcat.Arguments) (*options, error) {
-	flags, opts := buildFlagSet(arguments)
+func parseOptions(args []string, reads *wildcat.ReadOptions) (*wildcat.Argf, *options, error) {
+	flags, opts := buildFlagSet(reads)
 	if err := flags.Parse(args); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	arguments.Args = flags.Args()[1:]
 	if err := validateOptions(opts); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return opts, nil
+	return wildcat.NewArgf(flags.Args()[1:], reads), opts, nil
 }
 
 func printAll(cli *cliOptions, rs *wildcat.ResultSet) error {
@@ -126,17 +142,17 @@ func printAll(cli *cliOptions, rs *wildcat.ResultSet) error {
 	return rs.Print(printer)
 }
 
-func performImpl(opts *options, args *wildcat.Arguments) *wildcat.ErrorCenter {
+func performImpl(opts *options, argf *wildcat.Argf) *wildcat.ErrorCenter {
 	ec := wildcat.NewErrorCenter()
-	rs := args.CountAll(func() wildcat.Counter {
+	rs, _ := argf.CountAll(func() wildcat.Counter {
 		return opts.count.generateCounter()
 	}, ec)
 	ec.Push(printAll(opts.cli, rs))
 	return ec
 }
 
-func perform(opts *options, arguments *wildcat.Arguments) int {
-	err := performImpl(opts, arguments)
+func perform(opts *options, argf *wildcat.Argf) int {
+	err := performImpl(opts, argf)
 	if !err.IsEmpty() {
 		fmt.Println(err.Error())
 		return 1
@@ -144,18 +160,25 @@ func perform(opts *options, arguments *wildcat.Arguments) int {
 	return 0
 }
 
+func execute(prog string, opts *options, argf *wildcat.Argf) int {
+	if opts.isHelpRequested() {
+		fmt.Println(helpMessage(filepath.Base(prog)))
+		return 0
+	}
+	if IsServerMode(opts.server) {
+		return opts.server.launchServer()
+	}
+	return perform(opts, argf)
+}
+
 func goMain(args []string) int {
-	arguments := wildcat.NewArguments()
-	opts, err := parseOptions(args, arguments)
+	reads := &wildcat.ReadOptions{FileList: false, NoExtract: false, NoIgnore: false}
+	argf, opts, err := parseOptions(args, reads)
 	if err != nil {
 		fmt.Println(err.Error())
 		return 1
 	}
-	if opts.isHelpRequested() {
-		fmt.Println(helpMessage(filepath.Base(args[0])))
-		return 0
-	}
-	return perform(opts, arguments)
+	return execute(args[0], opts, argf)
 }
 
 func main() {
