@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Hugo 0.69.0" />
+  <link rel="stylesheet" href="/wildcat/css/normalize.css">
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+  
+  
+  
+  <link rel="stylesheet" href="/wildcat/css/cayman.ea0e967413f3851071cc8ace3621bc4205fe8fa79b2abe3d7bf94ff2841f0d47.css">
+  <link rel="stylesheet" href="/wildcat/css/style.css">
+  
+  
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/harry.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/harry.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/harry.png">
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.2/dist/katex.min.css" integrity="sha384-yFRtMMDnQtDRO8rLpMIKrtPCD5jdktao2TV19YiZYWMDkUR5GQZR/NOVTdquEx1j" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.10.2/dist/katex.min.js" integrity="sha384-9Nhn55MVVN0/4OFx7EE5kpFBPsEMZxKTCnA+4fqDmg12eCTqGi6+BB2LjY8brQxJ" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.10.2/dist/contrib/auto-render.min.js" integrity="sha384-kWPLUVMOks5AQFrykwIup5lo0m3iMkkHrD0uJ4H5cjeGihAutqP0yW0J6dpFiVkI" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script>
+
+  <title>🏃‍♂️ Usage | wildcat</title>
+</head>
+
+<body>
+  <section class="page-header">
+  
+  <img src="/wildcat/images/logo.svg" class="avatar" alt="project_logo">
+  
+  <h1 class="project-name">
+    wildcat
+  </h1>
+  <h2 class="project-tagline">
+    Another implementation of wc (word count)
+  </h2>
+  <nav>
+    
+    
+      
+      
+      
+      
+      <a href="/wildcat/" class="btn">🏠 Home</a>
+    
+      
+      
+      
+      
+      <a href="/wildcat/installation" class="btn">⚓ Installation</a>
+    
+      
+      
+      
+      
+      <a href="/wildcat/usage" class="btn">🏃‍♂️ Usage</a>
+    
+      
+      
+      
+      
+      <a href="/wildcat/about" class="btn">😄 About</a>
+    
+  </nav>
+</section>
+
+  <section class="main-content">
+    
+  <h1>🏃‍♂️ Usage</h1>
+  <h3 id="-cli-mode">👞 CLI mode</h3>
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">wildcat version 1.0.0
+wildcat <span style="color:#666">[</span>CLI_MODE_OPTIONS|SERVER_MODE_OPTIONS<span style="color:#666">]</span> <span style="color:#666">[</span>FILEs...|DIRs...|URLs...<span style="color:#666">]</span>
+CLI_MODE_OPTIONS
+    -b, --byte                  prints the number of bytes in each input file.
+    -l, --line                  prints the number of lines in each input file.
+    -c, --character             prints the number of characters in each input file.
+                                If the current locale does not support multibyte characters,
+                                this option is equal to the -c option.
+    -w, --word                  prints the number of words in each input file.
+    -f, --format &lt;FORMAT&gt;       prints results in a specified format.  Available formats are:
+                                csv, json, xml, and default. Default is default.
+    -n, --no-ignore             Does not respect ignore files <span style="color:#666">(</span>.gitignore<span style="color:#666">)</span>.
+                                If this option was specified, wildcat <span style="color:#008000">read</span> .gitignore.
+    -N, --no-extract-archive    Does not extract archive files. If this option was specified,
+                                wildcat treats archive files as the single binary file.
+    -o, --output &lt;DEST&gt;         specifies the destination of the result.  Default is standard output.
+    -@, --filelist              treats the contents of argument files as file list.
+
+    -h, --help                  prints this message.
+SERVER_MODE_OPTIONS
+    -p, --port &lt;PORT&gt;           specifies the port number of server.  Default is 8080.
+                                If <span style="color:#ba2121">&#39;--server&#39;</span> option did not specified, wildcat ignores this option.
+    -s, --server                launches wildcat in the server mode. With this option, wildcat ignores
+                                CLI_MODE_OPTIONS and arguments.
+ARGUMENTS
+    FILEs...                    specifies counting targets. wildcat accepts zip/tar/tar.gz/tar.bz2/jar files.
+    DIRs...                     files in the given directory are as the input files.
+    URLs...                     specifies the urls <span style="color:#008000;font-weight:bold">for</span> counting files <span style="color:#666">(</span>accept archive files<span style="color:#666">)</span>.
+
+If no arguments are specified, the standard input is used.
+Moreover, -@ option is specified, the content of given files are the target files.
+</code></pre></div><h3 id="-server-mode">👠 Server Mode</h3>
+<p>To run <code>wildcat</code> with <code>--server</code> option, the wildcat start REST API server on port 8080 (default).
+Then, <code>wildcat</code> readies for the following endpoints.</p>
+<h4 id="post-apiwildcatcounts"><code>POST /api/wildcat/counts</code></h4>
+<p>gives the files in the request body, then returns the results in the JSON format.
+The example of results is shown in <a href="#json">Json</a>.
+Available query parameters are as follows.</p>
+<ul>
+<li><code>file-name=&lt;FILENAME&gt;</code>
+<ul>
+<li>this query param gives filename of the content in the request body.</li>
+</ul>
+</li>
+<li><code>readAs=no-extract</code>
+<ul>
+<li>By specifying this query parameter, if client gives archive files, <code>wildcat</code> server does not extract archive files, and reads them as binary files.</li>
+</ul>
+</li>
+<li><code>readAs=file-list</code>
+<ul>
+<li>By specifying this query parameter, client gives url list as input for <code>wildcat</code> server.</li>
+</ul>
+</li>
+<li><code>readAs=no-extract,file-list</code> or <code>readAs=no-extract&amp;readAs=file-list</code>
+<ul>
+<li>This query parameter means the client requests the above both parameters.
+That is, the request body is url list, and archive files in the url list are treats as binary files.
+Note that, the order of <code>no-extract</code> and <code>file-list</code> does not care.</li>
+</ul>
+</li>
+</ul>
+<h3 id="-results">✉ Results</h3>
+<p>The available result formats are default, csv, json and xml.
+The examples of results are as follows by executing <code>wildcat testdata/wc --format &lt;FORMAT&gt;</code>.</p>
+<h4 id="default">Default</h4>
+<p>Default format is almost same as the result of <code>wc</code>.</p>
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">lines      words characters      bytes
+    <span style="color:#666">4</span>         <span style="color:#666">26</span>        <span style="color:#666">142</span>        <span style="color:#666">142</span> testdata/wc/humpty_dumpty.txt
+   <span style="color:#666">15</span>         <span style="color:#666">26</span>        <span style="color:#666">118</span>        <span style="color:#666">298</span> testdata/wc/ja/sakura_sakura.txt
+   <span style="color:#666">59</span>        <span style="color:#666">260</span>       <span style="color:#666">1341</span>       <span style="color:#666">1341</span> testdata/wc/london_bridge_is_broken_down.txt
+   <span style="color:#666">78</span>        <span style="color:#666">312</span>       <span style="color:#666">1601</span>       <span style="color:#666">1781</span> total
+</code></pre></div><h4 id="csv">Csv</h4>
+<pre><code class="language-csv" data-lang="csv">file name,lines,words,characters,bytes
+testdata/wc/humpty_dumpty.txt,4,26,142,142
+testdata/wc/ja/sakura_sakura.txt,15,26,118,298
+testdata/wc/london_bridge_is_broken_down.txt,59,260,1341,1341
+total,78,312,1601,1781
+</code></pre><h4 id="json">Json</h4>
+<p>The following json is formatted by <code>jq .</code>.</p>
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-JSON" data-lang="JSON">{
+  <span style="color:#008000;font-weight:bold">&#34;timestamp&#34;</span>: <span style="color:#ba2121">&#34;2021-02-16T14:59:40+09:00&#34;</span>,
+  <span style="color:#008000;font-weight:bold">&#34;results&#34;</span>: [
+    {
+      <span style="color:#008000;font-weight:bold">&#34;filename&#34;</span>: <span style="color:#ba2121">&#34;testdata/wc/humpty_dumpty.txt&#34;</span>,
+      <span style="color:#008000;font-weight:bold">&#34;lines&#34;</span>: <span style="color:#666">4</span>,
+      <span style="color:#008000;font-weight:bold">&#34;words&#34;</span>: <span style="color:#666">26</span>,
+      <span style="color:#008000;font-weight:bold">&#34;characters&#34;</span>: <span style="color:#666">142</span>,
+      <span style="color:#008000;font-weight:bold">&#34;bytes&#34;</span>: <span style="color:#666">142</span>
+    },
+    {
+      <span style="color:#008000;font-weight:bold">&#34;filename&#34;</span>: <span style="color:#ba2121">&#34;testdata/wc/ja/sakura_sakura.txt&#34;</span>,
+      <span style="color:#008000;font-weight:bold">&#34;lines&#34;</span>: <span style="color:#666">15</span>,
+      <span style="color:#008000;font-weight:bold">&#34;words&#34;</span>: <span style="color:#666">26</span>,
+      <span style="color:#008000;font-weight:bold">&#34;characters&#34;</span>: <span style="color:#666">118</span>,
+      <span style="color:#008000;font-weight:bold">&#34;bytes&#34;</span>: <span style="color:#666">298</span>
+    },
+    {
+      <span style="color:#008000;font-weight:bold">&#34;filename&#34;</span>: <span style="color:#ba2121">&#34;testdata/wc/london_bridge_is_broken_down.txt&#34;</span>,
+      <span style="color:#008000;font-weight:bold">&#34;lines&#34;</span>: <span style="color:#666">59</span>,
+      <span style="color:#008000;font-weight:bold">&#34;words&#34;</span>: <span style="color:#666">260</span>,
+      <span style="color:#008000;font-weight:bold">&#34;characters&#34;</span>: <span style="color:#666">1341</span>,
+      <span style="color:#008000;font-weight:bold">&#34;bytes&#34;</span>: <span style="color:#666">1341</span>
+    },
+    {
+      <span style="color:#008000;font-weight:bold">&#34;filename&#34;</span>: <span style="color:#ba2121">&#34;total&#34;</span>,
+      <span style="color:#008000;font-weight:bold">&#34;lines&#34;</span>: <span style="color:#666">78</span>,
+      <span style="color:#008000;font-weight:bold">&#34;words&#34;</span>: <span style="color:#666">312</span>,
+      <span style="color:#008000;font-weight:bold">&#34;characters&#34;</span>: <span style="color:#666">1601</span>,
+      <span style="color:#008000;font-weight:bold">&#34;bytes&#34;</span>: <span style="color:#666">1781</span>
+    }
+  ]
+}
+</code></pre></div><h4 id="xml">Xml</h4>
+<p>The following xml is formatted by <code>xmllint --format -</code></p>
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#bc7a00">&lt;?xml version=&#34;1.0&#34;?&gt;</span>
+<span style="color:#008000;font-weight:bold">&lt;wildcat&gt;</span>
+  <span style="color:#008000;font-weight:bold">&lt;timestamp&gt;</span>2021-02-16T14:58:06+09:00<span style="color:#008000;font-weight:bold">&lt;/timestamp&gt;</span>
+  <span style="color:#008000;font-weight:bold">&lt;results&gt;</span>
+    <span style="color:#008000;font-weight:bold">&lt;result&gt;</span>
+      <span style="color:#008000;font-weight:bold">&lt;file-name&gt;</span>testdata/wc/humpty_dumpty.txt<span style="color:#008000;font-weight:bold">&lt;/file-name&gt;</span>
+      <span style="color:#008000;font-weight:bold">&lt;lines&gt;</span>4<span style="color:#008000;font-weight:bold">&lt;/lines&gt;</span>
+      <span style="color:#008000;font-weight:bold">&lt;words&gt;</span>26<span style="color:#008000;font-weight:bold">&lt;/words&gt;</span>
+      <span style="color:#008000;font-weight:bold">&lt;characters&gt;</span>142<span style="color:#008000;font-weight:bold">&lt;/characters&gt;</span>
+      <span style="color:#008000;font-weight:bold">&lt;bytes&gt;</span>142<span style="color:#008000;font-weight:bold">&lt;/bytes&gt;</span>
+    <span style="color:#008000;font-weight:bold">&lt;/result&gt;</span>
+    <span style="color:#008000;font-weight:bold">&lt;result&gt;</span>
+      <span style="color:#008000;font-weight:bold">&lt;file-name&gt;</span>testdata/wc/ja/sakura_sakura.txt<span style="color:#008000;font-weight:bold">&lt;/file-name&gt;</span>
+      <span style="color:#008000;font-weight:bold">&lt;lines&gt;</span>15<span style="color:#008000;font-weight:bold">&lt;/lines&gt;</span>
+      <span style="color:#008000;font-weight:bold">&lt;words&gt;</span>26<span style="color:#008000;font-weight:bold">&lt;/words&gt;</span>
+      <span style="color:#008000;font-weight:bold">&lt;characters&gt;</span>118<span style="color:#008000;font-weight:bold">&lt;/characters&gt;</span>
+      <span style="color:#008000;font-weight:bold">&lt;bytes&gt;</span>298<span style="color:#008000;font-weight:bold">&lt;/bytes&gt;</span>
+    <span style="color:#008000;font-weight:bold">&lt;/result&gt;</span>
+    <span style="color:#008000;font-weight:bold">&lt;result&gt;</span>
+      <span style="color:#008000;font-weight:bold">&lt;file-name&gt;</span>testdata/wc/london_bridge_is_broken_down.txt<span style="color:#008000;font-weight:bold">&lt;/file-name&gt;</span>
+      <span style="color:#008000;font-weight:bold">&lt;lines&gt;</span>59<span style="color:#008000;font-weight:bold">&lt;/lines&gt;</span>
+      <span style="color:#008000;font-weight:bold">&lt;words&gt;</span>260<span style="color:#008000;font-weight:bold">&lt;/words&gt;</span>
+      <span style="color:#008000;font-weight:bold">&lt;characters&gt;</span>1341<span style="color:#008000;font-weight:bold">&lt;/characters&gt;</span>
+      <span style="color:#008000;font-weight:bold">&lt;bytes&gt;</span>1341<span style="color:#008000;font-weight:bold">&lt;/bytes&gt;</span>
+    <span style="color:#008000;font-weight:bold">&lt;/result&gt;</span>
+    <span style="color:#008000;font-weight:bold">&lt;result&gt;</span>
+      <span style="color:#008000;font-weight:bold">&lt;file-name&gt;</span>total<span style="color:#008000;font-weight:bold">&lt;/file-name&gt;</span>
+      <span style="color:#008000;font-weight:bold">&lt;lines&gt;</span>78<span style="color:#008000;font-weight:bold">&lt;/lines&gt;</span>
+      <span style="color:#008000;font-weight:bold">&lt;words&gt;</span>312<span style="color:#008000;font-weight:bold">&lt;/words&gt;</span>
+      <span style="color:#008000;font-weight:bold">&lt;characters&gt;</span>1601<span style="color:#008000;font-weight:bold">&lt;/characters&gt;</span>
+      <span style="color:#008000;font-weight:bold">&lt;bytes&gt;</span>1781<span style="color:#008000;font-weight:bold">&lt;/bytes&gt;</span>
+    <span style="color:#008000;font-weight:bold">&lt;/result&gt;</span>
+  <span style="color:#008000;font-weight:bold">&lt;/results&gt;</span>
+<span style="color:#008000;font-weight:bold">&lt;/wildcat&gt;</span>
+</code></pre></div><h2 id="-docker">🐳 Docker</h2>
+<p><a href="https://github.com/users/tamada/packages/container/package/wildcat"><img src="https://img.shields.io/badge/docker-ghcr.io%2Ftamada%2Fwildcat%3A1.0.0-green?logo=docker" alt="Docker"></a></p>
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ docker run -v <span style="color:#19177c">$PWD</span>:/home/wildcat ghcr.io/tamada/wildcat:1.0.0 testdata/wc
+</code></pre></div><ul>
+<li><code>1.0.0</code>, <code>latest</code></li>
+</ul>
+
+
+    <footer class="site-footer">
+  <span class="site-footer-credits">
+    <a href="https://github.com/tamada/wildcat"><img src="https://img.shields.io/badge/GitHub-tamada/wildcat-blueviolet.svg?logo=github" alt="GitHub"></a> Made with <a href="https://gohugo.io/">Hugo</a>. Theme by <a href="https://github.com/zwbetz-gh/cayman-hugo-theme">Cayman</a>. Deployed to <a href="https://pages.github.com/">GitHub Pages</a>.
+  </span>
+</footer>
+
+  </section>
+  
+  
+
+</body>
+</html>

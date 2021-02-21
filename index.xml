@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>:cat2: wildcat on wildcat</title>
+    <link>https://tamada.github.io/wildcat/</link>
+    <description>Recent content in :cat2: wildcat on wildcat</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    
+	<atom:link href="https://tamada.github.io/wildcat/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>:anchor: Installation</title>
+      <link>https://tamada.github.io/wildcat/installation/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://tamada.github.io/wildcat/installation/</guid>
+      <description>🍺 Homebrew $ brew tap tamada/brew $ brew install wildcat 💪 Compiling yourself $ git clone https://github.com/tamada/wildcat.git $ cd wildcat $ make </description>
+    </item>
+    
+    <item>
+      <title>:runner: Usage</title>
+      <link>https://tamada.github.io/wildcat/usage/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://tamada.github.io/wildcat/usage/</guid>
+      <description>👞 CLI mode wildcat version 1.0.0 wildcat [CLI_MODE_OPTIONS|SERVER_MODE_OPTIONS] [FILEs...|DIRs...|URLs...] CLI_MODE_OPTIONS -b, --byte prints the number of bytes in each input file. -l, --line prints the number of lines in each input file. -c, --character prints the number of characters in each input file. If the current locale does not support multibyte characters, this option is equal to the -c option. -w, --word prints the number of words in each input file.</description>
+    </item>
+    
+    <item>
+      <title>:smile: About</title>
+      <link>https://tamada.github.io/wildcat/about/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://tamada.github.io/wildcat/about/</guid>
+      <description>📜 License Apache License version 2.0
+
+🎃 Icon This icon is obtained from freesvg.org.
+📛 The project name (wildcat) comes from? This project origin is wc command, and wc is the abbrev of &amp;lsquo;word count.&amp;rsquo;
+Wildcat can abbreviate as wc, too.
+👨‍💼 Developers 👩‍💼  tamada  </description>
+    </item>
+    
+  </channel>
+</rss>
