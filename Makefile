@@ -24,11 +24,17 @@ build: setup
 define _createDist
 	mkdir -p dist/$(1)_$(2)/$(DIST)
 	GOOS=$1 GOARCH=$2 go build -o dist/$(1)_$(2)/$(DIST)/$(NAME) cmd/$(NAME)/*.go
-	cp -r README.md LICENSE dist/$(1)_$(2)/$(DIST)
+	cp -r README.md LICENSE completions dist/$(1)_$(2)/$(DIST)
+	cp -r docs/public dist/$(1)_$(2)/$(DIST)/docs
 	tar cfz dist/$(DIST)_$(1)_$(2).tar.gz -C dist/$(1)_$(2) $(DIST)
 endef
 
-dist: build
+docs: docs/public
+
+docs/public:
+	(cd docs; make)
+
+dist: build docs
 	@$(call _createDist,darwin,amd64)
 	@$(call _createDist,windows,amd64)
 	@$(call _createDist,windows,386)

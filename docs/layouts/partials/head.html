@@ -9,7 +9,7 @@
   {{ $options := (dict "targetPath" "css/cayman.css") }}
   {{ $caymanCss := resources.Get $caymanScss | resources.ExecuteAsTemplate $caymanScss . | toCSS $options | fingerprint }}
   <link rel="stylesheet" href="{{ $caymanCss.Permalink | relURL }}">
-  <link rel="stylesheet" href="{{ .Site.BaseURL | relURL }}/style.css">
+  <link rel="stylesheet" href="{{ .Site.BaseURL | relURL }}/css/style.css">
   <!-- Icon made by Freepik, from Flaticon, licensed by CC 3.0. -->
   <!-- https://www.flaticon.com/free-icon/island_1530732 -->
   <link rel="apple-touch-icon" sizes="180x180" href="/images/harry.png">

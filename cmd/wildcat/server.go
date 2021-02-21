@@ -151,7 +151,7 @@ func createRestAPIServer() *mux.Router {
 
 func fileServer() http.Handler {
 	dirs := []string{
-		"docs",
+		"docs/public",
 		"/opts/wildcat/docs",
 		"/usr/local/opts/wildcat/docs",
 	}
