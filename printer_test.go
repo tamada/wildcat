@@ -6,8 +6,7 @@ import (
 )
 
 func createResultSetForTest() *ResultSet {
-	args := NewArguments()
-	args.Args = []string{"testdata/wc/humpty_dumpty.txt", "testdata/wc/ja/sakura_sakura.txt"}
+	args := NewArgf([]string{"testdata/wc/humpty_dumpty.txt", "testdata/wc/ja/sakura_sakura.txt"}, &ReadOptions{})
 	ec := NewErrorCenter()
 	return args.CountAll(func() Counter { return NewCounter(All) }, ec)
 }

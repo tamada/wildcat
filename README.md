@@ -30,33 +30,65 @@ Note that this product is an example project for implementing Open Source Softwa
 
 ## :runner: Usage
 
+### :shoe: CLI mode
+
 ```shell
 wildcat version 1.0.0
-wildcat [OPTIONS] [FILEs...|DIRs...]
-OPTIONS
-    -b, --byte               prints the number of bytes in each input file.
-    -l, --line               prints the number of lines in each input file.
-    -c, --character          prints the number of characters in each input file.
-                             If the current locale does not support multibyte characters,
-                             this option is equal to the -c option.
-    -f, --format <FORMAT>    prints results in a specified format.  Available formats are:
-                             csv, json, xml, and default. Default is default.
-    -n, --no-ignore          Does not respect ignore files (.gitignore).
-                             If this option was specified, wildcat read .gitignore.
-    -w, --word               prints the number of words in each input file.
-    -o, --output <DEST>      specifies the destination of the result.  Default is standard output.
-    -@, --filelist           treats the contents of arguments' file as file list.
+wildcat [CLI_MODE_OPTIONS|SERVER_MODE_OPTIONS] [FILEs...|DIRs...|URLs...]
+CLI_MODE_OPTIONS
+    -b, --byte                  prints the number of bytes in each input file.
+    -l, --line                  prints the number of lines in each input file.
+    -c, --character             prints the number of characters in each input file.
+                                If the current locale does not support multibyte characters,
+                                this option is equal to the -c option.
+    -w, --word                  prints the number of words in each input file.
+    -f, --format <FORMAT>       prints results in a specified format.  Available formats are:
+                                csv, json, xml, and default. Default is default.
+    -n, --no-ignore             Does not respect ignore files (.gitignore).
+                                If this option was specified, wildcat read .gitignore.
+    -N, --no-extract-archive    Does not extract archive files. If this option was specified,
+                                wildcat treats archive files as the single binary file.
+    -o, --output <DEST>         specifies the destination of the result.  Default is standard output.
+    -@, --filelist              treats the contents of arguments' file as file list.
 
-    -h, --help               prints this message.
+    -h, --help                  prints this message.
+SERVER_MODE_OPTIONS
+    -p, --port <PORT>           specifies the port number of server.  Default is 8080.
+                                If '--server' option did not specified, wildcat ignores this option.
+    -s, --server                launches wildcat in the server mode. With this option, wildcat ignores
+                                CLI_MODE_OPTIONS and arguments.
 ARGUMENTS
-    FILEs...                 specifies counting targets. wildcat accepts zip/tar/tar.gz/tar.bz2/jar files.
-    DIRs...                  files in the given directory are as the input files.
+    FILEs...                    specifies counting targets. wildcat accepts zip/tar/tar.gz/tar.bz2/jar files.
+    DIRs...                     files in the given directory are as the input files.
+    URLs...                     specifies the urls for counting files (accept archive files).
 
 If no arguments are specified, the standard input is used.
 Moreover, -@ option is specified, the content of given files are the target files.
 ```
 
-### Results
+### :high_heel: Server Mode
+
+To run `wildcat` with `--server` option, the wildcat start REST API server on port 8080 (default).
+Then, `wildcat` readies for the following endpoints.
+
+#### `POST /api/wildcat/counts`
+
+gives the files in the request body, then returns the results in the JSON format.
+The example of results is shown in [Json](#json).
+Available query parameters are as follows.
+
+* `file-name=<FILENAME>`
+    * this query param gives filename of the content in the request body.
+* `readAs=no-extract`
+    * By specifying this query parameter, if client gives archive files, `wildcat` server does not extract archive files, and reads them as binary files.
+* `readAs=file-list`
+    * By specifying this query parameter, client gives url list as input for `wildcat` server.
+* `readAs=no-extract,file-list` or `readAs=no-extract&readAs=file-list`
+    * This query parameter means the client requests the above both parameters.
+      That is, the request body is url list, and archive files in the url list are treats as binary files.
+      Note that, the order of `no-extract` and `file-list` does not care.
+
+### :envelope: Results
 
 The available result formats are default, csv, json and xml.
 The examples of results are as follows by executing `wildcat testdata/wc --format <FORMAT>`.

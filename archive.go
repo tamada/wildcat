@@ -6,11 +6,8 @@ import (
 	"bytes"
 	"compress/bzip2"
 	"compress/gzip"
-	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
-	"os"
 	"strings"
 )
 
@@ -31,12 +28,11 @@ func hasSuffix(fileName string, suffixes ...string) bool {
 
 type file interface {
 	Name() string
-	Count(counter Counter)
+	Count(counter Counter, sink *DataSink)
 }
 
 type archiveTraverser interface {
-	traverse(fileName string, r *result)
-	traverseSource(s *source, r *result)
+	traverseSource(s *Source, r *DataSink)
 }
 
 type tarTraverser struct {
@@ -53,23 +49,12 @@ func wrapReader(reader io.Reader, fileName string) io.Reader {
 	return reader
 }
 
-func (tt *tarTraverser) traverseSource(s *source, r *result) {
+func (tt *tarTraverser) traverseSource(s *Source, r *DataSink) {
 	in := wrapReader(s.in, s.name)
 	traverseTarImpl(tar.NewReader(in), s.name, r)
 }
 
-func (tt *tarTraverser) traverse(fileName string, r *result) {
-	reader, err := os.Open(fileName)
-	if err != nil {
-		r.ec.Push(err)
-		return
-	}
-	defer reader.Close()
-	in := wrapReader(reader, fileName)
-	traverseTarImpl(tar.NewReader(in), fileName, r)
-}
-
-func traverseTarImpl(tar *tar.Reader, fileName string, r *result) {
+func traverseTarImpl(tar *tar.Reader, fileName string, r *DataSink) {
 	for {
 		header, err := tar.Next()
 		if err == io.EOF {
@@ -85,7 +70,7 @@ type tarFile struct {
 	name string
 }
 
-func (tf *tarFile) Count(counter Counter) {
+func (tf *tarFile) Count(counter Counter, sink *DataSink) {
 	drainDataFromReader(tf.tar, counter)
 }
 
@@ -101,27 +86,7 @@ type myReaderAt struct {
 	n int64
 }
 
-func newMyReaderAt(r io.Reader) io.ReaderAt {
-	return &myReaderAt{r: r}
-}
-
-func (u *myReaderAt) ReadAt(p []byte, off int64) (n int, err error) {
-	if off < u.n {
-		return 0, errors.New("invalid offset")
-	}
-	diff := off - u.n
-	written, err := io.CopyN(ioutil.Discard, u.r, diff)
-	u.n += written
-	if err != nil {
-		return 0, err
-	}
-
-	n, err = u.r.Read(p)
-	u.n += int64(n)
-	return
-}
-
-func copyDataFromSource(s *source) (io.ReaderAt, int64, error) {
+func copyDataFromSource(s *Source) (io.ReaderAt, int64, error) {
 	buff := bytes.NewBuffer([]byte{})
 	size, err := io.Copy(buff, s.in)
 	if err != nil {
@@ -130,7 +95,7 @@ func copyDataFromSource(s *source) (io.ReaderAt, int64, error) {
 	return bytes.NewReader(buff.Bytes()), size, nil
 }
 
-func createZipReader(s *source) (*zip.Reader, error) {
+func createZipReader(s *Source) (*zip.Reader, error) {
 	reader, size, err := copyDataFromSource(s)
 	if err != nil {
 		return nil, err
@@ -138,7 +103,7 @@ func createZipReader(s *source) (*zip.Reader, error) {
 	return zip.NewReader(reader, size)
 }
 
-func (zt *zipTraverser) traverseSource(s *source, r *result) {
+func (zt *zipTraverser) traverseSource(s *Source, r *DataSink) {
 	rr, err := createZipReader(s)
 	if err != nil {
 		r.ec.Push(err)
@@ -149,21 +114,9 @@ func (zt *zipTraverser) traverseSource(s *source, r *result) {
 	}
 }
 
-func (zt *zipTraverser) traverse(fileName string, r *result) {
-	rr, err := zip.OpenReader(fileName)
-	if err != nil {
-		r.ec.Push(err)
-		return
-	}
-	defer rr.Close()
-	for _, f := range rr.File {
-		countEach(&zipFile{zipFileName: fileName, file: f}, r)
-	}
-}
-
-func countEach(f file, r *result) {
+func countEach(f file, r *DataSink) {
 	counter := r.gen()
-	f.Count(counter)
+	f.Count(counter, r)
 	r.rs.Push(f.Name(), counter)
 }
 
@@ -176,10 +129,10 @@ func (zf *zipFile) Name() string {
 	return zf.zipFileName + "!" + zf.file.Name
 }
 
-func (zf *zipFile) Count(counter Counter) {
+func (zf *zipFile) Count(counter Counter, sink *DataSink) {
 	reader, err := zf.file.Open()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, err.Error())
+		sink.ec.Push(err)
 		return
 	}
 	defer reader.Close()

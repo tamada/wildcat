@@ -111,8 +111,15 @@ func (xp *xmlPrinter) PrintHeader(ct CounterType) {
 	fmt.Fprintf(xp.dest, "<wildcat><timestamp>%s</timestamp><results>", now())
 }
 
+func escapeXml(from string) string {
+	str := strings.ReplaceAll(from, "&", "&amp;")
+	str = strings.ReplaceAll(str, "<", "&lt;")
+	str = strings.ReplaceAll(str, ">", "&gt;")
+	return strings.ReplaceAll(str, "\"", "&quote;")
+}
+
 func (xp *xmlPrinter) PrintEach(fileName string, counter Counter, index int) {
-	fmt.Fprintf(xp.dest, "<result><file-name>%s</file-name>", fileName)
+	fmt.Fprintf(xp.dest, "<result><file-name>%s</file-name>", escapeXml(fileName))
 	for index, label := range labels {
 		if counter.IsType(types[index]) {
 			fmt.Fprintf(xp.dest, "<%s>%d</%s>", label, counter.Count(types[index]), label)

@@ -2,6 +2,7 @@ package wildcat
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -17,26 +18,68 @@ type ReadOptions struct {
 	NoExtract bool
 }
 
-type Arguments struct {
-	Options *ReadOptions
-	Args    []string
+type Entry interface {
+	Name() string
+	Open() (io.ReadCloser, error)
 }
 
-type generator func() Counter
+type defaultEntry struct {
+	fileName string
+}
 
-type source struct {
+func (de *defaultEntry) Name() string {
+	return de.fileName
+}
+
+func (de *defaultEntry) Open() (io.ReadCloser, error) {
+	return os.Open(de.fileName)
+}
+
+type Argf struct {
+	Options *ReadOptions
+	Entries []Entry
+}
+
+func NewArgf(arguments []string, opts *ReadOptions) *Argf {
+	entries := []Entry{}
+	for _, arg := range arguments {
+		entries = append(entries, &defaultEntry{fileName: arg})
+	}
+	return &Argf{Entries: entries, Options: opts}
+}
+
+type Generator func() Counter
+
+var DefaultGenerator Generator = func() Counter { return NewCounter(All) }
+
+type Source struct {
 	in   io.Reader
 	name string
 }
 
-type result struct {
+func NewSource(name string, in io.Reader) *Source {
+	return &Source{name: name, in: in}
+}
+
+type DataSink struct {
 	ec  *ErrorCenter
-	gen generator
+	gen Generator
 	rs  *ResultSet
 }
 
-func NewArguments() *Arguments {
-	return &Arguments{Args: []string{}, Options: &ReadOptions{}}
+func (ds *DataSink) Dump(printerType string) []byte {
+	buffer := bytes.NewBuffer([]byte{})
+	printer := NewPrinter(buffer, printerType)
+	ds.rs.Print(printer)
+	return buffer.Bytes()
+}
+
+func (ds *DataSink) ResultSet() *ResultSet {
+	return ds.rs
+}
+
+func NewDataSink(gen Generator, ec *ErrorCenter) *DataSink {
+	return &DataSink{gen: gen, ec: ec, rs: NewResultSet()}
 }
 
 func drainDataFromReader(in io.Reader, counter Counter) {
@@ -51,46 +94,50 @@ func drainDataFromReader(in io.Reader, counter Counter) {
 	}
 }
 
-func countFromReader(s *source, r *result) {
+func countFromReader(s *Source, r *DataSink) {
 	counter := r.gen()
 	drainDataFromReader(s.in, counter)
 	r.rs.Push(s.name, counter)
 }
 
-func (arg *Arguments) handleStdin(r *result, ignore Ignore) *result {
-	if arg.Options.FileList {
-		return arg.readFileList(os.Stdin, r, ignore)
+func (opts *ReadOptions) handleReader(s *Source, r *DataSink, ignore Ignore) *DataSink {
+	if opts.FileList {
+		return opts.readFileList(s.in, r, ignore)
 	}
-	countFromReader(&source{in: os.Stdin, name: "<stdin>"}, r)
+	countFromReader(s, r)
 	return r
 }
 
-func handleArchiveFile(item string, r *result) {
-	traverser := newArchiveTraverser(item)
-	file, err := os.Open(item)
+func (opts *ReadOptions) handleStdin(r *DataSink, ignore Ignore) *DataSink {
+	return opts.handleReader(NewSource("<stdin>", os.Stdin), r, ignore)
+}
+
+func handleArchiveFile(item Entry, r *DataSink) {
+	traverser := newArchiveTraverser(item.Name())
+	file, err := item.Open()
 	if err != nil {
 		r.ec.Push(err)
 		return
 	}
 	defer file.Close()
-	traverser.traverseSource(&source{in: file, name: item}, r)
+	traverser.traverseSource(NewSource(item.Name(), file), r)
 }
 
-func countFile(fileName string, r *result) {
-	file, err := os.Open(fileName)
+func countFile(entry Entry, r *DataSink) {
+	file, err := entry.Open()
 	if err != nil {
 		r.ec.Push(err)
 		return
 	}
 	defer file.Close()
-	countFromReader(&source{in: file, name: fileName}, r)
+	countFromReader(NewSource(entry.Name(), file), r)
 }
 
-func (arg *Arguments) handleFile(item string, r *result, ignore Ignore) {
-	if ignore != nil && ignore.IsIgnore(item) {
+func (opts *ReadOptions) HandleFile(item Entry, r *DataSink, ignore Ignore) {
+	if ignore != nil && ignore.IsIgnore(item.Name()) {
 		return
 	}
-	if IsArchiveFile(item) && !arg.Options.NoExtract {
+	if IsArchiveFile(item.Name()) && !opts.NoExtract {
 		handleArchiveFile(item, r)
 	} else {
 		countFile(item, r)
@@ -111,66 +158,86 @@ func isIgnore(opts *ReadOptions, ignore Ignore, name string) bool {
 	return false
 }
 
-func (arg *Arguments) handleDir(dirName string, r *result, ignore Ignore) {
-	currentIgnore := ignores(dirName, !arg.Options.NoIgnore, ignore)
-	fileInfos, err := ioutil.ReadDir(dirName)
+func (opts *ReadOptions) handleDir(dirName Entry, r *DataSink, ignore Ignore) {
+	currentIgnore := ignores(dirName.Name(), !opts.NoIgnore, ignore)
+	fileInfos, err := ioutil.ReadDir(dirName.Name())
 	if err != nil {
 		r.ec.Push(err)
 		return
 	}
 	for _, fileInfo := range fileInfos {
-		newName := filepath.Join(dirName, fileInfo.Name())
-		if !isIgnore(arg.Options, ignore, newName) {
-			arg.handleItem(newName, r, currentIgnore)
+		newName := filepath.Join(dirName.Name(), fileInfo.Name())
+		if !isIgnore(opts, ignore, newName) {
+			opts.handleItem(&defaultEntry{fileName: newName}, r, currentIgnore)
 		}
 	}
 }
 
-func (arg *Arguments) handleURL(item string, r *result) {
-	if !arg.Options.NoExtract && IsArchiveFile(item) {
-		handleArchiveURLFile(item, r)
+func (opts *ReadOptions) handleURL(item Entry, r *DataSink) {
+	if !opts.NoExtract && IsArchiveFile(item.Name()) {
+		handleURLContent(item, r, countArchiveFromReader)
 	} else {
-		arg.handleURLContent(item, r)
+		handleURLContent(item, r, countFromReader)
 	}
 }
 
-func handleArchiveURLFile(item string, r *result) {
-
+func countArchiveFromReader(s *Source, r *DataSink) {
+	traverser := newArchiveTraverser(s.name)
+	traverser.traverseSource(s, r)
 }
 
-func (arg *Arguments) handleURLContent(item string, r *result) {
-	response, err := http.Get(item)
+func handleURLContent(item Entry, r *DataSink, execFunc func(*Source, *DataSink)) {
+	reader, err := item.Open()
 	if err != nil {
 		r.ec.Push(err)
 		return
 	}
-	defer response.Body.Close()
+	defer reader.Close()
+	source := NewSource(item.Name(), reader)
+	execFunc(source, r)
+}
+
+type urlEntry struct {
+	url string
+}
+
+func (ue *urlEntry) Name() string {
+	return ue.url
+}
+
+func (ue *urlEntry) Open() (io.ReadCloser, error) {
+	response, err := http.Get(ue.url)
+	if err != nil {
+		return nil, err
+	}
 	if response.StatusCode == 404 {
-		r.ec.Push(fmt.Errorf("%s: not found", item))
-		return
+		defer response.Body.Close()
+		return nil, fmt.Errorf("%s: file not found", ue.url)
 	}
-	countFromReader(&source{name: item, in: response.Body}, r)
+	return response.Body, nil
 }
 
-func (arg *Arguments) handleItem(item string, r *result, ignore Ignore) {
-	if IsUrl(item) {
-		arg.handleURL(item, r)
-	} else if ExistDir(item) {
-		arg.handleDir(item, r, ignore)
-	} else if ExistFile(item) {
-		arg.handleFile(item, r, ignore)
+func toURLEntry(entry Entry) Entry {
+	return &urlEntry{url: entry.Name()}
+}
+
+func (opts *ReadOptions) handleItem(item Entry, r *DataSink, ignore Ignore) {
+	if IsUrl(item.Name()) {
+		opts.handleURL(toURLEntry(item), r)
+	} else if ExistDir(item.Name()) {
+		opts.handleDir(item, r, ignore)
 	} else {
-		r.ec.Push(fmt.Errorf("%s: file or directory not found", item))
+		opts.HandleFile(item, r, ignore)
 	}
 }
 
-func (arg *Arguments) readFileList(in io.Reader, r *result, ignore Ignore) *result {
+func (opts *ReadOptions) readFileList(in io.Reader, r *DataSink, ignore Ignore) *DataSink {
 	reader := bufio.NewReader(in)
 	for {
 		line, err := reader.ReadString('\n')
 		line = strings.TrimSpace(line)
 		if line != "" {
-			arg.handleItem(line, r, ignore)
+			opts.handleItem(&defaultEntry{fileName: line}, r, ignore)
 		}
 		if err == io.EOF {
 			break
@@ -179,39 +246,39 @@ func (arg *Arguments) readFileList(in io.Reader, r *result, ignore Ignore) *resu
 	return r
 }
 
-func (arg *Arguments) openFileAndReadFileList(item string, r *result, ignore Ignore) *result {
-	file, err := os.Open(item)
+func (opts *ReadOptions) openFileAndReadFileList(item Entry, r *DataSink, ignore Ignore) *DataSink {
+	file, err := item.Open()
 	if err != nil {
 		r.ec.Push(fmt.Errorf("%s: file not found (%s)", item, err.Error()))
 		return r
 	}
 	defer file.Close()
-	arg.readFileList(file, r, ignore)
+	opts.readFileList(file, r, ignore)
 	return r
 }
 
-func (arg *Arguments) handleArg(item string, r *result, ignore Ignore) {
-	if arg.Options.FileList {
-		arg.openFileAndReadFileList(item, r, ignore)
+func (opts *ReadOptions) HandleArg(item Entry, r *DataSink, ignore Ignore) {
+	if opts.FileList {
+		opts.openFileAndReadFileList(item, r, ignore)
 	} else {
-		arg.handleItem(item, r, ignore)
+		opts.handleItem(item, r, ignore)
 	}
 }
 
-func (arg *Arguments) handleArgs(r *result, ignore Ignore) *result {
-	for _, item := range arg.Args {
-		arg.handleArg(item, r, ignore)
+func (argf *Argf) handleArgs(r *DataSink, ignore Ignore) *DataSink {
+	for _, item := range argf.Entries {
+		argf.Options.HandleArg(item, r, ignore)
 	}
 	return r
 }
 
-func (arg *Arguments) CountAll(generator func() Counter, ec *ErrorCenter) *ResultSet {
-	r := &result{rs: NewResultSet(), gen: generator, ec: ec}
-	ignore := ignores(".", !arg.Options.NoIgnore, nil)
-	if len(arg.Args) == 0 {
-		arg.handleStdin(r, ignore)
+func (argf *Argf) CountAll(generator func() Counter, ec *ErrorCenter) *ResultSet {
+	r := NewDataSink(generator, ec)
+	ignore := ignores(".", !argf.Options.NoIgnore, nil)
+	if len(argf.Entries) == 0 {
+		argf.Options.handleStdin(r, ignore)
 	} else {
-		arg.handleArgs(r, ignore)
+		argf.handleArgs(r, ignore)
 	}
 	return r.rs
 }
