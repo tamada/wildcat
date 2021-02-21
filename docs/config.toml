@@ -1,0 +1,35 @@
+baseURL = "https://tamada.github.io/wildcat"
+languageCode = "en-us"
+defaultContentLanguage = "en"
+title = "wildcat"
+theme = "cayman-hugo-theme"
+enableEmoji = true
+
+pygmentsCodefences = true
+pygmentsStyle = "pygments"
+
+[params]
+    project_name = "wildcat"
+    project_tagline = "Another implementation of wc (word count)"
+    project_logo = "images/logo.svg"
+    dateFormat = "2006-01-02"
+    katex = true
+    footer = "[![GitHub](https://img.shields.io/badge/GitHub-tamada/wildcat-blueviolet.svg?logo=github)](https://github.com/tamada/wildcat) Made with [Hugo](https://gohugo.io/). Theme by [Cayman](https://github.com/zwbetz-gh/cayman-hugo-theme). Deployed to [GitHub Pages](https://pages.github.com/)."
+
+[menu]
+  [[menu.nav]]
+    name = ":house: Home"
+    url = "/"
+    weight = 1
+  [[menu.nav]]
+    name = ":anchor: Installation"
+    url = "/installation"
+    weight = 2
+  [[menu.nav]]
+    name = ":runner: Usage"
+    url = "/usage"
+    weight = 3
+  [[menu.nav]]
+    name = ":smile: About"
+    url = "/about"
+    weight = 4

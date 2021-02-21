@@ -1,38 +1,6 @@
-# :cat2: wildcat
-
-![build](https://github.com/tamada/wildcat/workflows/build/badge.svg)
-[![Coverage Status](https://coveralls.io/repos/github/tamada/wildcat/badge.svg?branch=main)](https://coveralls.io/github/tamada/wildcat?branch=main)
-[![codebeat badge](https://codebeat.co/badges/ad4259ff-15bc-48e6-b5a5-e23fda711d25)](https://codebeat.co/projects/github-com-tamada-wildcat-main)
-[![Go Report Card](https://goreportcard.com/badge/github.com/tamada/wildcat)](https://goreportcard.com/report/github.com/tamada/wildcat)
-
-[![License](https://img.shields.io/badge/License-Apache%202.0-green.svg?logo=spdx)](https://github.com/tamada/tjdoe/blob/master/LICENSE)
-[![Version](https://img.shields.io/badge/Version-1.0.0-green.svg)](https://github.com/tamada/tjdoe/releases/tag/v1.0.0)
-
-[![Docker](https://img.shields.io/badge/docker-ghcr.io%2Ftamada%2Fwildcat%3A1.0.0-green?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
-
-
-Another implementation of `wc` (word count).
-
-![wildcat](docs/static/images/logo.svg)
-
-## :speaking_head: Overview
-
-`wildcat` counts the lines, words, characters, and bytes of the given files and the files in the given directories.
-Also, it respects the ignore files, such as `.gitignore`.
-The excellent points than `wc` are as follows.
-
-* handles the files in the directories,
-* respects the `.gitignore` file,
-* reads files in the archive file such as jar, tar.gz, and etc.,
-* supports the several output formats,
-* accepts file list from file and stdin, and
-* includes REST API server.
-
-Note that this product is an example project for implementing Open Source Software.
-
-## :walking: Demo
-
-## :runner: Usage
+---
+title: ":runner: Usage"
+---
 
 ### :shoe: CLI mode
 
@@ -53,7 +21,7 @@ CLI_MODE_OPTIONS
     -N, --no-extract-archive    Does not extract archive files. If this option was specified,
                                 wildcat treats archive files as the single binary file.
     -o, --output <DEST>         specifies the destination of the result.  Default is standard output.
-    -@, --filelist              treats the contents of arguments' file as file list.
+    -@, --filelist              treats the contents of argument files as file list.
 
     -h, --help                  prints this message.
 SERVER_MODE_OPTIONS
@@ -199,37 +167,13 @@ The following xml is formatted by `xmllint --format -`
   </results>
 </wildcat>
 ```
-## :anchor: Install
 
-### :beer: Homebrew
+## :whale: Docker
 
-```shell
-$ brew tap tamada/brew
-$ brew install wildcat
-```
-
-### :muscle: Compiling yourself
+[![Docker](https://img.shields.io/badge/docker-ghcr.io%2Ftamada%2Fwildcat%3A1.0.0-green?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
 
 ```shell
-$ git clone https://github.com/tamada/wildcat.git
-$ cd wildcat
-$ make
+$ docker run -v $PWD:/home/wildcat ghcr.io/tamada/wildcat:1.0.0 testdata/wc
 ```
 
-## :smile: About
-
-### :jack_o_lantern: Icon
-
-![wildcat](docs/static/images/logo.svg)
-
-This icon is obtained from [freesvg.org](https://freesvg.org/1527045310).
-
-### :name_badge: The project name (`wildcat`) comes from?
-
-This project origin is `wc` command, and `wc` is the abbrev of 'word count.'
-
-Wildcat can abbreviate as `wc`, too.
-
-### :man_office_worker: Developers :woman_office_worker:
-
-* [tamada](https://tamada.github.io)
+* `1.0.0`, `latest`
