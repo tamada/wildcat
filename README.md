@@ -206,7 +206,7 @@ The following xml is formatted by `xmllint --format -`
 
 ### :whale: Docker
 
-[![Docker](https://img.shields.io/badge/docker-ghcr.io%2Ftamada%2Fwildcat%3A1.0.1-blue?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
+[![Docker](https://img.shields.io/badge/docker-ghcr.io%2Ftamada%2Fwildcat%3A1.0.1-green?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
 
 ```shell
 $ docker run -v $PWD:/home/wildcat ghcr.io/tamada/wildcat:1.0.0 testdata/wc
@@ -225,7 +225,7 @@ $ docker run -p 8080:8080 -v $PWD:/home/wildcat ghcr.io/tamada/wildcat:1.0.0 --s
 
 ### :surfer: Heroku
 
-[![Heroku](https://img.shields.io/badge/Heroku-secret--coast--70208-blue?logo=heroku)](https://secret-coast-70208.herokuapp.com/wildcat/)
+[![Heroku](https://img.shields.io/badge/Heroku-secret--coast--70208-green?logo=heroku)](https://secret-coast-70208.herokuapp.com/wildcat/)
 
 Post the files to `https://secret-coast-70208.herokuapp.com/wildcat/api/counts`, like below.
 
@@ -258,6 +258,8 @@ $ make
 ## :smile: About
 
 ### Cite `wildcat` in the academic papers
+
+[![DOI](https://zenodo.org/badge/338797861.svg)](https://zenodo.org/badge/latestdoi/338797861)
 
 To cite this product, use the following BibTeX entry.
 
