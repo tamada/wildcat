@@ -5,12 +5,15 @@
 [![codebeat badge](https://codebeat.co/badges/ad4259ff-15bc-48e6-b5a5-e23fda711d25)](https://codebeat.co/projects/github-com-tamada-wildcat-main)
 [![Go Report Card](https://goreportcard.com/badge/github.com/tamada/wildcat)](https://goreportcard.com/report/github.com/tamada/wildcat)
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-green.svg?logo=spdx)](https://github.com/tamada/tjdoe/blob/master/LICENSE)
-[![Version](https://img.shields.io/badge/Version-1.0.1-green.svg)](https://github.com/tamada/tjdoe/releases/tag/v1.0.1)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?logo=spdx)](https://github.com/tamada/tjdoe/blob/master/LICENSE)
+[![Version](https://img.shields.io/badge/Version-1.0.1-blue.svg)](https://github.com/tamada/tjdoe/releases/tag/v1.0.1)
+[![DOI](https://zenodo.org/badge/338797861.svg)](https://zenodo.org/badge/latestdoi/338797861)
 
-[![Docker](https://img.shields.io/badge/docker-ghcr.io%2Ftamada%2Fwildcat%3A1.0.1-blue?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
-[![Heroku](https://img.shields.io/badge/Heroku-secret--coast--70208-blue?logo=heroku)](https://secret-coast-70208.herokuapp.com/wildcat/)
-[![tamada/brew/wildcat](https://img.shields.io/badge/Homebrew-tamada%2Fbrew%2Frrh-blue?logo=homebrew)](https://github.com/tamada/homebrew-brew)
+[![Docker](https://img.shields.io/badge/Docker-ghcr.io%2Ftamada%2Fwildcat%3A1.0.1-green?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
+[![Heroku](https://img.shields.io/badge/Heroku-secret--coast--70208-green?logo=heroku)](https://secret-coast-70208.herokuapp.com/wildcat/)
+[![tamada/brew/wildcat](https://img.shields.io/badge/Homebrew-tamada%2Fbrew%2Fwildcat-green?logo=homebrew)](https://github.com/tamada/homebrew-brew)
+
+[![Discussion](https://img.shields.io/badge/GitHub-Discussion-orange?logo=GitHub)](https://github.com/tamada/wildcat/discussions)
 
 Another implementation of `wc` (word count).
 
@@ -237,6 +240,8 @@ $ curl -X POST --data-binary @testdata/archives/wc.jar https://secret-coast-7020
 
 ### :beer: Homebrew
 
+[![tamada/brew/wildcat](https://img.shields.io/badge/Homebrew-tamada%2Fbrew%2Fwildcat-green?logo=homebrew)](https://github.com/tamada/homebrew-brew)
+
 ```shell
 $ brew tap tamada/brew
 $ brew install wildcat
@@ -262,7 +267,6 @@ To cite this product, use the following BibTeX entry.
     title        = {Wildcat: another implementation of wc (word count)},
     publisher    = {GitHub},
     howpublished = {\url{https://github.com/tamada/wildcat}},
-    doi          = {},
     year         = {2021},
 }
 ```
