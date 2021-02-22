@@ -6,7 +6,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/tamada/wildcat)](https://goreportcard.com/report/github.com/tamada/wildcat)
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg?logo=spdx)](https://github.com/tamada/tjdoe/blob/master/LICENSE)
-[![Version](https://img.shields.io/badge/Version-1.0.0-green.svg)](https://github.com/tamada/tjdoe/releases/tag/v1.0.0)
+[![Version](https://img.shields.io/badge/Version-1.0.1-green.svg)](https://github.com/tamada/tjdoe/releases/tag/v1.0.1)
 
 [![Docker](https://img.shields.io/badge/docker-ghcr.io%2Ftamada%2Fwildcat%3A1.0.1-blue?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
 [![Heroku](https://img.shields.io/badge/Heroku-secret--coast--70208-blue?logo=heroku)](https://secret-coast-70208.herokuapp.com/wildcat/)
