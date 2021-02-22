@@ -8,8 +8,9 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg?logo=spdx)](https://github.com/tamada/tjdoe/blob/master/LICENSE)
 [![Version](https://img.shields.io/badge/Version-1.0.0-green.svg)](https://github.com/tamada/tjdoe/releases/tag/v1.0.0)
 
-[![Docker](https://img.shields.io/badge/docker-ghcr.io%2Ftamada%2Fwildcat%3A1.0.0-green?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
-
+[![Docker](https://img.shields.io/badge/docker-ghcr.io%2Ftamada%2Fwildcat%3A1.0.1-blue?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
+[![Heroku](https://img.shields.io/badge/Heroku-secret--coast--70208-blue?logo=heroku)](https://secret-coast-70208.herokuapp.com/wildcat/)
+[![tamada/brew/wildcat](https://img.shields.io/badge/Homebrew-tamada%2Fbrew%2Frrh-blue?logo=homebrew)](https://github.com/tamada/homebrew-brew)
 
 Another implementation of `wc` (word count).
 
@@ -199,6 +200,39 @@ The following xml is formatted by `xmllint --format -`
   </results>
 </wildcat>
 ```
+
+### :whale: Docker
+
+[![Docker](https://img.shields.io/badge/docker-ghcr.io%2Ftamada%2Fwildcat%3A1.0.1-blue?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
+
+```shell
+$ docker run -v $PWD:/home/wildcat ghcr.io/tamada/wildcat:1.0.0 testdata/wc
+```
+
+If you run `wildcat` on server mode, run the following command.
+
+```shell
+$ docker run -p 8080:8080 -v $PWD:/home/wildcat ghcr.io/tamada/wildcat:1.0.0 --server
+```
+
+#### versions
+
+* `1.0.1`, `latest`
+* `1.0.0`
+
+### :surfer: Heroku
+
+[![Heroku](https://img.shields.io/badge/Heroku-secret--coast--70208-blue?logo=heroku)](https://secret-coast-70208.herokuapp.com/wildcat/)
+
+Post the files to `https://secret-coast-70208.herokuapp.com/wildcat/api/counts`, like below.
+
+```
+$ curl -X POST --data-binary @testdata/archives/wc.jar https://secret-coast-70208.herokuapp.com/wildcat/api/counts
+{"timestamp":"2021-02-22T02:40:26+09:00","results":[{"filename":"<request>","lines":5,"words":62,"characters":1054,"bytes":1080}]}
+$ curl -X POST --data-binary @testdata/archives/wc.jar https://secret-coast-70208.herokuapp.com/wildcat/api/counts?file-name=wc.jar
+{"timestamp":"2021-02-22T02:40:35+09:00","results":[{"filename":"wc.jar!humpty_dumpty.txt","lines":4,"words":26,"characters":142,"bytes":142},{"filename":"wc.jar!ja/","lines":0,"words":0,"characters":0,"bytes":0},{"filename":"wc.jar!ja/sakura_sakura.txt","lines":15,"words":26,"characters":118,"bytes":298},{"filename":"wc.jar!london_bridge_is_broken_down.txt","lines":59,"words":260,"characters":1341,"bytes":1341},{"filename":"total","lines":78,"words":312,"characters":1601,"bytes":1781}]}
+```
+
 ## :anchor: Install
 
 ### :beer: Homebrew
@@ -217,6 +251,21 @@ $ make
 ```
 
 ## :smile: About
+
+### Cite `wildcat` in the academic papers
+
+To cite this product, use the following BibTeX entry.
+
+```latex
+@misc{ tamada_wildcat,
+    author       = {Haruaki Tamada},
+    title        = {Wildcat: another implementation of wc (word count)},
+    publisher    = {GitHub},
+    howpublished = {\url{https://github.com/tamada/wildcat}},
+    doi          = {},
+    year         = {2021},
+}
+```
 
 ### :jack_o_lantern: Icon
 
