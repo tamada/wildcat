@@ -1,21 +1,24 @@
 FROM alpine:3.10.1
+
+ARG version=1.0.1
+
 LABEL maintainer="Haruai Tamada" \
-      wildcat-version="1.0.0" \
       description="another implementation of wc (word count)"
 
 RUN    adduser -D wildcat \
-    && apk --no-cache add curl tar \
-    && curl -s -L -O https://github.com/tamada/wildcat/releases/download/v1.0.0/wildcat-1.0.0_linux_amd64.tar.gz \
-#    && curl -s -L -o wildcat-1.0.0_linux_amd64.tar.gz https://www.dropbox.com/s/9av696fxcoz92o4/wildcat-1.0.0_linux_amd64.tar.gz?dl=0 \
-    && tar xfz wildcat-1.0.0_linux_amd64.tar.gz          \
-    && mv wildcat-1.0.0 /opt                             \
-    && ln -s /opt/wildcat-1.0.0 /opt/wildcat             \
+    && apk --no-cache add --update --virtual .builddeps curl tar \
+    && curl -s -L -O https://github.com/tamada/wildcat/releases/download/v{version}/wildcat-${version}_linux_amd64.tar.gz \
+#    && curl -s -L -o wildcat-${version}_linux_amd64.tar.gz https://www.dropbox.com/s/f8in5s80q56s05m/wildcat-${version}_linux_amd64.tar.gz?dl=0 \
+    && tar xfz wildcat-${version}_linux_amd64.tar.gz     \
+    && mv wildcat-${version} /opt                        \
+    && ln -s /opt/wildcat-${version} /opt/wildcat        \
     && ln -s /opt/wildcat/wildcat /usr/local/bin/wildcat \
-    && rm wildcat-1.0.0_linux_amd64.tar.gz
+    && rm wildcat-${version}_linux_amd64.tar.gz          \
+    && apk del --purge .builddeps
 
 ENV HOME="/home/wildcat"
 
 WORKDIR /home/wildcat
 USER    wildcat
 
-ENTRYPOINT [ "wildcat" ]
+ENTRYPOINT [ "/opt/wildcat/wildcat" ]

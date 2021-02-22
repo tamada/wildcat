@@ -10,6 +10,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/tamada/wildcat"
+	"github.com/tamada/wildcat/logger"
 )
 
 type multipartEntry struct {
@@ -83,18 +84,19 @@ func countsBody(res http.ResponseWriter, req *http.Request, opts *wildcat.ReadOp
 }
 
 func counts(res http.ResponseWriter, req *http.Request) {
+	logger.Infof("counts: %s\n", req.URL)
 	contentType := req.Header.Get("Content-Type")
 	defer req.Body.Close()
 	handlers := []struct {
 		contentType string
 		execFunc    func(http.ResponseWriter, *http.Request, *wildcat.ReadOptions) (*wildcat.ResultSet, error)
 	}{
-		{"application/x-www-form-urlencoded", countsBody},
 		{"multipart/form-data", countsMultipartBody},
+		{"*", countsBody},
 	}
 	opts := parseQueryParams(req)
 	for _, handler := range handlers {
-		if strings.HasPrefix(contentType, handler.contentType) {
+		if handler.contentType == "*" || strings.HasPrefix(contentType, handler.contentType) {
 			rs, err := handler.execFunc(res, req, opts)
 			respond(rs, err, res)
 			break
@@ -119,6 +121,7 @@ func countsMultipartBody(res http.ResponseWriter, req *http.Request, reader *wil
 
 func wrapHandler(h http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		logger.Infof("url: %s\n", r.URL)
 		h.ServeHTTP(w, r)
 	}
 }
@@ -145,30 +148,32 @@ func registerHandlers(router *mux.Router) {
 func createRestAPIServer() *mux.Router {
 	router := mux.NewRouter()
 	registerHandlers(router.PathPrefix("/wildcat/api/").Subrouter())
-	router.PathPrefix("/wildcat/").Handler(fileServer())
+	router.PathPrefix("/wildcat").Handler(fileServer())
 	return router
 }
 
 func fileServer() http.Handler {
 	dirs := []string{
 		"docs/public",
-		"/opts/wildcat/docs",
+		"/opt/wildcat/docs",
 		"/usr/local/opts/wildcat/docs",
 	}
 	for _, dir := range dirs {
 		if wildcat.ExistDir(dir) {
+			logger.Infof("ready to serve on %s", dir)
 			return wrapHandler(http.StripPrefix("/wildcat/", http.FileServer(http.Dir(dir))))
 		}
 	}
 	return nil
 }
 func (server *serverOptions) start(router *mux.Router) int {
-	fmt.Printf("Listen server at port %d\n", server.port)
-	fmt.Printf("start shutdown: %s\n", http.ListenAndServe(fmt.Sprintf(":%d", server.port), router))
+	logger.Infof("Listen server at port %d", server.port)
+	logger.Infof("start shutdown: %s\n", http.ListenAndServe(fmt.Sprintf(":%d", server.port), router))
 	return 0
 }
 
 func (server *serverOptions) launchServer() int {
+	logger.SetLevel(logger.INFO)
 	router := createRestAPIServer()
 	return server.start(router)
 }

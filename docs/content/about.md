@@ -8,6 +8,21 @@ Apache License version 2.0
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg?logo=spdx)](https://github.com/tamada/tjdoe/blob/master/LICENSE)
 
+### Cite `wildcat` in the academic papers
+
+To cite this product, use the following BibTeX entry.
+
+```latex
+@misc{ tamada_wildcat,
+    author       = {Haruaki Tamada},
+    title        = {Wildcat: another implementation of wc (word count)},
+    publisher    = {GitHub},
+    howpublished = {\url{https://github.com/tamada/wildcat}},
+    doi          = {},
+    year         = {2021},
+}
+```
+
 ### :jack_o_lantern: Icon
 
 ![wildcat](../images/logo.svg)

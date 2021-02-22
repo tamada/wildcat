@@ -1,6 +1,6 @@
 GO := go
 NAME := wildcat
-VERSION := 1.0.0
+VERSION := 1.0.1
 DIST := $(NAME)-$(VERSION)
 
 all: test build
@@ -8,11 +8,16 @@ all: test build
 setup: update_version
 
 update_version:
-	@for i in README.md; do\
+	@for i in README.md docs/content/_index.md ; do \
 		sed -e 's!Version-[0-9.]*-green!Version-${VERSION}-green!g' -e 's!tag/v[0-9.]*!tag/v${VERSION}!g' $$i > a ; mv a $$i; \
+	done
+	@for i in README.md docs/content/_index.md docs/content/usage.md ; do \
+		sed -e 's!docker-ghcr.io%2Ftamada%2Fwildcat%3A[0-9.]*-blue!docker-ghcr.io%2Ftamada%2Fwildcat%3A${VERSION}-blue!g' $$i > a ; mv a $$i; \
 	done
 	@sed 's/const VERSION = .*/const VERSION = "${VERSION}"/g' cmd/$(NAME)/main.go > a
 	@mv a cmd/$(NAME)/main.go
+	@sed 's/ARG version=.*/ARG version=${VERSION}/g' Dockerfile > b
+	@mv b Dockerfile
 	@echo "Replace version to \"${VERSION}\""
 
 test: setup
@@ -44,3 +49,14 @@ dist: build docs
 clean:
 	$(GO) clean
 	rm -rf $(NAME) dist
+
+define _update_docker
+	(sed -e '$$d' Dockerfile ; echo $(1)) > a
+	mv a Dockerfile
+endef
+
+heroku:
+	@$(call _update_docker,'CMD /opt/wildcat/wildcat --server --port $$PORT')
+	heroku container:push web
+	heroku container:release web
+	@$(call _update_docker,'ENTRYPOINT [ "/opt/wildcat/wildcat" ]')
