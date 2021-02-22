@@ -219,13 +219,24 @@ total,78,312,1601,1781
     <span style="color:#008000;font-weight:bold">&lt;/result&gt;</span>
   <span style="color:#008000;font-weight:bold">&lt;/results&gt;</span>
 <span style="color:#008000;font-weight:bold">&lt;/wildcat&gt;</span>
-</code></pre></div><h2 id="-docker">🐳 Docker</h2>
-<p><a href="https://github.com/users/tamada/packages/container/package/wildcat"><img src="https://img.shields.io/badge/docker-ghcr.io%2Ftamada%2Fwildcat%3A1.0.0-green?logo=docker" alt="Docker"></a></p>
+</code></pre></div><h3 id="-docker">🐳 Docker</h3>
+<p><a href="https://github.com/users/tamada/packages/container/package/wildcat"><img src="https://img.shields.io/badge/docker-ghcr.io%2Ftamada%2Fwildcat%3A1.0.1-blue?logo=docker" alt="Docker"></a></p>
 <div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ docker run -v <span style="color:#19177c">$PWD</span>:/home/wildcat ghcr.io/tamada/wildcat:1.0.0 testdata/wc
-</code></pre></div><ul>
-<li><code>1.0.0</code>, <code>latest</code></li>
+</code></pre></div><p>If you run <code>wildcat</code> on server mode, run the following command.</p>
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ docker run -p 8080:8080 -v <span style="color:#19177c">$PWD</span>:/home/wildcat ghcr.io/tamada/wildcat:1.0.0 --server
+</code></pre></div><h4 id="versions">versions</h4>
+<ul>
+<li><code>1.0.1</code>, <code>latest</code></li>
+<li><code>1.0.0</code></li>
 </ul>
-
+<h3 id="-heroku">🏄‍♂️ Heroku</h3>
+<p><a href="https://secret-coast-70208.herokuapp.com/wildcat/"><img src="https://img.shields.io/badge/Heroku-secret--coast--70208-blue?logo=heroku" alt="Heroku"></a></p>
+<p>Post the files to <code>https://secret-coast-70208.herokuapp.com/wildcat/api/counts</code>, like below.</p>
+<pre><code>$ curl -X POST --data-binary @testdata/archives/wc.jar https://secret-coast-70208.herokuapp.com/wildcat/api/counts
+{&quot;timestamp&quot;:&quot;2021-02-22T02:40:26+09:00&quot;,&quot;results&quot;:[{&quot;filename&quot;:&quot;&lt;request&gt;&quot;,&quot;lines&quot;:5,&quot;words&quot;:62,&quot;characters&quot;:1054,&quot;bytes&quot;:1080}]}
+$ curl -X POST --data-binary @testdata/archives/wc.jar https://secret-coast-70208.herokuapp.com/wildcat/api/counts?file-name=wc.jar
+{&quot;timestamp&quot;:&quot;2021-02-22T02:40:35+09:00&quot;,&quot;results&quot;:[{&quot;filename&quot;:&quot;wc.jar!humpty_dumpty.txt&quot;,&quot;lines&quot;:4,&quot;words&quot;:26,&quot;characters&quot;:142,&quot;bytes&quot;:142},{&quot;filename&quot;:&quot;wc.jar!ja/&quot;,&quot;lines&quot;:0,&quot;words&quot;:0,&quot;characters&quot;:0,&quot;bytes&quot;:0},{&quot;filename&quot;:&quot;wc.jar!ja/sakura_sakura.txt&quot;,&quot;lines&quot;:15,&quot;words&quot;:26,&quot;characters&quot;:118,&quot;bytes&quot;:298},{&quot;filename&quot;:&quot;wc.jar!london_bridge_is_broken_down.txt&quot;,&quot;lines&quot;:59,&quot;words&quot;:260,&quot;characters&quot;:1341,&quot;bytes&quot;:1341},{&quot;filename&quot;:&quot;total&quot;,&quot;lines&quot;:78,&quot;words&quot;:312,&quot;characters&quot;:1601,&quot;bytes&quot;:1781}]}
+</code></pre>
 
     <footer class="site-footer">
   <span class="site-footer-credits">

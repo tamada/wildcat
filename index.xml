@@ -36,10 +36,9 @@
       <guid>https://tamada.github.io/wildcat/about/</guid>
       <description>📜 License Apache License version 2.0
 
-🎃 Icon This icon is obtained from freesvg.org.
-📛 The project name (wildcat) comes from? This project origin is wc command, and wc is the abbrev of &amp;lsquo;word count.&amp;rsquo;
-Wildcat can abbreviate as wc, too.
-👨‍💼 Developers 👩‍💼  tamada  </description>
+Cite wildcat in the academic papers To cite this product, use the following BibTeX entry.
+@misc{ tamada_wildcat, author = {Haruaki Tamada}, title = {Wildcat: another implementation of wc (word count)}, publisher = {GitHub}, howpublished = {\url{https://github.com/tamada/wildcat}}, doi = {}, year = {2021}, } 🎃 Icon This icon is obtained from freesvg.org.
+📛 The project name (wildcat) comes from? This project origin is wc command, and wc is the abbrev of &amp;lsquo;word count.</description>
     </item>
     
   </channel>
