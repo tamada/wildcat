@@ -10,7 +10,7 @@ import (
 )
 
 // VERSION represents the version of this project.
-const VERSION = "1.0.1"
+const VERSION = "1.0.2"
 
 func helpMessage(name string) string {
 	return fmt.Sprintf(`%s version %s
