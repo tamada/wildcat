@@ -4,6 +4,7 @@ defaultContentLanguage = "en"
 title = "wildcat"
 theme = "cayman-hugo-theme"
 enableEmoji = true
+googleAnalytics = "UA-62401730-17"
 
 pygmentsCodefences = true
 pygmentsStyle = "pygments"
