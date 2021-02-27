@@ -29,3 +29,7 @@ The excellent points than `wc` are as follows.
 * includes REST API server.
 
 Note that this product is an example project for implementing Open Source Software.
+
+## :fire: Demo
+
+![Demo](images/demo.gif)

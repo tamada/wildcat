@@ -7,7 +7,7 @@ LABEL maintainer="Haruai Tamada" \
 
 RUN    adduser -D wildcat \
     && apk --no-cache add --update --virtual .builddeps curl tar \
-    && curl -s -L -O https://github.com/tamada/wildcat/releases/download/v{version}/wildcat-${version}_linux_amd64.tar.gz \
+    && curl -s -L -O https://github.com/tamada/wildcat/releases/download/v${version}/wildcat-${version}_linux_amd64.tar.gz \
 #    && curl -s -L -o wildcat-${version}_linux_amd64.tar.gz https://www.dropbox.com/s/f8in5s80q56s05m/wildcat-${version}_linux_amd64.tar.gz?dl=0 \
     && tar xfz wildcat-${version}_linux_amd64.tar.gz     \
     && mv wildcat-${version} /opt                        \
