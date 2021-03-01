@@ -1,0 +1,593 @@
+# The configurations that used for the recording, feel free to edit them
+config:
+
+  # Specify a command to be executed
+  # like `/bin/bash -l`, `ls`, or any other commands
+  # the default is bash for Linux
+  # or powershell.exe for Windows
+  command: bash -l
+
+  # Specify the current working directory path
+  # the default is the current working directory path
+  cwd: /Users/tamada/go/src/github.com/tamada/wildcat
+
+  # Export additional ENV variables
+  env:
+    recording: true
+
+  # Explicitly set the number of columns
+  # or use `auto` to take the current
+  # number of columns of your shell
+  cols: 80
+
+  # Explicitly set the number of rows
+  # or use `auto` to take the current
+  # number of rows of your shell
+  rows: 20
+
+  # Amount of times to repeat GIF
+  # If value is -1, play once
+  # If value is 0, loop indefinitely
+  # If value is a positive number, loop n times
+  repeat: 0
+
+  # Quality
+  # 1 - 100
+  quality: 100
+
+  # Delay between frames in ms
+  # If the value is `auto` use the actual recording delays
+  frameDelay: auto
+
+  # Maximum delay between frames in ms
+  # Ignored if the `frameDelay` isn't set to `auto`
+  # Set to `auto` to prevent limiting the max idle time
+  maxIdleTime: 2000
+
+  # The surrounding frame box
+  # The `type` can be null, window, floating, or solid`
+  # To hide the title use the value null
+  # Don't forget to add a backgroundColor style with a null as type
+  frameBox:
+    type: floating
+    title: Demo of wildcat
+    style:
+      border: 0px black solid
+      # boxShadow: none
+      # margin: 0px
+
+  # Add a watermark image to the rendered gif
+  # You need to specify an absolute path for
+  # the image on your machine or a URL, and you can also
+  # add your own CSS styles
+  watermark:
+    imagePath: null
+    style:
+      position: absolute
+      right: 15px
+      bottom: 15px
+      width: 100px
+      opacity: 0.9
+
+  # Cursor style can be one of
+  # `block`, `underline`, or `bar`
+  cursorStyle: block
+
+  # Font family
+  # You can use any font that is installed on your machine
+  # in CSS-like syntax
+  fontFamily: "Monaco, Lucida Console, Ubuntu Mono, Monospace"
+
+  # The size of the font
+  fontSize: 24
+
+  # The height of lines
+  lineHeight: 1
+
+  # The spacing between letters
+  letterSpacing: 0
+
+  # Theme
+  theme:
+    background: "transparent"
+    foreground: "#afafaf"
+    cursor: "#c7c7c7"
+    black: "#232628"
+    red: "#fc4384"
+    green: "#b3e33b"
+    yellow: "#ffa727"
+    blue: "#75dff2"
+    magenta: "#ae89fe"
+    cyan: "#708387"
+    white: "#d5d5d0"
+    brightBlack: "#626566"
+    brightRed: "#ff7fac"
+    brightGreen: "#c8ed71"
+    brightYellow: "#ebdf86"
+    brightBlue: "#75dff2"
+    brightMagenta: "#ae89fe"
+    brightCyan: "#b1c6ca"
+    brightWhite: "#f9f9f4"
+
+# Records, feel free to edit them
+records:
+  - delay: 116
+    content: "$ "
+  - delay: 1103
+    content: f
+  - delay: 103
+    content: i
+  - delay: 119
+    content: 'n'
+  - delay: 82
+    content: d
+  - delay: 148
+    content: ' '
+  - delay: 915
+    content: t
+  - delay: 45
+    content: e
+  - delay: 84
+    content: s
+  - delay: 85
+    content: t
+  - delay: 219
+    content: data/
+  - delay: 672
+    content: w
+  - delay: 178
+    content: c
+  - delay: 135
+    content: ' '
+  - delay: 1102
+    content: '-'
+  - delay: 273
+    content: 'n'
+  - delay: 120
+    content: a
+  - delay: 38
+    content: m
+  - delay: 147
+    content: e
+  - delay: 39
+    content: ' '
+  - delay: 241
+    content: ''''
+  - delay: 444
+    content: '*'
+  - delay: 248
+    content: .
+  - delay: 115
+    content: t
+  - delay: 164
+    content: x
+  - delay: 156
+    content: t
+  - delay: 378
+    content: ''''
+  - delay: 230
+    content: ' '
+  - delay: 766
+    content: '|'
+  - delay: 184
+    content: ' '
+  - delay: 281
+    content: x
+  - delay: 241
+    content: a
+  - delay: 59
+    content: r
+  - delay: 176
+    content: g
+  - delay: 83
+    content: s
+  - delay: 60
+    content: ' '
+  - delay: 335
+    content: w
+  - delay: 179
+    content: c
+  - delay: 383
+    content: "\r\n\e[?2004l\r"
+  - delay: 15
+    content: "      59     260    1341 testdata/wc/london_bridge_is_broken_down.txt\r\n      15      26     298 testdata/wc/ja/sakura_sakura.txt\r\n       4      26     142 testdata/wc/humpty_dumpty.txt\r\n      78     312    1781 total\r\n"
+  - delay: 101
+    content: "$ "
+  - delay: 500
+    content: 'find testdata/wc -name ''*.txt''  | xargs wc'
+  - delay: 100
+    content: "\b\e[K"
+  - delay: 100
+    content: "\b\e[K"
+  - delay: 100
+    content: "\b\e[K"
+  - delay: 100
+    content: "\b\e[K"
+  - delay: 100
+    content: "\b\e[K"
+  - delay: 100
+    content: "\b\e[K"
+  - delay: 100
+    content: "\b\e[K"
+  - delay: 100
+    content: "\b\e[K"
+  - delay: 228
+    content: w
+  - delay: 112
+    content: i
+  - delay: 181
+    content: l
+  - delay: 104
+    content: d
+  - delay: 188
+    content: 'cat '
+  - delay: 759
+    content: '-'
+  - delay: 467
+    content: '@'
+  - delay: 500
+    content: "\r\n\e[?2004l\r"
+  - delay: 75
+    content: "      lines      words characters      bytes\r\n         59        260       1341       1341 testdata/wc/london_bridge_is_broken_down.txt\r\n         15         26        118        298 testdata/wc/ja/sakura_sakura.txt\r\n          4         26        142        142 testdata/wc/humpty_dumpty.txt\r\n         78        312       1601       1781 total\r\n"
+  - delay: 51
+    content: "$ "
+  - delay: 1000
+    content: w
+  - delay: 488
+    content: i
+  - delay: 248
+    content: l
+  - delay: 114
+    content: d
+  - delay: 237
+    content: 'cat '
+  - delay: 1403
+    content: t
+  - delay: 79
+    content: e
+  - delay: 33
+    content: s
+  - delay: 401
+    content: tdata/
+  - delay: 850
+    content: w
+  - delay: 203
+    content: c
+  - delay: 745
+    content: "\r\n\e[?2004l\r"
+  - delay: 28
+    content: "      lines      words characters      bytes\r\n          4         26        142        142 testdata/wc/humpty_dumpty.txt\r\n         15         26        118        298 testdata/wc/ja/sakura_sakura.txt\r\n         59        260       1341       1341 testdata/wc/london_bridge_is_broken_down.txt\r\n         78        312       1601       1781 total\r\n"
+  - delay: 101
+    content: "$ "
+  - delay: 1982
+    content: w
+  - delay: 169
+    content: c
+  - delay: 149
+    content: ' '
+  - delay: 174
+    content: t
+  - delay: 64
+    content: e
+  - delay: 41
+    content: s
+  - delay: 99
+    content: t
+  - delay: 202
+    content: data/
+  - delay: 1117
+    content: a
+  - delay: 100
+    content: r
+  - delay: 176
+    content: chives/
+  - delay: 472
+    content: w
+  - delay: 153
+    content: c
+  - delay: 167
+    content: .
+  - delay: 195
+    content: j
+  - delay: 74
+    content: a
+  - delay: 94
+    content: r
+  - delay: 249
+    content: "\r\n\e[?2004l\r"
+  - delay: 7
+    content: "       5      28    1080 testdata/archives/wc.jar\r\n"
+  - delay: 51
+    content: "$ "
+  - delay: 2000
+    content: w
+  - delay: 76
+    content: i
+  - delay: 173
+    content: l
+  - delay: 141
+    content: 'dcat '
+  - delay: 1997
+    content: t
+  - delay: 73
+    content: e
+  - delay: 122
+    content: s
+  - delay: 312
+    content: tdata/
+  - delay: 1500
+    content: a
+  - delay: 104
+    content: r
+  - delay: 153
+    content: chives/
+  - delay: 767
+    content: w
+  - delay: 184
+    content: c
+  - delay: 109
+    content: .
+  - delay: 231
+    content: j
+  - delay: 70
+    content: a
+  - delay: 72
+    content: r
+  - delay: 574
+    content: "\r\n\e[?2004l\r"
+  - delay: 62
+    content: "      lines      words characters      bytes\r\n          4         26        142        142 testdata/archives/wc.jar!humpty_dumpty.txt\r\n          0          0          0          0 testdata/archives/wc.jar!ja/\r\n         15         26        118        298 testdata/archives/wc.jar!ja/sakura_sakura.txt\r\n         59        260       1341       1341 testdata/archives/wc.jar!london_bridge_is_broken_down.txt\r\n         78        312       1601       1781 total\r\n"
+  - delay: 99
+    content: "\e]7;file://tamacpro.local/Users/tamada/go/src/github.com/tamada/wildcat\a"
+  - delay: 53
+    content: "$ "
+  - delay: 297
+    content: t
+  - delay: 256
+    content: r
+  - delay: 234
+    content: e
+  - delay: 145
+    content: e
+  - delay: 151
+    content: ' '
+  - delay: 91
+    content: t
+  - delay: 53
+    content: e
+  - delay: 86
+    content: s
+  - delay: 106
+    content: t
+  - delay: 177
+    content: data/
+  - delay: 316
+    content: i
+  - delay: 64
+    content: g
+  - delay: 183
+    content: nores/
+  - delay: 239
+    content: "\r\n\e[?2004l\r"
+  - delay: 28
+    content: "testdata/ignores/\r\n├── ignore.test\r\n├── notIgnore.txt\r\n└── subdir\r\n    ├── ignore.test2\r\n    ├── ignore_sub.test\r\n    └── notIgnore_sub.txt\r\n\r\n1 directory, 5 files\r\n"
+  - delay: 90
+    content: "$ "
+  - delay: 2332
+    content: w
+  - delay: 126
+    content: i
+  - delay: 179
+    content: l
+  - delay: 128
+    content: d
+  - delay: 158
+    content: 'cat '
+  - delay: 1699
+    content: t
+  - delay: 84
+    content: e
+  - delay: 855
+    content: s
+  - delay: 216
+    content: tdata/
+  - delay: 611
+    content: i
+  - delay: 72
+    content: g
+  - delay: 149
+    content: nores/
+  - delay: 1000
+    content: "\r\n\e[?2004l\r"
+  - delay: 67
+    content: "      lines      words characters      bytes\r\n          1          5         26         26 testdata/ignores/notIgnore.txt\r\n          1          5         26         26 testdata/ignores/subdir/notIgnore_sub.txt\r\n          2         10         52         52 total\r\n"
+  - delay: 90
+    content: "$ "
+  - delay: 4618
+    content: w
+  - delay: 137
+    content: i
+  - delay: 178
+    content: l
+  - delay: 137
+    content: d
+  - delay: 193
+    content: 'cat '
+  - delay: 597
+    content: t
+  - delay: 73
+    content: e
+  - delay: 85
+    content: s
+  - delay: 223
+    content: tdata/
+  - delay: 293
+    content: i
+  - delay: 127
+    content: gnores/
+  - delay: 339
+    content: ' '
+  - delay: 265
+    content: '-'
+  - delay: 132
+    content: '-'
+  - delay: 241
+    content: 'n'
+  - delay: 91
+    content: o
+  - delay: 1095
+    content: '-'
+  - delay: 310
+    content: i
+  - delay: 222
+    content: g
+  - delay: 107
+    content: 'n'
+  - delay: 37
+    content: o
+  - delay: 87
+    content: r
+  - delay: 58
+    content: e
+  - delay: 786
+    content: "\r\n\e[?2004l\r"
+  - delay: 56
+    content: "      lines      words characters      bytes\r\n          1          1          7          7 testdata/ignores/.gitignore\r\n          1         11         65         65 testdata/ignores/ignore.test\r\n          1          5         26         26 testdata/ignores/notIgnore.txt\r\n          1          1          8          8 testdata/ignores/subdir/.gitignore\r\n          1         10         61         61 testdata/ignores/subdir/ignore.test2\r\n          1         10         60         60 testdata/ignores/subdir/ignore_sub.test\r\n          1          5         26         26 testdata/ignores/subdir/notIgnore_sub.txt\r\n          7         43        253        253 total\r\n"
+  - delay: 79
+    content: "$ "
+  - delay: 370
+    content: w
+  - delay: 142
+    content: i
+  - delay: 190
+    content: l
+  - delay: 116
+    content: d
+  - delay: 205
+    content: c
+  - delay: 94
+    content: a
+  - delay: 117
+    content: t
+  - delay: 157
+    content: ' '
+  - delay: 353
+    content: t
+  - delay: 65
+    content: e
+  - delay: 56
+    content: s
+  - delay: 239
+    content: tdata/
+  - delay: 274
+    content: w
+  - delay: 498
+    content: c
+  - delay: 211
+    content: ' '
+  - delay: 637
+    content: '-'
+  - delay: 294
+    content: '-'
+  - delay: 172
+    content: f
+  - delay: 66
+    content: o
+  - delay: 118
+    content: r
+  - delay: 126
+    content: m
+  - delay: 85
+    content: a
+  - delay: 54
+    content: t
+  - delay: 122
+    content: ' '
+  - delay: 593
+    content: j
+  - delay: 89
+    content: s
+  - delay: 94
+    content: o
+  - delay: 80
+    content: 'n'
+  - delay: 268
+    content: "\r\n\e[?2004l\r"
+  - delay: 27
+    content: "{\"timestamp\":\"2021-03-01T11:00:58+09:00\",\"results\":[{\"filename\":\"testdata/wc/humpty_dumpty.txt\",\"lines\":4,\"words\":26,\"characters\":142,\"bytes\":142},{\"filename\":\"testdata/wc/ja/sakura_sakura.txt\",\"lines\":15,\"words\":26,\"characters\":118,\"bytes\":298},{\"filename\":\"testdata/wc/london_bridge_is_broken_down.txt\",\"lines\":59,\"words\":260,\"characters\":1341,\"bytes\":1341},{\"filename\":\"total\",\"lines\":78,\"words\":312,\"characters\":1601,\"bytes\":1781}]}\r\n"
+  - delay: 56
+    content: "$ "
+  - delay: 1356
+    content: w
+  - delay: 148
+    content: i
+  - delay: 147
+    content: l
+  - delay: 94
+    content: d
+  - delay: 218
+    content: 'cat '
+  - delay: 356
+    content: t
+  - delay: 55
+    content: e
+  - delay: 70
+    content: s
+  - delay: 96
+    content: t
+  - delay: 166
+    content: data/
+  - delay: 275
+    content: w
+  - delay: 152
+    content: c
+  - delay: 241
+    content: ' '
+  - delay: 449
+    content: '-'
+  - delay: 130
+    content: '-'
+  - delay: 97
+    content: f
+  - delay: 128
+    content: o
+  - delay: 102
+    content: r
+  - delay: 64
+    content: m
+  - delay: 148
+    content: a
+  - delay: 59
+    content: t
+  - delay: 89
+    content: ' '
+  - delay: 236
+    content: x
+  - delay: 85
+    content: m
+  - delay: 71
+    content: l
+  - delay: 526
+    content: "\r\n\e[?2004l\r"
+  - delay: 20
+    content: "<?xml version=\"1.0\"?>\r\n<wildcat><timestamp>2021-03-01T11:01:04+09:00</timestamp><results><result><file-name>testdata/wc/humpty_dumpty.txt</file-name><lines>4</lines><words>26</words><characters>142</characters><bytes>142</bytes></result><result><file-name>testdata/wc/ja/sakura_sakura.txt</file-name><lines>15</lines><words>26</words><characters>118</characters><bytes>298</bytes></result><result><file-name>testdata/wc/london_bridge_is_broken_down.txt</file-name><lines>59</lines><words>260</words><characters>1341</characters><bytes>1341</bytes></result><result><file-name>total</file-name><lines>78</lines><words>312</words><characters>1601</characters><bytes>1781</bytes></result></results></wildcat>\r\n"
+  - delay: 51
+    content: "$ "
+  - delay: 1845
+    content: wildcat testdata/wc --format xml
+  - delay: 325
+    content: "\b\e[K"
+  - delay: 170
+    content: "\b\e[K"
+  - delay: 153
+    content: "\b\e[K"
+  - delay: 275
+    content: c
+  - delay: 63
+    content: s
+  - delay: 121
+    content: v
+  - delay: 300
+    content: "\r\n\e[?2004l\r"
+  - delay: 21
+    content: "file name,lines,words,characters,bytes\r\ntestdata/wc/humpty_dumpty.txt,4,26,142,142\r\ntestdata/wc/ja/sakura_sakura.txt,15,26,118,298\r\ntestdata/wc/london_bridge_is_broken_down.txt,59,260,1341,1341\r\ntotal,78,312,1601,1781\r\n"
