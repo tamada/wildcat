@@ -36,6 +36,8 @@ Note that this product is an example project for implementing Open Source Softwa
 
 ## :walking: Demo
 
+![demo](docs/static/images/demo.gif)
+
 ## :runner: Usage
 
 ### :shoe: CLI mode
