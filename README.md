@@ -5,11 +5,11 @@
 [![codebeat badge](https://codebeat.co/badges/ad4259ff-15bc-48e6-b5a5-e23fda711d25)](https://codebeat.co/projects/github-com-tamada-wildcat-main)
 [![Go Report Card](https://goreportcard.com/badge/github.com/tamada/wildcat)](https://goreportcard.com/report/github.com/tamada/wildcat)
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?logo=spdx)](https://github.com/tamada/tjdoe/blob/master/LICENSE)
-[![Version](https://img.shields.io/badge/Version-1.0.2-blue.svg)](https://github.com/tamada/tjdoe/releases/tag/v1.0.2)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?logo=spdx)](https://github.com/tamada/wildcat/blob/main/LICENSE)
+[![Version](https://img.shields.io/badge/Version-1.0.3-blue.svg)](https://github.com/tamada/tjdoe/releases/tag/v1.0.3)
 [![DOI](https://zenodo.org/badge/338797861.svg)](https://zenodo.org/badge/latestdoi/338797861)
 
-[![Docker](https://img.shields.io/badge/Docker-ghcr.io%2Ftamada%2Fwildcat%3A1.0.2-green?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
+[![Docker](https://img.shields.io/badge/Docker-ghcr.io%2Ftamada%2Fwildcat%3A1.0.3-green?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
 [![Heroku](https://img.shields.io/badge/Heroku-secret--coast--70208-green?logo=heroku)](https://secret-coast-70208.herokuapp.com/wildcat/)
 [![tamada/brew/wildcat](https://img.shields.io/badge/Homebrew-tamada%2Fbrew%2Fwildcat-green?logo=homebrew)](https://github.com/tamada/homebrew-brew)
 
@@ -54,12 +54,13 @@ CLI_MODE_OPTIONS
     -w, --word                  prints the number of words in each input file.
     -f, --format <FORMAT>       prints results in a specified format.  Available formats are:
                                 csv, json, xml, and default. Default is default.
+    -H, --humanize              prints sizes in humanization.
     -n, --no-ignore             Does not respect ignore files (.gitignore).
                                 If this option was specified, wildcat read .gitignore.
     -N, --no-extract-archive    Does not extract archive files. If this option was specified,
                                 wildcat treats archive files as the single binary file.
     -o, --output <DEST>         specifies the destination of the result.  Default is standard output.
-    -@, --filelist              treats the contents of arguments' file as file list.
+    -@, --filelist              treats the contents of arguments as file list.
 
     -h, --help                  prints this message.
 SERVER_MODE_OPTIONS
@@ -111,18 +112,18 @@ Default format is almost same as the result of `wc`.
 lines      words characters      bytes
     4         26        142        142 testdata/wc/humpty_dumpty.txt
    15         26        118        298 testdata/wc/ja/sakura_sakura.txt
-   59        260       1341       1341 testdata/wc/london_bridge_is_broken_down.txt
-   78        312       1601       1781 total
+   59        260      1,341      1,341 testdata/wc/london_bridge_is_broken_down.txt
+   78        312      1,601      1,781 total
 ```
 
 #### Csv
 
 ```csv
 file name,lines,words,characters,bytes
-testdata/wc/humpty_dumpty.txt,4,26,142,142
-testdata/wc/ja/sakura_sakura.txt,15,26,118,298
-testdata/wc/london_bridge_is_broken_down.txt,59,260,1341,1341
-total,78,312,1601,1781
+testdata/wc/humpty_dumpty.txt,"4","26","142","142"
+testdata/wc/ja/sakura_sakura.txt,"15","26","118","298"
+testdata/wc/london_bridge_is_broken_down.txt,"59","260","1,341","1,341"
+total,"78","312","1,601","1,781"
 ```
 
 #### Json
@@ -135,31 +136,31 @@ The following json is formatted by `jq .`.
   "results": [
     {
       "filename": "testdata/wc/humpty_dumpty.txt",
-      "lines": 4,
-      "words": 26,
-      "characters": 142,
-      "bytes": 142
+      "lines": "4",
+      "words": "26",
+      "characters": "142",
+      "bytes": "142"
     },
     {
       "filename": "testdata/wc/ja/sakura_sakura.txt",
-      "lines": 15,
-      "words": 26,
-      "characters": 118,
-      "bytes": 298
+      "lines": "15",
+      "words": "26",
+      "characters": "118",
+      "bytes": "298"
     },
     {
       "filename": "testdata/wc/london_bridge_is_broken_down.txt",
-      "lines": 59,
-      "words": 260,
-      "characters": 1341,
-      "bytes": 1341
+      "lines": "59",
+      "words": "260",
+      "characters": "1,341",
+      "bytes": "1,341"
     },
     {
       "filename": "total",
-      "lines": 78,
-      "words": 312,
-      "characters": 1601,
-      "bytes": 1781
+      "lines": "78",
+      "words": "312",
+      "characters": "1,601",
+      "bytes": "1,781"
     }
   ]
 }
@@ -192,15 +193,15 @@ The following xml is formatted by `xmllint --format -`
       <file-name>testdata/wc/london_bridge_is_broken_down.txt</file-name>
       <lines>59</lines>
       <words>260</words>
-      <characters>1341</characters>
-      <bytes>1341</bytes>
+      <characters>1,341</characters>
+      <bytes>1,341</bytes>
     </result>
     <result>
       <file-name>total</file-name>
       <lines>78</lines>
       <words>312</words>
-      <characters>1601</characters>
-      <bytes>1781</bytes>
+      <characters>1,601</characters>
+      <bytes>1,781</bytes>
     </result>
   </results>
 </wildcat>
@@ -208,7 +209,7 @@ The following xml is formatted by `xmllint --format -`
 
 ### :whale: Docker
 
-[![Docker](https://img.shields.io/badge/Docker-ghcr.io%2Ftamada%2Fwildcat%3A1.0.2-green?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
+[![Docker](https://img.shields.io/badge/Docker-ghcr.io%2Ftamada%2Fwildcat%3A1.0.3-green?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
 
 ```shell
 $ docker run -v $PWD:/home/wildcat ghcr.io/tamada/wildcat:1.0.0 testdata/wc
@@ -222,7 +223,9 @@ $ docker run -p 8080:8080 -v $PWD:/home/wildcat ghcr.io/tamada/wildcat:1.0.0 --s
 
 #### versions
 
-* `1.0.1`, `latest`
+* `1.0.3`, `latest`
+* `1.0.2`
+* `1.0.1`
 * `1.0.0`
 
 ### :surfer: Heroku

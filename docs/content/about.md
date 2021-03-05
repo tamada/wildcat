@@ -38,4 +38,4 @@ Wildcat can abbreviate as `wc`, too.
 
 ### :man_office_worker: Developers :woman_office_worker:
 
-* [tamada](https://tamada.github.io)
+* [tamada](https://tamada.github.io) [![buy me a coffee](https://img.shields.io/badge/Buy%20me-a%20coffee!-ffdd00?logo=buy%20me%20a%20coffee)](https://www.buymeacoffee.com/KP27ij5)

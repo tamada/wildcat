@@ -51,19 +51,19 @@ func (me *myEntry) Open() (io.ReadCloser, error) {
 	return me.reader, nil
 }
 
-func createResultJSON(rs *wildcat.ResultSet) []byte {
+func createResultJSON(rs *wildcat.ResultSet, sizer wildcat.Sizer) []byte {
 	buffer := bytes.NewBuffer([]byte{})
-	printer := wildcat.NewPrinter(buffer, "json")
+	printer := wildcat.NewPrinter(buffer, "json", sizer)
 	rs.Print(printer)
 	return buffer.Bytes()
 }
 
-func respond(rs *wildcat.ResultSet, err error, res http.ResponseWriter) {
+func respond(rs *wildcat.ResultSet, err error, res http.ResponseWriter, sizer wildcat.Sizer) {
 	updateHeader(res)
 	if err != nil {
 		respondImpl(res, 400, []byte(fmt.Sprintf(`{"message":"%s"}`, err.Error())))
 	} else {
-		respondImpl(res, 200, createResultJSON(rs))
+		respondImpl(res, 200, createResultJSON(rs, sizer))
 	}
 }
 
@@ -98,7 +98,7 @@ func counts(res http.ResponseWriter, req *http.Request) {
 	for _, handler := range handlers {
 		if handler.contentType == "*" || strings.HasPrefix(contentType, handler.contentType) {
 			rs, err := handler.execFunc(res, req, opts)
-			respond(rs, err, res)
+			respond(rs, err, res, wildcat.BuildSizer(false))
 			break
 		}
 	}

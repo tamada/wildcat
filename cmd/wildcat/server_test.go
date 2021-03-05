@@ -45,10 +45,10 @@ func TestBasicRequest(t *testing.T) {
 		wontStatus      int
 		wontSuffix      string
 	}{
-		{"/wildcat/api/counts", "../../testdata/wc/humpty_dumpty.txt", 200, `"results":[{"filename":"<request>","lines":4,"words":26,"characters":142,"bytes":142}]}`},
-		{"/wildcat/api/counts?file-name=humpty_dumpty.txt", "../../testdata/wc/humpty_dumpty.txt", 200, `"results":[{"filename":"humpty_dumpty.txt","lines":4,"words":26,"characters":142,"bytes":142}]}`},
-		{"/wildcat/api/counts?file-name=wc.jar", "../../testdata/archives/wc.jar", 200, `"results":[{"filename":"wc.jar!humpty_dumpty.txt","lines":4,"words":26,"characters":142,"bytes":142},{"filename":"wc.jar!ja/","lines":0,"words":0,"characters":0,"bytes":0},{"filename":"wc.jar!ja/sakura_sakura.txt","lines":15,"words":26,"characters":118,"bytes":298},{"filename":"wc.jar!london_bridge_is_broken_down.txt","lines":59,"words":260,"characters":1341,"bytes":1341},{"filename":"total","lines":78,"words":312,"characters":1601,"bytes":1781}]`},
-		{"/wildcat/api/counts?file-name=wc.jar&readAs=no-extract", "../../testdata/archives/wc.jar", 200, `"results":[{"filename":"wc.jar","lines":5,"words":62,"characters":1054,"bytes":1080}]`},
+		{"/wildcat/api/counts", "../../testdata/wc/humpty_dumpty.txt", 200, `"results":[{"filename":"<request>","lines":"4","words":"26","characters":"142","bytes":"142"}]}`},
+		{"/wildcat/api/counts?file-name=humpty_dumpty.txt", "../../testdata/wc/humpty_dumpty.txt", 200, `"results":[{"filename":"humpty_dumpty.txt","lines":"4","words":"26","characters":"142","bytes":"142"}]}`},
+		{"/wildcat/api/counts?file-name=wc.jar", "../../testdata/archives/wc.jar", 200, `"results":[{"filename":"wc.jar!humpty_dumpty.txt","lines":"4","words":"26","characters":"142","bytes":"142"},{"filename":"wc.jar!ja/","lines":"0","words":"0","characters":"0","bytes":"0"},{"filename":"wc.jar!ja/sakura_sakura.txt","lines":"15","words":"26","characters":"118","bytes":"298"},{"filename":"wc.jar!london_bridge_is_broken_down.txt","lines":"59","words":"260","characters":"1,341","bytes":"1,341"},{"filename":"total","lines":"78","words":"312","characters":"1,601","bytes":"1,781"}]`},
+		{"/wildcat/api/counts?file-name=wc.jar&readAs=no-extract", "../../testdata/archives/wc.jar", 200, `"results":[{"filename":"wc.jar","lines":"5","words":"62","characters":"1,054","bytes":"1,080"}]`},
 	}
 
 	router := createRestAPIServer()
@@ -75,9 +75,9 @@ func TestFileList(t *testing.T) {
 		wontStatus int
 		wontSuffix string
 	}{
-		{"/wildcat/api/counts", 200, `"results":[{"filename":"<request>","lines":1,"words":2,"characters":140,"bytes":140}]`},
-		{"/wildcat/api/counts?readAs=file-list", 200, `"results":[{"filename":"https://github.com/tamada/wildcat/raw/main/testdata/archives/wc.jar!humpty_dumpty.txt","lines":4,"words":26,"characters":142,"bytes":142},{"filename":"https://github.com/tamada/wildcat/raw/main/testdata/archives/wc.jar!ja/","lines":0,"words":0,"characters":0,"bytes":0},{"filename":"https://github.com/tamada/wildcat/raw/main/testdata/archives/wc.jar!ja/sakura_sakura.txt","lines":15,"words":26,"characters":118,"bytes":298},{"filename":"https://github.com/tamada/wildcat/raw/main/testdata/archives/wc.jar!london_bridge_is_broken_down.txt","lines":59,"words":260,"characters":1341,"bytes":1341},{"filename":"https://github.com/tamada/wildcat/raw/main/testdata/wc/humpty_dumpty.txt","lines":4,"words":26,"characters":142,"bytes":142},{"filename":"total","lines":82,"words":338,"characters":1743,"bytes":1923}]`},
-		{"/wildcat/api/counts?readAs=no-extract,file-list", 200, `"results":[{"filename":"https://github.com/tamada/wildcat/raw/main/testdata/archives/wc.jar","lines":5,"words":62,"characters":1054,"bytes":1080},{"filename":"https://github.com/tamada/wildcat/raw/main/testdata/wc/humpty_dumpty.txt","lines":4,"words":26,"characters":142,"bytes":142},{"filename":"total","lines":9,"words":88,"characters":1196,"bytes":1222}]`},
+		{"/wildcat/api/counts", 200, `"results":[{"filename":"<request>","lines":"1","words":"2","characters":"140","bytes":"140"}]`},
+		{"/wildcat/api/counts?readAs=file-list", 200, `"results":[{"filename":"https://github.com/tamada/wildcat/raw/main/testdata/archives/wc.jar!humpty_dumpty.txt","lines":"4","words":"26","characters":"142","bytes":"142"},{"filename":"https://github.com/tamada/wildcat/raw/main/testdata/archives/wc.jar!ja/","lines":"0","words":"0","characters":"0","bytes":"0"},{"filename":"https://github.com/tamada/wildcat/raw/main/testdata/archives/wc.jar!ja/sakura_sakura.txt","lines":"15","words":"26","characters":"118","bytes":"298"},{"filename":"https://github.com/tamada/wildcat/raw/main/testdata/archives/wc.jar!london_bridge_is_broken_down.txt","lines":"59","words":"260","characters":"1,341","bytes":"1,341"},{"filename":"https://github.com/tamada/wildcat/raw/main/testdata/wc/humpty_dumpty.txt","lines":"4","words":"26","characters":"142","bytes":"142"},{"filename":"total","lines":"82","words":"338","characters":"1,743","bytes":"1,923"}]`},
+		{"/wildcat/api/counts?readAs=no-extract,file-list", 200, `"results":[{"filename":"https://github.com/tamada/wildcat/raw/main/testdata/archives/wc.jar","lines":"5","words":"62","characters":"1,054","bytes":"1,080"},{"filename":"https://github.com/tamada/wildcat/raw/main/testdata/wc/humpty_dumpty.txt","lines":"4","words":"26","characters":"142","bytes":"142"},{"filename":"total","lines":"9","words":"88","characters":"1,196","bytes":"1,222"}]`},
 	}
 	content := `https://github.com/tamada/wildcat/raw/main/testdata/archives/wc.jar
 https://github.com/tamada/wildcat/raw/main/testdata/wc/humpty_dumpty.txt`
@@ -110,8 +110,8 @@ func TestMultipart(t *testing.T) {
 		wontStatus int
 		wontSuffix string
 	}{
-		{"/wildcat/api/counts", 200, `"results":[{"filename":"humpty_dumpty.txt","lines":4,"words":26,"characters":142,"bytes":142},{"filename":"wc.jar!humpty_dumpty.txt","lines":4,"words":26,"characters":142,"bytes":142},{"filename":"wc.jar!ja/","lines":0,"words":0,"characters":0,"bytes":0},{"filename":"wc.jar!ja/sakura_sakura.txt","lines":15,"words":26,"characters":118,"bytes":298},{"filename":"wc.jar!london_bridge_is_broken_down.txt","lines":59,"words":260,"characters":1341,"bytes":1341},{"filename":"total","lines":82,"words":338,"characters":1743,"bytes":1923}]`},
-		{"/wildcat/api/counts?readAs=no-extract", 200, `"results":[{"filename":"humpty_dumpty.txt","lines":4,"words":26,"characters":142,"bytes":142},{"filename":"wc.jar","lines":5,"words":62,"characters":1054,"bytes":1080},{"filename":"total","lines":9,"words":88,"characters":1196,"bytes":1222}]`},
+		{"/wildcat/api/counts", 200, `"results":[{"filename":"humpty_dumpty.txt","lines":"4","words":"26","characters":"142","bytes":"142"},{"filename":"wc.jar!humpty_dumpty.txt","lines":"4","words":"26","characters":"142","bytes":"142"},{"filename":"wc.jar!ja/","lines":"0","words":"0","characters":"0","bytes":"0"},{"filename":"wc.jar!ja/sakura_sakura.txt","lines":"15","words":"26","characters":"118","bytes":"298"},{"filename":"wc.jar!london_bridge_is_broken_down.txt","lines":"59","words":"260","characters":"1,341","bytes":"1,341"},{"filename":"total","lines":"82","words":"338","characters":"1,743","bytes":"1,923"}]`},
+		{"/wildcat/api/counts?readAs=no-extract", 200, `"results":[{"filename":"humpty_dumpty.txt","lines":"4","words":"26","characters":"142","bytes":"142"},{"filename":"wc.jar","lines":"5","words":"62","characters":"1,054","bytes":"1,080"},{"filename":"total","lines":"9","words":"88","characters":"1,196","bytes":"1,222"}]`},
 	}
 	router := createRestAPIServer()
 	content := bytes.NewBuffer([]byte{})

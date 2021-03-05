@@ -67,9 +67,9 @@ type DataSink struct {
 	rs  *ResultSet
 }
 
-func (ds *DataSink) Dump(printerType string) []byte {
+func (ds *DataSink) Dump(printerType string, sizer Sizer) []byte {
 	buffer := bytes.NewBuffer([]byte{})
-	printer := NewPrinter(buffer, printerType)
+	printer := NewPrinter(buffer, printerType, sizer)
 	ds.rs.Print(printer)
 	return buffer.Bytes()
 }
