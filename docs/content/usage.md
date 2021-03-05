@@ -170,7 +170,7 @@ The following xml is formatted by `xmllint --format -`
 
 ### :whale: Docker
 
-[![Docker](https://img.shields.io/badge/Docker-ghcr.io%2Ftamada%2Fwildcat%3A1.0.2-green?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
+[![Docker](https://img.shields.io/badge/Docker-ghcr.io%2Ftamada%2Fwildcat%3A1.0.3-green?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
 
 ```shell
 $ docker run -v $PWD:/home/wildcat ghcr.io/tamada/wildcat:1.0.0 testdata/wc

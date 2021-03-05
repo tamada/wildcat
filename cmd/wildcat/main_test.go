@@ -29,7 +29,7 @@ func TestStdin(t *testing.T) {
 	}()
 	data, _ := ioutil.ReadAll(dest)
 	result := strings.TrimSpace(string(data))
-	if !strings.HasSuffix(result, `,"results":[{"filename":"<stdin>","lines":59,"words":260,"characters":1341,"bytes":1341}]}`) {
+	if !strings.HasSuffix(result, `,"results":[{"filename":"<stdin>","lines":"59","words":"260","characters":"1,341","bytes":"1,341"}]}`) {
 		t.Errorf("result did not match, got %s", result)
 	}
 }
@@ -49,9 +49,9 @@ func Example_wildcat2() {
 	goMain([]string{"wildcat", "-@", "-f", "csv", "-b", "-w", "--character"})
 	// Output:
 	// file name,words,characters,bytes
-	// ../../testdata/wc/humpty_dumpty.txt,26,142,142
-	// ../../testdata/wc/ja/sakura_sakura.txt,26,118,298
-	// total,52,260,440
+	// ../../testdata/wc/humpty_dumpty.txt,"26","142","142"
+	// ../../testdata/wc/ja/sakura_sakura.txt,"26","118","298"
+	// total,"52","260","440"
 }
 
 func Example_wildcat() {
@@ -66,7 +66,7 @@ func Example_wildcat() {
 func Example_help() {
 	goMain([]string{"wildcat", "--help"})
 	// Output:
-	// wildcat version 1.0.2
+	// wildcat version 1.0.3
 	// wildcat [CLI_MODE_OPTIONS|SERVER_MODE_OPTIONS] [FILEs...|DIRs...|URLs...]
 	// CLI_MODE_OPTIONS
 	//     -b, --byte                  prints the number of bytes in each input file.
@@ -77,12 +77,13 @@ func Example_help() {
 	//     -w, --word                  prints the number of words in each input file.
 	//     -f, --format <FORMAT>       prints results in a specified format.  Available formats are:
 	//                                 csv, json, xml, and default. Default is default.
+	//     -H, --humanize              prints sizes in humanization.
 	//     -n, --no-ignore             Does not respect ignore files (.gitignore).
 	//                                 If this option was specified, wildcat read .gitignore.
 	//     -N, --no-extract-archive    Does not extract archive files. If this option was specified,
 	//                                 wildcat treats archive files as the single binary file.
 	//     -o, --output <DEST>         specifies the destination of the result.  Default is standard output.
-	//     -@, --filelist              treats the contents of arguments' file as file list.
+	//     -@, --filelist              treats the contents of arguments as file list.
 	//
 	//     -h, --help                  prints this message.
 	// SERVER_MODE_OPTIONS

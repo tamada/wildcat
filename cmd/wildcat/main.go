@@ -10,7 +10,7 @@ import (
 )
 
 // VERSION represents the version of this project.
-const VERSION = "1.0.2"
+const VERSION = "1.0.3"
 
 func helpMessage(name string) string {
 	return fmt.Sprintf(`%s version %s
@@ -24,12 +24,13 @@ CLI_MODE_OPTIONS
     -w, --word                  prints the number of words in each input file.
     -f, --format <FORMAT>       prints results in a specified format.  Available formats are:
                                 csv, json, xml, and default. Default is default.
+    -H, --humanize              prints sizes in humanization.
     -n, --no-ignore             Does not respect ignore files (.gitignore).
                                 If this option was specified, wildcat read .gitignore.
     -N, --no-extract-archive    Does not extract archive files. If this option was specified,
                                 wildcat treats archive files as the single binary file.
     -o, --output <DEST>         specifies the destination of the result.  Default is standard output.
-    -@, --filelist              treats the contents of arguments' file as file list.
+    -@, --filelist              treats the contents of arguments as file list.
 
     -h, --help                  prints this message.
 SERVER_MODE_OPTIONS
@@ -74,9 +75,10 @@ func (co *countingOptions) generateCounter() wildcat.Counter {
 }
 
 type cliOptions struct {
-	help   bool
-	dest   string
-	format string
+	help     bool
+	dest     string
+	format   string
+	humanize bool
 }
 
 type serverOptions struct {
@@ -102,17 +104,18 @@ func buildFlagSet(reads *wildcat.ReadOptions) (*flag.FlagSet, *options) {
 	opts := &options{count: &countingOptions{}, cli: &cliOptions{}, server: &serverOptions{}}
 	flags := flag.NewFlagSet("wildcat", flag.ContinueOnError)
 	flags.Usage = func() { fmt.Println(helpMessage("wildcat")) }
-	flags.BoolVarP(&opts.count.lines, "line", "l", false, "prints the number of lines in each input file.")
-	flags.BoolVarP(&opts.count.bytes, "byte", "b", false, "prints the number of bytes in each input file.")
-	flags.BoolVarP(&opts.count.words, "word", "w", false, "prints the number of words in each input file.")
-	flags.BoolVarP(&opts.count.characters, "character", "c", false, "prints the number of characters in each input file.")
+	flags.BoolVarP(&opts.count.lines, "line", "l", false, "prints the number of lines in each input file")
+	flags.BoolVarP(&opts.count.bytes, "byte", "b", false, "prints the number of bytes in each input file")
+	flags.BoolVarP(&opts.count.words, "word", "w", false, "prints the number of words in each input file")
+	flags.BoolVarP(&opts.count.characters, "character", "c", false, "prints the number of characters in each input file")
 	flags.BoolVarP(&reads.NoIgnore, "no-ignore", "n", false, "Does not respect ignore files (.gitignore)")
 	flags.BoolVarP(&reads.NoExtract, "no-extract-archive", "N", false, "Does not extract archive files")
 	flags.BoolVarP(&reads.FileList, "filelist", "@", false, "treats the contents of arguments' file as file list")
-	flags.BoolVarP(&opts.server.server, "server", "s", false, "launches wildcat in the server mode.")
-	flags.IntVarP(&opts.server.port, "port", "p", 8080, "specifies the port number of server.")
+	flags.BoolVarP(&opts.server.server, "server", "s", false, "launches wildcat in the server mode")
+	flags.IntVarP(&opts.server.port, "port", "p", 8080, "specifies the port number of server")
 	flags.BoolVarP(&opts.cli.help, "help", "h", false, "prints this message")
 	flags.StringVarP(&opts.cli.dest, "dest", "d", "", "specifies the destination of the result")
+	flags.BoolVarP(&opts.cli.humanize, "humanize", "H", false, "prints sizes in humanization")
 	flags.StringVarP(&opts.cli.format, "format", "f", "default", "specifies the resultant format")
 	return flags, opts
 }
@@ -138,7 +141,7 @@ func printAll(cli *cliOptions, rs *wildcat.ResultSet) error {
 		dest = file
 		defer file.Close()
 	}
-	printer := wildcat.NewPrinter(dest, cli.format)
+	printer := wildcat.NewPrinter(dest, cli.format, wildcat.BuildSizer(cli.humanize))
 	return rs.Print(printer)
 }
 

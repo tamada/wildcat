@@ -1,6 +1,6 @@
 FROM alpine:3.10.1
 
-ARG version=1.0.2
+ARG version=1.0.3
 
 LABEL maintainer="Haruai Tamada" \
       description="another implementation of wc (word count)"
