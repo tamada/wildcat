@@ -43,7 +43,7 @@ Note that this product is an example project for implementing Open Source Softwa
 ### :shoe: CLI mode
 
 ```shell
-wildcat version 1.0.0
+wildcat version 1.0.3
 wildcat [CLI_MODE_OPTIONS|SERVER_MODE_OPTIONS] [FILEs...|DIRs...|URLs...]
 CLI_MODE_OPTIONS
     -b, --byte                  prints the number of bytes in each input file.
@@ -236,9 +236,9 @@ Post the files to `https://secret-coast-70208.herokuapp.com/wildcat/api/counts`,
 
 ```
 $ curl -X POST --data-binary @testdata/archives/wc.jar https://secret-coast-70208.herokuapp.com/wildcat/api/counts
-{"timestamp":"2021-02-22T02:40:26+09:00","results":[{"filename":"<request>","lines":5,"words":62,"characters":1054,"bytes":1080}]}
+{"timestamp":"2021-02-22T02:40:26+09:00","results":[{"filename":"<request>","lines":"5","words":"62","characters":"1,054","bytes":"1,080"}]}
 $ curl -X POST --data-binary @testdata/archives/wc.jar https://secret-coast-70208.herokuapp.com/wildcat/api/counts?file-name=wc.jar
-{"timestamp":"2021-02-22T02:40:35+09:00","results":[{"filename":"wc.jar!humpty_dumpty.txt","lines":4,"words":26,"characters":142,"bytes":142},{"filename":"wc.jar!ja/","lines":0,"words":0,"characters":0,"bytes":0},{"filename":"wc.jar!ja/sakura_sakura.txt","lines":15,"words":26,"characters":118,"bytes":298},{"filename":"wc.jar!london_bridge_is_broken_down.txt","lines":59,"words":260,"characters":1341,"bytes":1341},{"filename":"total","lines":78,"words":312,"characters":1601,"bytes":1781}]}
+{"timestamp":"2021-02-22T02:40:35+09:00","results":[{"filename":"wc.jar!humpty_dumpty.txt","lines":4,"words":26,"characters":142,"bytes":"142"},{"filename":"wc.jar!ja/","lines":"0","words":"0","characters":"0","bytes":"0"},{"filename":"wc.jar!ja/sakura_sakura.txt","lines":"15","words":"26","characters":"118","bytes":"298"},{"filename":"wc.jar!london_bridge_is_broken_down.txt","lines":"59","words":"260","characters":"1,341","bytes":"1,341"},{"filename":"total","lines":78,"words":"312","characters":"1,601","bytes":"1,781"}]}
 ```
 
 ## :anchor: Install
