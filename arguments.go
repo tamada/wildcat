@@ -196,23 +196,35 @@ func countArchiveFromReader(s *Source, r *DataSink) {
 	traverser.traverseSource(s, r)
 }
 
-func openFile(name string) io.WriteCloser {
-	u, _ := url.Parse(name)
+func createTeeReader(reader io.ReadCloser, name string) (io.ReadCloser, error) {
+	u, err := url.Parse(name)
+	if err != nil {
+		return nil, err
+	}
 	newName := path.Base(u.Path)
-	writer, _ := os.Create(newName)
-	return writer
+	writer, err := os.Create(newName)
+	if err != nil {
+		return nil, err
+	}
+	return newMyTeeReader(reader, writer), nil
+}
+
+func (opts *ReadOptions) openReader(item Entry) (io.ReadCloser, error) {
+	reader, err := item.Open()
+	if err != nil {
+		return nil, err
+	}
+	if opts.StoreContent {
+		return createTeeReader(reader, item.Name())
+	}
+	return reader, nil
 }
 
 func (opts *ReadOptions) handleURLContent(item Entry, r *DataSink, execFunc func(*Source, *DataSink)) {
-	reader, err := item.Open()
+	reader, err := opts.openReader(item)
 	if err != nil {
 		r.ec.Push(err)
 		return
-	}
-	if opts.StoreContent {
-		writer := openFile(item.Name())
-		defer writer.Close()
-		reader = newMyTeeReader(reader, writer)
 	}
 	defer reader.Close()
 	source := NewSource(item.Name(), reader)
