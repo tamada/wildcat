@@ -98,7 +98,7 @@ func copyDataFromSource(s *Source) (io.ReaderAt, int64, error) {
 func createZipReader(s *Source) (*zip.Reader, error) {
 	reader, size, err := copyDataFromSource(s)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to read all zip data from Reader: %w", err)
 	}
 	return zip.NewReader(reader, size)
 }

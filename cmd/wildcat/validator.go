@@ -21,5 +21,5 @@ func contains(item string, items []string) error {
 			return nil
 		}
 	}
-	return fmt.Errorf("%s: unknown resultant format", item)
+	return fmt.Errorf("%s: invalid resultant format", item)
 }

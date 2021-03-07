@@ -4,6 +4,8 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/tamada/wildcat/errors"
 )
 
 func match(list []string, wonts []string) bool {
@@ -42,7 +44,7 @@ func TestStdin(t *testing.T) {
 			file.Close()
 		}()
 		argf := NewArgf([]string{}, td.opts)
-		ec := NewErrorCenter()
+		ec := errors.New()
 		rs, _ := argf.CountAll(func() Counter { return NewCounter(All) }, ec)
 
 		if len(rs.list) != td.listSize {
@@ -51,8 +53,8 @@ func TestStdin(t *testing.T) {
 		if !match(rs.list, td.wontFileNames) {
 			t.Errorf("ResultSet files did not match, wont %v, got %v", td.wontFileNames, rs.list)
 		}
-		if len(ec.errs) != td.wontErrorSize {
-			t.Errorf("ErrorSize did not match, wont %d, got %d (%v)", td.wontErrorSize, len(ec.errs), ec.errs)
+		if ec.Size() != td.wontErrorSize {
+			t.Errorf("ErrorSize did not match, wont %d, got %d (%v)", td.wontErrorSize, ec.Size(), ec.Error())
 		}
 	}
 }
@@ -76,7 +78,7 @@ func TestCountAll(t *testing.T) {
 	}
 	for _, td := range testdata {
 		argf := NewArgf(td.args, td.opts)
-		ec := NewErrorCenter()
+		ec := errors.New()
 		rs, _ := argf.CountAll(func() Counter { return NewCounter(All) }, ec)
 
 		if len(rs.list) != td.listSize {
@@ -85,8 +87,8 @@ func TestCountAll(t *testing.T) {
 		if !match(rs.list, td.wontFileNames) {
 			t.Errorf("ResultSet files did not match, wont %v, got %v", td.wontFileNames, rs.list)
 		}
-		if len(ec.errs) != td.wontErrorSize {
-			t.Errorf("ErrorSize did not match, wont %d, got %d (%v)", td.wontErrorSize, len(ec.errs), ec.errs)
+		if ec.Size() != td.wontErrorSize {
+			t.Errorf("ErrorSize did not match, wont %d, got %d (%v)", td.wontErrorSize, ec.Size(), ec.Error())
 		}
 	}
 }
@@ -100,7 +102,7 @@ func TestStoreFile(t *testing.T) {
 	}
 	for _, td := range testdata {
 		argf := NewArgf([]string{td.url}, &ReadOptions{FileList: false, NoIgnore: false, NoExtract: false, StoreContent: true})
-		ec := NewErrorCenter()
+		ec := errors.New()
 		argf.CountAll(func() Counter { return NewCounter(All) }, ec)
 
 		stat, err := os.Stat(td.wontFileName)
