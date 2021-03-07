@@ -16,32 +16,33 @@ func helpMessage(name string) string {
 	return fmt.Sprintf(`%s version %s
 %s [CLI_MODE_OPTIONS|SERVER_MODE_OPTIONS] [FILEs...|DIRs...|URLs...]
 CLI_MODE_OPTIONS
-    -b, --byte                  prints the number of bytes in each input file.
-    -l, --line                  prints the number of lines in each input file.
-    -c, --character             prints the number of characters in each input file.
+    -b, --byte                  Prints the number of bytes in each input file.
+    -l, --line                  Prints the number of lines in each input file.
+    -c, --character             Prints the number of characters in each input file.
                                 If the current locale does not support multibyte characters,
                                 this option is equal to the -c option.
-    -w, --word                  prints the number of words in each input file.
-    -f, --format <FORMAT>       prints results in a specified format.  Available formats are:
+    -w, --word                  Prints the number of words in each input file.
+    -f, --format <FORMAT>       Prints results in a specified format.  Available formats are:
                                 csv, json, xml, and default. Default is default.
-    -H, --humanize              prints sizes in humanization.
+    -H, --humanize              Prints sizes in humanization.
     -n, --no-ignore             Does not respect ignore files (.gitignore).
                                 If this option was specified, wildcat read .gitignore.
     -N, --no-extract-archive    Does not extract archive files. If this option was specified,
                                 wildcat treats archive files as the single binary file.
-    -o, --output <DEST>         specifies the destination of the result.  Default is standard output.
-    -@, --filelist              treats the contents of arguments as file list.
+    -o, --output <DEST>         Specifies the destination of the result.  Default is standard output.
+    -S, --store-content         Sets to store the content of url targets.
+    -@, --filelist              Treats the contents of arguments as file list.
 
-    -h, --help                  prints this message.
+    -h, --help                  Prints this message.
 SERVER_MODE_OPTIONS
-    -p, --port <PORT>           specifies the port number of server.  Default is 8080.
+    -p, --port <PORT>           Specifies the port number of server.  Default is 8080.
                                 If '--server' option did not specified, wildcat ignores this option.
-    -s, --server                launches wildcat in the server mode. With this option, wildcat ignores
+    -s, --server                Launches wildcat in the server mode. With this option, wildcat ignores
                                 CLI_MODE_OPTIONS and arguments.
 ARGUMENTS
-    FILEs...                    specifies counting targets. wildcat accepts zip/tar/tar.gz/tar.bz2/jar files.
-    DIRs...                     files in the given directory are as the input files.
-    URLs...                     specifies the urls for counting files (accept archive files).
+    FILEs...                    Specifies counting targets. wildcat accepts zip/tar/tar.gz/tar.bz2/jar files.
+    DIRs...                     Files in the given directory are as the input files.
+    URLs...                     Specifies the urls for counting files (accept archive files).
 
 If no arguments are specified, the standard input is used.
 Moreover, -@ option is specified, the content of given files are the target files.`, name, VERSION, name)
@@ -104,19 +105,20 @@ func buildFlagSet(reads *wildcat.ReadOptions) (*flag.FlagSet, *options) {
 	opts := &options{count: &countingOptions{}, cli: &cliOptions{}, server: &serverOptions{}}
 	flags := flag.NewFlagSet("wildcat", flag.ContinueOnError)
 	flags.Usage = func() { fmt.Println(helpMessage("wildcat")) }
-	flags.BoolVarP(&opts.count.lines, "line", "l", false, "prints the number of lines in each input file")
-	flags.BoolVarP(&opts.count.bytes, "byte", "b", false, "prints the number of bytes in each input file")
-	flags.BoolVarP(&opts.count.words, "word", "w", false, "prints the number of words in each input file")
-	flags.BoolVarP(&opts.count.characters, "character", "c", false, "prints the number of characters in each input file")
+	flags.BoolVarP(&opts.count.lines, "line", "l", false, "Prints the number of lines in each input file")
+	flags.BoolVarP(&opts.count.bytes, "byte", "b", false, "Prints the number of bytes in each input file")
+	flags.BoolVarP(&opts.count.words, "word", "w", false, "Prints the number of words in each input file")
+	flags.BoolVarP(&opts.count.characters, "character", "c", false, "Prints the number of characters in each input file")
 	flags.BoolVarP(&reads.NoIgnore, "no-ignore", "n", false, "Does not respect ignore files (.gitignore)")
 	flags.BoolVarP(&reads.NoExtract, "no-extract-archive", "N", false, "Does not extract archive files")
-	flags.BoolVarP(&reads.FileList, "filelist", "@", false, "treats the contents of arguments' file as file list")
-	flags.BoolVarP(&opts.server.server, "server", "s", false, "launches wildcat in the server mode")
-	flags.IntVarP(&opts.server.port, "port", "p", 8080, "specifies the port number of server")
-	flags.BoolVarP(&opts.cli.help, "help", "h", false, "prints this message")
-	flags.StringVarP(&opts.cli.dest, "dest", "d", "", "specifies the destination of the result")
-	flags.BoolVarP(&opts.cli.humanize, "humanize", "H", false, "prints sizes in humanization")
-	flags.StringVarP(&opts.cli.format, "format", "f", "default", "specifies the resultant format")
+	flags.BoolVarP(&reads.FileList, "filelist", "@", false, "Treats the contents of arguments' file as file list")
+	flags.BoolVarP(&reads.StoreContent, "store-content", "S", false, "Sets to store the content of url targets")
+	flags.BoolVarP(&opts.server.server, "server", "s", false, "Launches wildcat in the server mode")
+	flags.IntVarP(&opts.server.port, "port", "p", 8080, "Specifies the port number of server")
+	flags.BoolVarP(&opts.cli.help, "help", "h", false, "Prints this message")
+	flags.StringVarP(&opts.cli.dest, "dest", "d", "", "Specifies the destination of the result")
+	flags.BoolVarP(&opts.cli.humanize, "humanize", "H", false, "Prints sizes in humanization")
+	flags.StringVarP(&opts.cli.format, "format", "f", "default", "Specifies the resultant format")
 	return flags, opts
 }
 

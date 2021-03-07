@@ -22,6 +22,7 @@ CLI_MODE_OPTIONS
     -N, --no-extract-archive    Does not extract archive files. If this option was specified,
                                 wildcat treats archive files as the single binary file.
     -o, --output <DEST>         specifies the destination of the result.  Default is standard output.
+    -S, --store-content         Sets to store the content of url targets.
     -@, --filelist              treats the contents of argument files as file list.
 
     -h, --help                  prints this message.

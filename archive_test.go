@@ -42,7 +42,7 @@ func TestArchives(t *testing.T) {
 
 	for _, td := range testdata {
 		ec := NewErrorCenter()
-		argf := NewArgf([]string{td.giveFileName}, &ReadOptions{false, true, false})
+		argf := NewArgf([]string{td.giveFileName}, &ReadOptions{FileList: false, NoIgnore: true, NoExtract: false})
 		rs, _ := argf.CountAll(func() Counter { return NewCounter(All) }, ec)
 		if rs.Size() != td.wontSize {
 			t.Errorf("archive (%s) size did not match, wont %d, got %d", td.giveFileName, td.wontSize, rs.Size())

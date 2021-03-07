@@ -7,15 +7,18 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 )
 
 type ReadOptions struct {
-	FileList  bool
-	NoIgnore  bool
-	NoExtract bool
+	FileList     bool
+	NoIgnore     bool
+	NoExtract    bool
+	StoreContent bool
 }
 
 type Entry interface {
@@ -181,11 +184,11 @@ func (opts *ReadOptions) handleDir(dirName Entry, r *DataSink, ignore Ignore) {
 }
 
 func (opts *ReadOptions) handleURL(item Entry, r *DataSink) {
+	execFunc := countFromReader
 	if !opts.NoExtract && IsArchiveFile(item.Name()) {
-		handleURLContent(item, r, countArchiveFromReader)
-	} else {
-		handleURLContent(item, r, countFromReader)
+		execFunc = countArchiveFromReader
 	}
+	opts.handleURLContent(item, r, execFunc)
 }
 
 func countArchiveFromReader(s *Source, r *DataSink) {
@@ -193,15 +196,55 @@ func countArchiveFromReader(s *Source, r *DataSink) {
 	traverser.traverseSource(s, r)
 }
 
-func handleURLContent(item Entry, r *DataSink, execFunc func(*Source, *DataSink)) {
+func openFile(name string) io.WriteCloser {
+	u, _ := url.Parse(name)
+	newName := path.Base(u.Path)
+	writer, _ := os.Create(newName)
+	return writer
+}
+
+func (opts *ReadOptions) handleURLContent(item Entry, r *DataSink, execFunc func(*Source, *DataSink)) {
 	reader, err := item.Open()
 	if err != nil {
 		r.ec.Push(err)
 		return
 	}
+	if opts.StoreContent {
+		writer := openFile(item.Name())
+		defer writer.Close()
+		reader = newMyTeeReader(reader, writer)
+	}
 	defer reader.Close()
 	source := NewSource(item.Name(), reader)
 	execFunc(source, r)
+}
+
+func (mtr *myTeeReader) Read(p []byte) (n int, err error) {
+	return mtr.tee.Read(p)
+}
+
+func (mtr *myTeeReader) Close() error {
+	err1 := mtr.reader.Close()
+	err2 := mtr.writer.Close()
+	if err1 != nil {
+		return err1
+	}
+	if err2 != nil {
+		return err2
+	}
+	return nil
+}
+
+func newMyTeeReader(reader io.ReadCloser, writer io.WriteCloser) *myTeeReader {
+	tee := &myTeeReader{reader: reader, writer: writer}
+	tee.tee = io.TeeReader(reader, writer)
+	return tee
+}
+
+type myTeeReader struct {
+	reader io.ReadCloser
+	writer io.WriteCloser
+	tee    io.Reader
 }
 
 type urlEntry struct {
