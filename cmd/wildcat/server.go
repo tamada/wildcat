@@ -10,6 +10,8 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/tamada/wildcat"
+	"github.com/tamada/wildcat/errors"
+
 	"github.com/tamada/wildcat/logger"
 )
 
@@ -73,7 +75,7 @@ func respondImpl(res http.ResponseWriter, statusCode int, message []byte) {
 }
 
 func countsBody(res http.ResponseWriter, req *http.Request, opts *wildcat.ReadOptions) (*wildcat.ResultSet, error) {
-	ec := wildcat.NewErrorCenter()
+	ec := errors.New()
 	fileName := req.URL.Query().Get("file-name")
 	if fileName == "" {
 		fileName = "<request>"
@@ -106,7 +108,7 @@ func counts(res http.ResponseWriter, req *http.Request) {
 
 func countsMultipartBody(res http.ResponseWriter, req *http.Request, reader *wildcat.ReadOptions) (*wildcat.ResultSet, error) {
 	if err := req.ParseMultipartForm(32 << 20); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("ParseMultpartForm: %w", err)
 	}
 	entries := []wildcat.Entry{}
 	for _, headers := range req.MultipartForm.File {
@@ -115,7 +117,7 @@ func countsMultipartBody(res http.ResponseWriter, req *http.Request, reader *wil
 		}
 	}
 	argf := wildcat.Argf{Entries: entries, Options: reader}
-	ec := wildcat.NewErrorCenter()
+	ec := errors.New()
 	return argf.CountAll(wildcat.DefaultGenerator, ec)
 }
 

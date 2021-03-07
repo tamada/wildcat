@@ -12,6 +12,8 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/tamada/wildcat/errors"
 )
 
 type ReadOptions struct {
@@ -65,7 +67,7 @@ func NewSource(name string, in io.Reader) *Source {
 }
 
 type DataSink struct {
-	ec  *ErrorCenter
+	ec  *errors.Center
 	gen Generator
 	rs  *ResultSet
 }
@@ -88,7 +90,7 @@ func (ds *DataSink) Error() error {
 	return ds.ec
 }
 
-func NewDataSink(gen Generator, ec *ErrorCenter) *DataSink {
+func NewDataSink(gen Generator, ec *errors.Center) *DataSink {
 	return &DataSink{gen: gen, ec: ec, rs: NewResultSet()}
 }
 
@@ -199,12 +201,12 @@ func countArchiveFromReader(s *Source, r *DataSink) {
 func createTeeReader(reader io.ReadCloser, name string) (io.ReadCloser, error) {
 	u, err := url.Parse(name)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("url.Parse failed: %w", err)
 	}
 	newName := path.Base(u.Path)
 	writer, err := os.Create(newName)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s: file not found (%w)", newName, err)
 	}
 	return newMyTeeReader(reader, writer), nil
 }
@@ -212,7 +214,7 @@ func createTeeReader(reader io.ReadCloser, name string) (io.ReadCloser, error) {
 func (opts *ReadOptions) openReader(item Entry) (io.ReadCloser, error) {
 	reader, err := item.Open()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s: open error (%w)", item.Name(), err)
 	}
 	if opts.StoreContent {
 		return createTeeReader(reader, item.Name())
@@ -270,7 +272,7 @@ func (ue *urlEntry) Name() string {
 func (ue *urlEntry) Open() (io.ReadCloser, error) {
 	response, err := http.Get(ue.url)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s: http error: %w", ue.url, err)
 	}
 	if response.StatusCode == 404 {
 		defer response.Body.Close()
@@ -311,7 +313,7 @@ func (opts *ReadOptions) readFileList(in io.Reader, r *DataSink, ignore Ignore) 
 func (opts *ReadOptions) openFileAndReadFileList(item Entry, r *DataSink, ignore Ignore) *DataSink {
 	file, err := item.Open()
 	if err != nil {
-		r.ec.Push(fmt.Errorf("%s: file not found (%s)", item, err.Error()))
+		r.ec.Push(fmt.Errorf("%s: file not found (%w)", item, err))
 		return r
 	}
 	defer file.Close()
@@ -334,7 +336,7 @@ func (argf *Argf) handleArgs(r *DataSink, ignore Ignore) *DataSink {
 	return r
 }
 
-func (argf *Argf) CountAll(generator func() Counter, ec *ErrorCenter) (*ResultSet, error) {
+func (argf *Argf) CountAll(generator func() Counter, ec *errors.Center) (*ResultSet, error) {
 	r := NewDataSink(generator, ec)
 	ignore := ignores(".", !argf.Options.NoIgnore, nil)
 	if len(argf.Entries) == 0 {

@@ -1,6 +1,10 @@
 package wildcat
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/tamada/wildcat/errors"
+)
 
 func TestIsArchiveFile(t *testing.T) {
 	testdata := []struct {
@@ -41,7 +45,7 @@ func TestArchives(t *testing.T) {
 	}
 
 	for _, td := range testdata {
-		ec := NewErrorCenter()
+		ec := errors.New()
 		argf := NewArgf([]string{td.giveFileName}, &ReadOptions{FileList: false, NoIgnore: true, NoExtract: false})
 		rs, _ := argf.CountAll(func() Counter { return NewCounter(All) }, ec)
 		if rs.Size() != td.wontSize {

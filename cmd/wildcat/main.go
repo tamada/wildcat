@@ -7,6 +7,7 @@ import (
 
 	flag "github.com/spf13/pflag"
 	"github.com/tamada/wildcat"
+	"github.com/tamada/wildcat/errors"
 )
 
 // VERSION represents the version of this project.
@@ -147,8 +148,8 @@ func printAll(cli *cliOptions, rs *wildcat.ResultSet) error {
 	return rs.Print(printer)
 }
 
-func performImpl(opts *options, argf *wildcat.Argf) *wildcat.ErrorCenter {
-	ec := wildcat.NewErrorCenter()
+func performImpl(opts *options, argf *wildcat.Argf) *errors.Center {
+	ec := errors.New()
 	rs, _ := argf.CountAll(func() wildcat.Counter {
 		return opts.count.generateCounter()
 	}, ec)
