@@ -17,6 +17,7 @@ import (
 
 type multipartEntry struct {
 	header *multipart.FileHeader
+	index  int
 }
 
 func (me *multipartEntry) Name() string {
@@ -25,6 +26,10 @@ func (me *multipartEntry) Name() string {
 
 func (me *multipartEntry) Open() (io.ReadCloser, error) {
 	return me.header.Open()
+}
+
+func (me *multipartEntry) Index() int {
+	return me.index
 }
 
 func parseQueryParams(req *http.Request) *wildcat.ReadOptions {
@@ -51,6 +56,10 @@ func (me *myEntry) Name() string {
 
 func (me *myEntry) Open() (io.ReadCloser, error) {
 	return me.reader, nil
+}
+
+func (me *myEntry) Index() int {
+	return 0
 }
 
 func createResultJSON(rs *wildcat.ResultSet, sizer wildcat.Sizer) []byte {
@@ -112,8 +121,8 @@ func countsMultipartBody(res http.ResponseWriter, req *http.Request, reader *wil
 	}
 	entries := []wildcat.Entry{}
 	for _, headers := range req.MultipartForm.File {
-		for _, header := range headers {
-			entries = append(entries, &multipartEntry{header: header})
+		for index, header := range headers {
+			entries = append(entries, &multipartEntry{header: header, index: index})
 		}
 	}
 	argf := wildcat.Argf{Entries: entries, Options: reader}

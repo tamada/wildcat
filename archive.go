@@ -28,6 +28,7 @@ func hasSuffix(fileName string, suffixes ...string) bool {
 
 type file interface {
 	Name() string
+	Index() int
 	Count(counter Counter, sink *DataSink)
 }
 
@@ -51,23 +52,24 @@ func wrapReader(reader io.Reader, fileName string) io.Reader {
 
 func (tt *tarTraverser) traverseSource(s *Source, r *DataSink) {
 	in := wrapReader(s.in, s.name)
-	traverseTarImpl(tar.NewReader(in), s.name, r)
+	traverseTarImpl(tar.NewReader(in), s, r)
 }
 
-func traverseTarImpl(tar *tar.Reader, fileName string, r *DataSink) {
+func traverseTarImpl(tar *tar.Reader, s *Source, r *DataSink) {
 	for {
 		header, err := tar.Next()
 		if err == io.EOF {
 			break
 		}
-		name := fmt.Sprintf("%s!%s", fileName, header.Name)
-		countEach(&tarFile{tar: tar, name: name}, r)
+		name := fmt.Sprintf("%s!%s", s.name, header.Name)
+		countEach(&tarFile{tar: tar, index: s.index, name: name}, r)
 	}
 }
 
 type tarFile struct {
-	tar  *tar.Reader
-	name string
+	tar   *tar.Reader
+	name  string
+	index int
 }
 
 func (tf *tarFile) Count(counter Counter, sink *DataSink) {
@@ -76,6 +78,10 @@ func (tf *tarFile) Count(counter Counter, sink *DataSink) {
 
 func (tf *tarFile) Name() string {
 	return tf.name
+}
+
+func (tf *tarFile) Index() int {
+	return tf.index
 }
 
 type zipTraverser struct {
@@ -110,19 +116,24 @@ func (zt *zipTraverser) traverseSource(s *Source, r *DataSink) {
 		return
 	}
 	for _, f := range rr.File {
-		countEach(&zipFile{zipFileName: s.name, file: f}, r)
+		countEach(&zipFile{zipFileName: s.name, index: s.index, file: f}, r)
 	}
 }
 
 func countEach(f file, r *DataSink) {
 	counter := r.gen()
 	f.Count(counter, r)
-	r.rs.Push(f.Name(), counter)
+	r.rs.Push(f.Name(), f.Index(), counter)
 }
 
 type zipFile struct {
 	zipFileName string
 	file        *zip.File
+	index       int
+}
+
+func (zf *zipFile) Index() int {
+	return zf.index
 }
 
 func (zf *zipFile) Name() string {

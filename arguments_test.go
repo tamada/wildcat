@@ -8,11 +8,11 @@ import (
 	"github.com/tamada/wildcat/errors"
 )
 
-func match(list []string, wonts []string) bool {
+func match(list []*indexString, wonts []string) bool {
 	for _, wont := range wonts {
 		found := false
 		for _, item := range list {
-			if strings.Contains(item, wont) {
+			if strings.Contains(item.value, wont) {
 				found = true
 				break
 			}

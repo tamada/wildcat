@@ -12,6 +12,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/tamada/wildcat/errors"
 )
@@ -26,10 +27,12 @@ type ReadOptions struct {
 type Entry interface {
 	Name() string
 	Open() (io.ReadCloser, error)
+	Index() int
 }
 
 type defaultEntry struct {
 	fileName string
+	index    int
 }
 
 func (de *defaultEntry) Name() string {
@@ -40,6 +43,10 @@ func (de *defaultEntry) Open() (io.ReadCloser, error) {
 	return os.Open(de.fileName)
 }
 
+func (de *defaultEntry) Index() int {
+	return de.index
+}
+
 type Argf struct {
 	Options *ReadOptions
 	Entries []Entry
@@ -47,8 +54,8 @@ type Argf struct {
 
 func NewArgf(arguments []string, opts *ReadOptions) *Argf {
 	entries := []Entry{}
-	for _, arg := range arguments {
-		entries = append(entries, &defaultEntry{fileName: arg})
+	for index, arg := range arguments {
+		entries = append(entries, &defaultEntry{fileName: arg, index: index})
 	}
 	return &Argf{Entries: entries, Options: opts}
 }
@@ -58,12 +65,24 @@ type Generator func() Counter
 var DefaultGenerator Generator = func() Counter { return NewCounter(All) }
 
 type Source struct {
-	in   io.Reader
-	name string
+	in    io.Reader
+	name  string
+	index int
 }
 
-func NewSource(name string, in io.Reader) *Source {
-	return &Source{name: name, in: in}
+func NewSource(name string, in io.Reader, index int) *Source {
+	return &Source{name: name, in: in, index: index}
+}
+
+type dataSinkItem struct {
+	err    error
+	result *result
+}
+
+type result struct {
+	name    string
+	index   int
+	counter Counter
 }
 
 type DataSink struct {
@@ -109,19 +128,19 @@ func drainDataFromReader(in io.Reader, counter Counter) {
 func countFromReader(s *Source, r *DataSink) {
 	counter := r.gen()
 	drainDataFromReader(s.in, counter)
-	r.rs.Push(s.name, counter)
+	r.rs.Push(s.name, s.index, counter)
 }
 
 func (opts *ReadOptions) handleReader(s *Source, r *DataSink, ignore Ignore) *DataSink {
 	if opts.FileList {
-		return opts.readFileList(s.in, r, ignore)
+		return opts.readFileList(s.in, s.index, r, ignore)
 	}
 	countFromReader(s, r)
 	return r
 }
 
 func (opts *ReadOptions) handleStdin(r *DataSink, ignore Ignore) *DataSink {
-	return opts.handleReader(NewSource("<stdin>", os.Stdin), r, ignore)
+	return opts.handleReader(NewSource("<stdin>", os.Stdin, 0), r, ignore)
 }
 
 func handleArchiveFile(item Entry, r *DataSink) {
@@ -132,7 +151,7 @@ func handleArchiveFile(item Entry, r *DataSink) {
 		return
 	}
 	defer file.Close()
-	traverser.traverseSource(NewSource(item.Name(), file), r)
+	traverser.traverseSource(NewSource(item.Name(), file, item.Index()), r)
 }
 
 func countFile(entry Entry, r *DataSink) {
@@ -142,7 +161,7 @@ func countFile(entry Entry, r *DataSink) {
 		return
 	}
 	defer file.Close()
-	countFromReader(NewSource(entry.Name(), file), r)
+	countFromReader(NewSource(entry.Name(), file, entry.Index()), r)
 }
 
 func (opts *ReadOptions) HandleFile(item Entry, r *DataSink, ignore Ignore) {
@@ -229,7 +248,7 @@ func (opts *ReadOptions) handleURLContent(item Entry, r *DataSink, execFunc func
 		return
 	}
 	defer reader.Close()
-	source := NewSource(item.Name(), reader)
+	source := NewSource(item.Name(), reader, item.Index())
 	execFunc(source, r)
 }
 
@@ -262,7 +281,12 @@ type myTeeReader struct {
 }
 
 type urlEntry struct {
-	url string
+	url   string
+	index int
+}
+
+func (ue *urlEntry) Index() int {
+	return ue.index
 }
 
 func (ue *urlEntry) Name() string {
@@ -295,13 +319,13 @@ func (opts *ReadOptions) handleItem(item Entry, r *DataSink, ignore Ignore) {
 	}
 }
 
-func (opts *ReadOptions) readFileList(in io.Reader, r *DataSink, ignore Ignore) *DataSink {
+func (opts *ReadOptions) readFileList(in io.Reader, index int, r *DataSink, ignore Ignore) *DataSink {
 	reader := bufio.NewReader(in)
 	for {
 		line, err := reader.ReadString('\n')
 		line = strings.TrimSpace(line)
 		if line != "" {
-			opts.handleItem(&defaultEntry{fileName: line}, r, ignore)
+			opts.handleItem(&defaultEntry{fileName: line, index: index}, r, ignore)
 		}
 		if err == io.EOF {
 			break
@@ -317,7 +341,7 @@ func (opts *ReadOptions) openFileAndReadFileList(item Entry, r *DataSink, ignore
 		return r
 	}
 	defer file.Close()
-	opts.readFileList(file, r, ignore)
+	opts.readFileList(file, item.Index(), r, ignore)
 	return r
 }
 
@@ -330,10 +354,29 @@ func (opts *ReadOptions) HandleArg(item Entry, r *DataSink, ignore Ignore) {
 }
 
 func (argf *Argf) handleArgs(r *DataSink, ignore Ignore) *DataSink {
+	wg := &sync.WaitGroup{}
+	// dsiChan := make(chan *dataSinkItem)
 	for _, item := range argf.Entries {
-		argf.Options.HandleArg(item, r, ignore)
+		wg.Add(1)
+		item := item
+		go func() {
+			defer wg.Done()
+			argf.Options.HandleArg(item, r, ignore)
+		}()
 	}
+	wg.Wait()
+
 	return r
+}
+
+func receive(dsiChan <-chan *dataSinkItem, r *DataSink) {
+	dsi := <-dsiChan
+	if dsi.err != nil {
+		r.ec.Push(dsi.err)
+	} else {
+		rr := dsi.result
+		r.rs.Push(rr.name, rr.index, rr.counter)
+	}
 }
 
 func (argf *Argf) CountAll(generator func() Counter, ec *errors.Center) (*ResultSet, error) {

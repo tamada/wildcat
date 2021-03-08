@@ -1,14 +1,21 @@
 package wildcat
 
+import "sort"
+
 type ResultSet struct {
 	results map[string]Counter
-	list    []string
+	list    []*indexString
 	total   *totalCounter
+}
+
+type indexString struct {
+	value string
+	index int
 }
 
 // NewResultSet creates an instance of ResultSet.
 func NewResultSet() *ResultSet {
-	return &ResultSet{results: map[string]Counter{}, list: []string{}, total: &totalCounter{}}
+	return &ResultSet{results: map[string]Counter{}, list: []*indexString{}, total: &totalCounter{}}
 }
 
 // Size returns the file count in the ResultSet.
@@ -24,7 +31,7 @@ func (rs *ResultSet) CounterType() CounterType {
 // Merge merges the content of other to receiver ResultSet.
 func (rs *ResultSet) Merge(other *ResultSet) {
 	for _, name := range other.list {
-		rs.Push(name, other.results[name])
+		rs.Push(name.value, name.index, other.results[name.value])
 	}
 }
 
@@ -33,7 +40,7 @@ func (rs *ResultSet) Print(printer Printer) error {
 	index := 0
 	printer.PrintHeader(rs.total.ct)
 	for _, name := range rs.list {
-		printer.PrintEach(name, rs.Counter(name), index)
+		printer.PrintEach(name.value, rs.Counter(name.value), index)
 		index++
 	}
 	if index > 1 {
@@ -44,9 +51,13 @@ func (rs *ResultSet) Print(printer Printer) error {
 }
 
 // Push stores given counter with given fileName to the receiver ResultSet.
-func (rs *ResultSet) Push(fileName string, counter Counter) {
+func (rs *ResultSet) Push(fileName string, index int, counter Counter) {
 	rs.results[fileName] = counter
-	rs.list = append(rs.list, fileName)
+	is := &indexString{value: fileName, index: index}
+	rs.list = append(rs.list, is)
+	sort.SliceStable(rs.list, func(i, j int) bool {
+		return rs.list[i].index < rs.list[j].index
+	})
 	updateTotal(rs.total, counter)
 }
 
