@@ -14,8 +14,7 @@ import (
 const VERSION = "1.0.3"
 
 func helpMessage(name string) string {
-	return fmt.Sprintf(`%s version %s
-%s [CLI_MODE_OPTIONS|SERVER_MODE_OPTIONS] [FILEs...|DIRs...|URLs...]
+	return fmt.Sprintf(`%s [CLI_MODE_OPTIONS|SERVER_MODE_OPTIONS] [FILEs...|DIRs...|URLs...]
 CLI_MODE_OPTIONS
     -b, --byte                  Prints the number of bytes in each input file.
     -l, --line                  Prints the number of lines in each input file.
@@ -35,6 +34,7 @@ CLI_MODE_OPTIONS
     -@, --filelist              Treats the contents of arguments as file list.
 
     -h, --help                  Prints this message.
+    -v, --version               Prints the version of wildcat.
 SERVER_MODE_OPTIONS
     -p, --port <PORT>           Specifies the port number of server.  Default is 8080.
                                 If '--server' option did not specified, wildcat ignores this option.
@@ -46,7 +46,7 @@ ARGUMENTS
     URLs...                     Specifies the urls for counting files (accept archive files).
 
 If no arguments are specified, the standard input is used.
-Moreover, -@ option is specified, the content of given files are the target files.`, name, VERSION, name)
+Moreover, -@ option is specified, the content of given files are the target files.`, name)
 }
 
 type countingOptions struct {
@@ -78,6 +78,7 @@ func (co *countingOptions) generateCounter() wildcat.Counter {
 
 type cliOptions struct {
 	help     bool
+	version  bool
 	dest     string
 	format   string
 	humanize bool
@@ -99,7 +100,7 @@ type options struct {
 }
 
 func (opts *options) isHelpRequested() bool {
-	return opts.cli.help
+	return opts.cli.help || opts.cli.version
 }
 
 func buildFlagSet(reads *wildcat.ReadOptions) (*flag.FlagSet, *options) {
@@ -117,6 +118,7 @@ func buildFlagSet(reads *wildcat.ReadOptions) (*flag.FlagSet, *options) {
 	flags.BoolVarP(&opts.server.server, "server", "s", false, "Launches wildcat in the server mode")
 	flags.IntVarP(&opts.server.port, "port", "p", 8080, "Specifies the port number of server")
 	flags.BoolVarP(&opts.cli.help, "help", "h", false, "Prints this message")
+	flags.BoolVarP(&opts.cli.version, "version", "v", false, "Prints the version of wildcat")
 	flags.StringVarP(&opts.cli.dest, "dest", "d", "", "Specifies the destination of the result")
 	flags.BoolVarP(&opts.cli.humanize, "humanize", "H", false, "Prints sizes in humanization")
 	flags.StringVarP(&opts.cli.format, "format", "f", "default", "Specifies the resultant format")
@@ -166,10 +168,22 @@ func perform(opts *options, argf *wildcat.Argf) int {
 	return 0
 }
 
+func printHelp(opts *cliOptions, prog string) int {
+	status := 1
+	if opts.version {
+		fmt.Printf("%s version %s\n", prog, VERSION)
+		status = 0
+	}
+	if opts.help {
+		fmt.Println(helpMessage(prog))
+		status = 0
+	}
+	return status
+}
+
 func execute(prog string, opts *options, argf *wildcat.Argf) int {
 	if opts.isHelpRequested() {
-		fmt.Println(helpMessage(filepath.Base(prog)))
-		return 0
+		return printHelp(opts.cli, filepath.Base(prog))
 	}
 	if IsServerMode(opts.server) {
 		return opts.server.launchServer()

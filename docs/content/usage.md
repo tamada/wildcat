@@ -5,36 +5,37 @@ title: ":runner: Usage"
 ### :shoe: CLI mode
 
 ```shell
-wildcat version 1.0.0
+wildcat version 1.0.3
 wildcat [CLI_MODE_OPTIONS|SERVER_MODE_OPTIONS] [FILEs...|DIRs...|URLs...]
 CLI_MODE_OPTIONS
-    -b, --byte                  prints the number of bytes in each input file.
-    -l, --line                  prints the number of lines in each input file.
-    -c, --character             prints the number of characters in each input file.
+    -b, --byte                  Prints the number of bytes in each input file.
+    -l, --line                  Prints the number of lines in each input file.
+    -c, --character             Prints the number of characters in each input file.
                                 If the current locale does not support multibyte characters,
                                 this option is equal to the -c option.
-    -w, --word                  prints the number of words in each input file.
-    -f, --format <FORMAT>       prints results in a specified format.  Available formats are:
+    -w, --word                  Prints the number of words in each input file.
+    -f, --format <FORMAT>       Prints results in a specified format.  Available formats are:
                                 csv, json, xml, and default. Default is default.
-    -H, --humanize              prints sizes in humanization.
+    -H, --humanize              Prints sizes in humanization.
     -n, --no-ignore             Does not respect ignore files (.gitignore).
                                 If this option was specified, wildcat read .gitignore.
     -N, --no-extract-archive    Does not extract archive files. If this option was specified,
                                 wildcat treats archive files as the single binary file.
-    -o, --output <DEST>         specifies the destination of the result.  Default is standard output.
+    -o, --output <DEST>         Specifies the destination of the result.  Default is standard output.
     -S, --store-content         Sets to store the content of url targets.
-    -@, --filelist              treats the contents of argument files as file list.
+    -@, --filelist              Treats the contents of arguments as file list.
 
-    -h, --help                  prints this message.
+    -h, --help                  Prints this message.
+    -v, --version               Prints the version of wildcat.
 SERVER_MODE_OPTIONS
-    -p, --port <PORT>           specifies the port number of server.  Default is 8080.
+    -p, --port <PORT>           Specifies the port number of server.  Default is 8080.
                                 If '--server' option did not specified, wildcat ignores this option.
-    -s, --server                launches wildcat in the server mode. With this option, wildcat ignores
+    -s, --server                Launches wildcat in the server mode. With this option, wildcat ignores
                                 CLI_MODE_OPTIONS and arguments.
 ARGUMENTS
-    FILEs...                    specifies counting targets. wildcat accepts zip/tar/tar.gz/tar.bz2/jar files.
-    DIRs...                     files in the given directory are as the input files.
-    URLs...                     specifies the urls for counting files (accept archive files).
+    FILEs...                    Specifies counting targets. wildcat accepts zip/tar/tar.gz/tar.bz2/jar files.
+    DIRs...                     Files in the given directory are as the input files.
+    URLs...                     Specifies the urls for counting files (accept archive files).
 
 If no arguments are specified, the standard input is used.
 Moreover, -@ option is specified, the content of given files are the target files.
