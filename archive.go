@@ -139,15 +139,7 @@ func createZipReader(in io.Reader) (*zip.Reader, error) {
 	return zip.NewReader(reader, size)
 }
 
-func (zt *zipArchiver) traverse(generator func() Counter) *Either {
-	in, err := zt.entry.Open()
-	if err != nil {
-		return &Either{Err: err}
-	}
-	rr, err := createZipReader(in)
-	if err != nil {
-		return &Either{Err: err}
-	}
+func (zt *zipArchiver) traverseImpl(rr *zip.Reader, generator func() Counter) *Either {
 	results := []*Result{}
 	for _, f := range rr.File {
 		r, err := countArchiveItem(generator(), &zipItem{file: f, nameIndex: &indexString{index: zt.entry.Index(), value: zt.entry.Name()}})
@@ -157,6 +149,18 @@ func (zt *zipArchiver) traverse(generator func() Counter) *Either {
 		results = append(results, r)
 	}
 	return &Either{Results: results}
+}
+
+func (zt *zipArchiver) traverse(generator func() Counter) *Either {
+	in, err := zt.entry.Open()
+	if err != nil {
+		return &Either{Err: err}
+	}
+	rr, err := createZipReader(in)
+	if err != nil {
+		return &Either{Err: err}
+	}
+	return zt.traverseImpl(rr, generator)
 }
 
 type zipItem struct {

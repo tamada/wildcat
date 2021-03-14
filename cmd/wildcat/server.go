@@ -103,7 +103,7 @@ func readAsTargetList(targets *wildcat.Targets, entry wildcat.Entry, opts *wildc
 	reader, err := entry.Open()
 	if err == nil {
 		ec := errors.New()
-		targets.ReadFileListFromReader(reader, 0, wildcat.NewNoIgnore(), &newOpts, ec)
+		targets.ReadFileListFromReader(reader, wildcat.NewConfig(wildcat.NewNoIgnore(), &newOpts, ec))
 	}
 	return targets
 }
