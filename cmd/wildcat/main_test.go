@@ -22,7 +22,11 @@ func TestStdin(t *testing.T) {
 		t.Errorf("destination hoge.txt not found")
 	}
 
-	dest, _ := os.Open("hoge.txt")
+	dest, err := os.Open("hoge.txt")
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+	}
 	defer func() {
 		dest.Close()
 		os.Remove("hoge.txt")
@@ -64,7 +68,7 @@ func Example_wildcat() {
 }
 
 func Example_help() {
-	goMain([]string{"wildcat", "--help"})
+	goMain([]string{"wildcat", "--version", "--help"})
 	// Output:
 	// wildcat version 1.0.3
 	// wildcat [CLI_MODE_OPTIONS|SERVER_MODE_OPTIONS] [FILEs...|DIRs...|URLs...]
@@ -87,6 +91,7 @@ func Example_help() {
 	//     -@, --filelist              Treats the contents of arguments as file list.
 	//
 	//     -h, --help                  Prints this message.
+	//     -v, --version               Prints the version of wildcat.
 	// SERVER_MODE_OPTIONS
 	//     -p, --port <PORT>           Specifies the port number of server.  Default is 8080.
 	//                                 If '--server' option did not specified, wildcat ignores this option.

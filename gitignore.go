@@ -7,6 +7,10 @@ import (
 	ignore "github.com/sabhiram/go-gitignore"
 )
 
+func NewNoIgnore() Ignore {
+	return &noIgnore{parent: nil}
+}
+
 type Ignore interface {
 	IsIgnore(path string) bool
 	Filter(targets []string) []string
