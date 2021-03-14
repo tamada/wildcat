@@ -117,10 +117,8 @@ func (targets *Targets) ReadFileListFromReader(in io.Reader, config *Config) {
 	for {
 		line, err := reader.ReadString('\n')
 		line = strings.TrimSpace(line)
-		if line != "" {
-			if !config.IsIgnore(line) {
-				targets.handleItem(&defaultEntry{fileName: line}, config)
-			}
+		if line != "" && !config.IsIgnore(line) {
+			targets.handleItem(&defaultEntry{fileName: line}, config)
 		}
 		if err == io.EOF {
 			break
@@ -174,16 +172,20 @@ func (targets *Targets) CountAll(generator func() Counter) (*ResultSet, *errors.
 	return receive(eitherChan, ec)
 }
 
+func receiveItem(either *Either, rs *ResultSet, ec *errors.Center) {
+	if either.Err != nil {
+		ec.Push(either.Err)
+	} else {
+		for _, result := range either.Results {
+			rs.Push(result)
+		}
+	}
+}
+
 func receive(eitherChan <-chan *Either, ec *errors.Center) (*ResultSet, *errors.Center) {
 	rs := NewResultSet()
 	for either := range eitherChan {
-		if either.Err != nil {
-			ec.Push(either.Err)
-		} else {
-			for _, result := range either.Results {
-				rs.Push(result)
-			}
-		}
+		receiveItem(either, rs, ec)
 	}
 	return rs, ec
 }
