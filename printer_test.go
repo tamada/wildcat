@@ -3,14 +3,12 @@ package wildcat
 import (
 	"strings"
 	"testing"
-
-	"github.com/tamada/wildcat/errors"
 )
 
 func createResultSetForTest() *ResultSet {
-	args := NewArgf([]string{"testdata/wc/humpty_dumpty.txt", "testdata/wc/ja/sakura_sakura.txt"}, &ReadOptions{})
-	ec := errors.New()
-	rs, _ := args.CountAll(func() Counter { return NewCounter(All) }, ec)
+	argf := NewArgf([]string{"testdata/wc/humpty_dumpty.txt", "testdata/wc/ja/sakura_sakura.txt"}, &ReadOptions{})
+	targets, _ := argf.CollectTargets()
+	rs, _ := targets.CountAll(func() Counter { return NewCounter(All) })
 	return rs
 }
 

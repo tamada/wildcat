@@ -8,11 +8,6 @@ type ResultSet struct {
 	total   *totalCounter
 }
 
-type indexString struct {
-	value string
-	index int
-}
-
 // NewResultSet creates an instance of ResultSet.
 func NewResultSet() *ResultSet {
 	return &ResultSet{results: map[string]Counter{}, list: []*indexString{}, total: &totalCounter{}}
@@ -31,7 +26,7 @@ func (rs *ResultSet) CounterType() CounterType {
 // Merge merges the content of other to receiver ResultSet.
 func (rs *ResultSet) Merge(other *ResultSet) {
 	for _, name := range other.list {
-		rs.Push(name.value, name.index, other.results[name.value])
+		rs.push(name.value, name.index, other.results[name.value])
 	}
 }
 
@@ -50,8 +45,12 @@ func (rs *ResultSet) Print(printer Printer) error {
 	return nil
 }
 
+func (rs *ResultSet) Push(r *Result) {
+	rs.push(r.nameIndex.Name(), r.nameIndex.Index(), r.counter)
+}
+
 // Push stores given counter with given fileName to the receiver ResultSet.
-func (rs *ResultSet) Push(fileName string, index int, counter Counter) {
+func (rs *ResultSet) push(fileName string, index int, counter Counter) {
 	rs.results[fileName] = counter
 	is := &indexString{value: fileName, index: index}
 	rs.list = append(rs.list, is)

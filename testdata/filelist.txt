@@ -1,3 +1,4 @@
 testdata/wc/humpty_dumpty.txt
 testdata/wc/ja/sakura_sakura.txt
 testdata/wc/london_bridge_is_broken_down.txt
+https://www.apache.org/licenses/LICENSE-2.0.txt

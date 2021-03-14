@@ -22,7 +22,11 @@ func TestStdin(t *testing.T) {
 		t.Errorf("destination hoge.txt not found")
 	}
 
-	dest, _ := os.Open("hoge.txt")
+	dest, err := os.Open("hoge.txt")
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+	}
 	defer func() {
 		dest.Close()
 		os.Remove("hoge.txt")

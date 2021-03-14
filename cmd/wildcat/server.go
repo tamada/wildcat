@@ -8,9 +8,10 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/tamada/wildcat/errors"
+
 	"github.com/gorilla/mux"
 	"github.com/tamada/wildcat"
-	"github.com/tamada/wildcat/errors"
 
 	"github.com/tamada/wildcat/logger"
 )
@@ -30,6 +31,10 @@ func (me *multipartEntry) Open() (io.ReadCloser, error) {
 
 func (me *multipartEntry) Index() int {
 	return me.index
+}
+
+func (me *multipartEntry) Count(generator func() wildcat.Counter) *wildcat.Either {
+	return wildcat.CountDefault(me, generator())
 }
 
 func parseQueryParams(req *http.Request) *wildcat.ReadOptions {
@@ -62,6 +67,10 @@ func (me *myEntry) Index() int {
 	return 0
 }
 
+func (me *myEntry) Count(generator func() wildcat.Counter) *wildcat.Either {
+	return wildcat.CountDefault(me, generator())
+}
+
 func createResultJSON(rs *wildcat.ResultSet, sizer wildcat.Sizer) []byte {
 	buffer := bytes.NewBuffer([]byte{})
 	printer := wildcat.NewPrinter(buffer, "json", sizer)
@@ -69,9 +78,14 @@ func createResultJSON(rs *wildcat.ResultSet, sizer wildcat.Sizer) []byte {
 	return buffer.Bytes()
 }
 
+func isError(err error) bool {
+	center, ok := err.(*errors.Center)
+	return err != nil && (ok && !center.IsEmpty())
+}
+
 func respond(rs *wildcat.ResultSet, err error, res http.ResponseWriter, sizer wildcat.Sizer) {
 	updateHeader(res)
-	if err != nil {
+	if isError(err) {
 		respondImpl(res, 400, []byte(fmt.Sprintf(`{"message":"%s"}`, err.Error())))
 	} else {
 		respondImpl(res, 200, createResultJSON(rs, sizer))
@@ -83,15 +97,31 @@ func respondImpl(res http.ResponseWriter, statusCode int, message []byte) {
 	res.Write(message)
 }
 
+func readAsTargetList(targets *wildcat.Targets, entry wildcat.Entry, opts *wildcat.ReadOptions) *wildcat.Targets {
+	newOpts := *opts
+	newOpts.FileList = false
+	reader, err := entry.Open()
+	if err == nil {
+		ec := errors.New()
+		targets.ReadFileListFromReader(reader, 0, wildcat.NewNoIgnore(), &newOpts, ec)
+	}
+	return targets
+}
+
+func createTargets(req *http.Request, name string, opts *wildcat.ReadOptions) *wildcat.Targets {
+	targets := &wildcat.Targets{}
+	var entry wildcat.Entry = &myEntry{name: name, reader: req.Body}
+	appendTargetItem(targets, entry, opts)
+	return targets
+}
+
 func countsBody(res http.ResponseWriter, req *http.Request, opts *wildcat.ReadOptions) (*wildcat.ResultSet, error) {
-	ec := errors.New()
 	fileName := req.URL.Query().Get("file-name")
 	if fileName == "" {
 		fileName = "<request>"
 	}
-	ds := wildcat.NewDataSink(wildcat.DefaultGenerator, ec)
-	opts.HandleArg(&myEntry{name: fileName, reader: req.Body}, ds, nil)
-	return ds.ResultSet(), ds.Error()
+	targets := createTargets(req, fileName, opts)
+	return targets.CountAll(wildcat.DefaultGenerator)
 }
 
 func counts(res http.ResponseWriter, req *http.Request) {
@@ -115,19 +145,32 @@ func counts(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func countsMultipartBody(res http.ResponseWriter, req *http.Request, reader *wildcat.ReadOptions) (*wildcat.ResultSet, error) {
+func appendTargetItem(targets *wildcat.Targets, entry wildcat.Entry, opts *wildcat.ReadOptions) {
+	if opts.FileList {
+		reader, err := entry.Open()
+		if err == nil {
+			defer reader.Close()
+			readAsTargetList(targets, entry, opts)
+		}
+	} else {
+		if !opts.NoExtract && wildcat.IsArchiveFile(entry.Name()) {
+			entry = wildcat.NewArchiveEntry(entry)
+		}
+		targets.Push(entry)
+	}
+}
+
+func countsMultipartBody(res http.ResponseWriter, req *http.Request, opts *wildcat.ReadOptions) (*wildcat.ResultSet, error) {
 	if err := req.ParseMultipartForm(32 << 20); err != nil {
 		return nil, fmt.Errorf("ParseMultpartForm: %w", err)
 	}
-	entries := []wildcat.Entry{}
+	targets := &wildcat.Targets{}
 	for _, headers := range req.MultipartForm.File {
 		for index, header := range headers {
-			entries = append(entries, &multipartEntry{header: header, index: index})
+			appendTargetItem(targets, &multipartEntry{header: header, index: index}, opts)
 		}
 	}
-	argf := wildcat.Argf{Entries: entries, Options: reader}
-	ec := errors.New()
-	return argf.CountAll(wildcat.DefaultGenerator, ec)
+	return targets.CountAll(wildcat.DefaultGenerator)
 }
 
 func wrapHandler(h http.Handler) http.HandlerFunc {
