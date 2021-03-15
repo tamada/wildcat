@@ -29,11 +29,24 @@ func hasSuffix(fileName string, suffixes ...string) bool {
 type tarTraverser struct {
 }
 
-func wrapReader(reader io.Reader, fileName string) io.Reader {
-	if hasSuffix(fileName, ".tar.bz2") {
-		return bzip2.NewReader(reader)
+type myReadCloser struct {
+	reader io.Reader
+	closer io.Closer
+}
+
+func (mrc *myReadCloser) Read(p []byte) (int, error) {
+	return mrc.reader.Read(p)
+}
+
+func (mrc *myReadCloser) Close() error {
+	return mrc.closer.Close()
+}
+
+func wrapReader(reader io.ReadCloser, fileName string) io.ReadCloser {
+	if hasSuffix(fileName, "bz2") {
+		return &myReadCloser{reader: bzip2.NewReader(reader), closer: reader}
 	}
-	if hasSuffix(fileName, ".tar.gz") {
+	if hasSuffix(fileName, "gz") {
 		r, _ := gzip.NewReader(reader)
 		return r
 	}

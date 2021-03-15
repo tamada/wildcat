@@ -53,18 +53,27 @@ func (target *myTarget) ParseType() (string, error) {
 		return kind, err
 	}
 	if kind == "gz" || kind == "bz2" {
-		return
+		kind = wrapAndTryAgain(target, kind)
 	}
 	target.kind = kind
 	return kind, err
 }
 
-func parseImpl(target Target) (string, error) {
+func wrapAndTryAgain(target *myTarget, kind string) string {
+	target.reader = NewReadSeekCloser(wrapReader(target.reader, kind))
+	newKind, _ := target.ParseType()
+	if newKind != "unknown" {
+		return newKind + "." + kind
+	}
+	return kind
+}
+
+func parseImpl(target *myTarget) (string, error) {
 	reader, err := target.Open()
 	if err != nil {
 		return "", err
 	}
-	kind, err := filetype.MatchReader(reader)
+	kind, _ := filetype.MatchReader(reader)
 	target.Reset()
 	return kind.Extension, err
 }
