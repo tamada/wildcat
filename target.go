@@ -53,7 +53,6 @@ func (target *myTarget) ParseType() (string, error) {
 		return kind, err
 	}
 	if kind == "gz" || kind == "bz2" {
-		return
 	}
 	target.kind = kind
 	return kind, err
