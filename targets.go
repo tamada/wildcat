@@ -13,16 +13,19 @@ import (
 	"github.com/tamada/wildcat/errors"
 )
 
+// Targets shows the targets for counting.
 type Targets struct {
 	entries []Entry
 }
 
+// Config is the configuration object for counting.
 type Config struct {
 	ignore Ignore
 	opts   *ReadOptions
 	ec     *errors.Center
 }
 
+// NewConfig creates an instance of Config.
 func NewConfig(ignore Ignore, opts *ReadOptions, ec *errors.Center) *Config {
 	return &Config{ignore: ignore, opts: opts, ec: ec}
 }
@@ -35,10 +38,12 @@ func (config *Config) updateIgnore(newIgnore Ignore) *Config {
 	return NewConfig(newIgnore, config.opts, config.ec)
 }
 
+// IsIgnore checks given line is the ignored file or not.
 func (config *Config) IsIgnore(line string) bool {
 	return config.ignore != nil && config.ignore.IsIgnore(line)
 }
 
+// Push adds the given entry to the receiver targets object.
 func (targets *Targets) Push(entry Entry) {
 	targets.entries = append(targets.entries, entry)
 }
@@ -95,7 +100,7 @@ func (targets *Targets) dirTargets(entry Entry, config *Config) {
 }
 
 func (targets *Targets) handleItem(entry Entry, config *Config) {
-	if IsUrl(entry.Name()) {
+	if IsURL(entry.Name()) {
 		targets.urlTargets(toURLEntry(entry, config.opts), config.opts)
 	} else if ExistDir(entry.Name()) {
 		targets.dirTargets(entry, config)
@@ -112,6 +117,7 @@ func (argf *Argf) pushEach(targets *Targets, config *Config) {
 	}
 }
 
+// ReadFileListFromReader reads from the given reader as the file list.
 func (targets *Targets) ReadFileListFromReader(in io.Reader, config *Config) {
 	reader := bufio.NewReader(in)
 	for {
@@ -153,6 +159,7 @@ func (targets *Targets) reindex() {
 	}
 }
 
+// CollectTargets collects targets from Argf.
 func (argf *Argf) CollectTargets() (*Targets, *errors.Center) {
 	config := NewConfig(ignores(".", !argf.Options.NoIgnore, nil), argf.Options, errors.New())
 	targets := &Targets{entries: []Entry{}}
@@ -165,6 +172,7 @@ func (argf *Argf) CollectTargets() (*Targets, *errors.Center) {
 	return targets, config.ec
 }
 
+// CountAll counts the bytes, characters, words, and lines of targets.
 func (targets *Targets) CountAll(generator func() Counter) (*ResultSet, *errors.Center) {
 	eitherChan := make(chan *Either)
 	ec := errors.New()

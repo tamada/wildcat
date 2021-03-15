@@ -1,16 +1,19 @@
 package wildcat
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/h2non/filetype"
 	"gitlab.com/osaki-lab/iowrapper"
 )
 
+// Target shows a target for counting, typically a file.
 type Target interface {
 	Open() (io.ReadSeekCloser, error)
 	Reset() bool
 	ParseType() (string, error)
+	Close() error
 }
 
 type myTarget struct {
@@ -19,8 +22,16 @@ type myTarget struct {
 	kind   string
 }
 
+// NewTarget creates an instance of Target for the counting target.
 func NewTarget(entry Entry) Target {
 	return &myTarget{entry: entry}
+}
+
+func (target *myTarget) Close() error {
+	if target.reader != nil {
+		return target.reader.Close()
+	}
+	return fmt.Errorf("%s: not opened", target.entry.Name())
 }
 
 func (target *myTarget) Reset() bool {

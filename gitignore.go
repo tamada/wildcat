@@ -7,10 +7,12 @@ import (
 	ignore "github.com/sabhiram/go-gitignore"
 )
 
+// NewNoIgnore creates an instance of Ignore to ignore nothing.
 func NewNoIgnore() Ignore {
 	return &noIgnore{parent: nil}
 }
 
+// Ignore is an interface for checking the given path is the ignoring target or not.
 type Ignore interface {
 	IsIgnore(path string) bool
 	Filter(targets []string) []string

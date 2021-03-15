@@ -20,13 +20,19 @@ type Counter interface {
 type CounterType int
 
 const (
-	Bytes      CounterType = 1
-	Characters             = 2
-	Words                  = 4
-	Lines                  = 8
-	All                    = Lines | Words | Characters | Bytes
+	// Bytes shows the counter type for counting byte size.
+	Bytes CounterType = 1
+	// Characters shows the counter type for counting characters.
+	Characters = 2
+	// Words shows the counter type for counting the words.
+	Words = 4
+	// Lines shows the counter type for counting the lines.
+	Lines = 8
+	// All shows the counter type for counting byte size, characters, words, and lines.
+	All = Lines | Words | Characters | Bytes
 )
 
+// IsType checks the equality between the receiver and the given counter type.
 func (ct CounterType) IsType(ct2 CounterType) bool {
 	return ct&ct2 == ct2
 }

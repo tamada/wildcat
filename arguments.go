@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// ReadOptions represents the set of options about reading file.
 type ReadOptions struct {
 	FileList     bool
 	NoIgnore     bool
@@ -13,11 +14,13 @@ type ReadOptions struct {
 	StoreContent bool
 }
 
+// Argf shows the command line arguments and stdin (if no command line arguments).
 type Argf struct {
 	Options *ReadOptions
 	Entries []Entry
 }
 
+// NewArgf creates an instance of Argf for treating command line arguments.
 func NewArgf(arguments []string, opts *ReadOptions) *Argf {
 	entries := []Entry{}
 	for index, arg := range arguments {
@@ -26,8 +29,10 @@ func NewArgf(arguments []string, opts *ReadOptions) *Argf {
 	return &Argf{Entries: entries, Options: opts}
 }
 
+// Generator is the type for generating Counter object.
 type Generator func() Counter
 
+// DefaultGenerator is the default generator for counting all (bytes, characters, words, and lines).
 var DefaultGenerator Generator = func() Counter { return NewCounter(All) }
 
 func drainDataFromReader(in io.Reader, counter Counter) error {

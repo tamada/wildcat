@@ -2,6 +2,7 @@ package wildcat
 
 import "sort"
 
+// ResultSet shows the set of results.
 type ResultSet struct {
 	results map[string]Counter
 	list    []*indexString
@@ -45,6 +46,7 @@ func (rs *ResultSet) Print(printer Printer) error {
 	return nil
 }
 
+// Push adds the given result to the receiver ResultSet.
 func (rs *ResultSet) Push(r *Result) {
 	rs.push(r.nameIndex.Name(), r.nameIndex.Index(), r.counter)
 }

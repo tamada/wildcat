@@ -27,17 +27,20 @@ func (is *indexString) Index() int {
 	return is.index
 }
 
+// Entry shows the input for the each line in the results.
 type Entry interface {
 	nameIndex
 	Open() (io.ReadCloser, error)
 	Count(generator func() Counter) *Either
 }
 
+// Either shows either the list of result or error.
 type Either struct {
 	Err     error
 	Results []*Result
 }
 
+// Result is the counted result of each entry.
 type Result struct {
 	nameIndex nameIndex
 	counter   Counter
@@ -54,6 +57,7 @@ type stdinEntry struct {
 	index int
 }
 
+// CountDefault is the default routine for counting.
 func CountDefault(entry Entry, counter Counter) *Either {
 	reader, err := entry.Open()
 	if err != nil {
@@ -79,6 +83,7 @@ func (se *stdinEntry) Index() int {
 	return se.index
 }
 
+// NewArchiveEntry creates an instance of Entry for treating archive file, such as tar, and zip.
 func NewArchiveEntry(entry Entry) Entry {
 	return &archiveEntry{entry: entry}
 }
@@ -134,23 +139,23 @@ func (de *defaultEntry) Index() int {
 	return de.index
 }
 
-type downloadUrlEntry struct {
+type downloadURLEntry struct {
 	entry *urlEntry
 }
 
-func (due *downloadUrlEntry) Index() int {
+func (due *downloadURLEntry) Index() int {
 	return due.entry.Index()
 }
 
-func (due *downloadUrlEntry) Name() string {
+func (due *downloadURLEntry) Name() string {
 	return due.entry.Name()
 }
 
-func (due *downloadUrlEntry) Count(generator func() Counter) *Either {
+func (due *downloadURLEntry) Count(generator func() Counter) *Either {
 	return CountDefault(due, generator())
 }
 
-func (due *downloadUrlEntry) Open() (io.ReadCloser, error) {
+func (due *downloadURLEntry) Open() (io.ReadCloser, error) {
 	reader, err := due.entry.Open()
 	if err != nil {
 		return nil, err
@@ -203,7 +208,7 @@ func (ue *urlEntry) Open() (io.ReadCloser, error) {
 func toURLEntry(entry Entry, opts *ReadOptions) Entry {
 	newEntry := &urlEntry{url: entry.Name(), index: entry.Index()}
 	if opts.StoreContent {
-		return &downloadUrlEntry{entry: newEntry}
+		return &downloadURLEntry{entry: newEntry}
 	}
 	return newEntry
 }
