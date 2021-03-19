@@ -24,14 +24,16 @@ func ConvertToArchiveEntry(entry Entry) (Entry, bool) {
 }
 
 func createArchiveEntry(entry Entry, ext string) (Entry, bool) {
-	if ext == "gz" || ext == "bz2" {
+	switch ext {
+	case "gz", "bz2":
 		return wrapReaderAndTryAgain(entry, ext)
-	} else if ext == "jar" || ext == "zip" {
+	case "jar", "zip":
 		return &ZipEntry{entry: entry}, true
-	} else if ext == "tar" {
+	case "tar":
 		return &TarEntry{entry: entry}, true
+	default:
+		return entry, false
 	}
-	return entry, false
 }
 
 func wrapReaderAndTryAgain(entry Entry, gotKind string) (Entry, bool) {
