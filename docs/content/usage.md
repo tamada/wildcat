@@ -33,7 +33,7 @@ SERVER_MODE_OPTIONS
     -s, --server                Launches wildcat in the server mode. With this option, wildcat ignores
                                 CLI_MODE_OPTIONS and arguments.
 ARGUMENTS
-    FILEs...                    Specifies counting targets. wildcat accepts zip/tar/tar.gz/tar.bz2/jar files.
+    FILEs...                    Specifies counting targets. wildcat accepts zip/tar/tar.gz/tar.bz2/jar/war files.
     DIRs...                     Files in the given directory are as the input files.
     URLs...                     Specifies the urls for counting files (accept archive files).
 
@@ -173,21 +173,22 @@ The following xml is formatted by `xmllint --format -`
 
 ### :whale: Docker
 
-[![Docker](https://img.shields.io/badge/Docker-ghcr.io%2Ftamada%2Fwildcat%3A1.0.3-green?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
+[![Docker](https://img.shields.io/badge/Docker-ghcr.io%2Ftamada%2Fwildcat%3A1.1.0-green?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
 
 ```shell
-$ docker run -v $PWD:/home/wildcat ghcr.io/tamada/wildcat:1.0.0 testdata/wc
+$ docker run -v $PWD:/home/wildcat ghcr.io/tamada/wildcat:1.1.0 testdata/wc
 ```
 
 If you run `wildcat` on server mode, run the following command.
 
 ```shell
-$ docker run -p 8080:8080 -v $PWD:/home/wildcat ghcr.io/tamada/wildcat:1.0.0 --server
+$ docker run -p 8080:8080 -v $PWD:/home/wildcat ghcr.io/tamada/wildcat:1.1.0 --server
 ```
 
 #### versions
 
-* `1.0.3`, `latest`
+* `1.1.0`, `latest`
+* `1.0.3`
 * `1.0.2`
 * `1.0.1`
 * `1.0.0`

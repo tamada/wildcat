@@ -70,7 +70,7 @@ func Example_wildcat() {
 func Example_help() {
 	goMain([]string{"wildcat", "--version", "--help"})
 	// Output:
-	// wildcat version 1.0.3
+	// wildcat version 1.1.0
 	// wildcat [CLI_MODE_OPTIONS|SERVER_MODE_OPTIONS] [FILEs...|DIRs...|URLs...]
 	// CLI_MODE_OPTIONS
 	//     -b, --byte                  Prints the number of bytes in each input file.
@@ -98,7 +98,7 @@ func Example_help() {
 	//     -s, --server                Launches wildcat in the server mode. With this option, wildcat ignores
 	//                                 CLI_MODE_OPTIONS and arguments.
 	// ARGUMENTS
-	//     FILEs...                    Specifies counting targets. wildcat accepts zip/tar/tar.gz/tar.bz2/jar files.
+	//     FILEs...                    Specifies counting targets. wildcat accepts zip/tar/tar.gz/tar.bz2/jar/war files.
 	//     DIRs...                     Files in the given directory are as the input files.
 	//     URLs...                     Specifies the urls for counting files (accept archive files).
 	//
