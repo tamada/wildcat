@@ -11,7 +11,7 @@ import (
 )
 
 // VERSION represents the version of this project.
-const VERSION = "1.0.3"
+const VERSION = "1.1.0"
 
 func helpMessage(name string) string {
 	return fmt.Sprintf(`%s [CLI_MODE_OPTIONS|SERVER_MODE_OPTIONS] [FILEs...|DIRs...|URLs...]
@@ -41,7 +41,7 @@ SERVER_MODE_OPTIONS
     -s, --server                Launches wildcat in the server mode. With this option, wildcat ignores
                                 CLI_MODE_OPTIONS and arguments.
 ARGUMENTS
-    FILEs...                    Specifies counting targets. wildcat accepts zip/tar/tar.gz/tar.bz2/jar files.
+    FILEs...                    Specifies counting targets. wildcat accepts zip/tar/tar.gz/tar.bz2/jar/war files.
     DIRs...                     Files in the given directory are as the input files.
     URLs...                     Specifies the urls for counting files (accept archive files).
 

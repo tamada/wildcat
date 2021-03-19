@@ -1,6 +1,6 @@
 FROM alpine:3.10.1
 
-ARG version=1.0.3
+ARG version=1.1.0
 
 LABEL maintainer="Haruai Tamada" \
       description="another implementation of wc (word count)"
@@ -8,7 +8,7 @@ LABEL maintainer="Haruai Tamada" \
 RUN    adduser -D wildcat \
     && apk --no-cache add --update --virtual .builddeps curl tar \
     && curl -s -L -O https://github.com/tamada/wildcat/releases/download/v${version}/wildcat-${version}_linux_amd64.tar.gz \
-#    && curl -s -L -o wildcat-${version}_linux_amd64.tar.gz https://www.dropbox.com/s/f8in5s80q56s05m/wildcat-${version}_linux_amd64.tar.gz?dl=0 \
+#    && curl -s -L -o wildcat-${version}_linux_amd64.tar.gz https://www.dropbox.com/s/f60483rucruauiz/wildcat-1.1.0_linux_amd64.tar.gz?dl=0 \
     && tar xfz wildcat-${version}_linux_amd64.tar.gz     \
     && mv wildcat-${version} /opt                        \
     && ln -s /opt/wildcat-${version} /opt/wildcat        \

@@ -33,7 +33,7 @@ SERVER_MODE_OPTIONS
     -s, --server                Launches wildcat in the server mode. With this option, wildcat ignores
                                 CLI_MODE_OPTIONS and arguments.
 ARGUMENTS
-    FILEs...                    Specifies counting targets. wildcat accepts zip/tar/tar.gz/tar.bz2/jar files.
+    FILEs...                    Specifies counting targets. wildcat accepts zip/tar/tar.gz/tar.bz2/jar/war files.
     DIRs...                     Files in the given directory are as the input files.
     URLs...                     Specifies the urls for counting files (accept archive files).
 
@@ -173,21 +173,22 @@ The following xml is formatted by `xmllint --format -`
 
 ### :whale: Docker
 
-[![Docker](https://img.shields.io/badge/Docker-ghcr.io%2Ftamada%2Fwildcat%3A1.0.3-green?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
+[![Docker](https://img.shields.io/badge/Docker-ghcr.io%2Ftamada%2Fwildcat%3A1.1.0-green?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
 
 ```shell
-$ docker run -v $PWD:/home/wildcat ghcr.io/tamada/wildcat:1.0.0 testdata/wc
+$ docker run -v $PWD:/home/wildcat ghcr.io/tamada/wildcat:1.1.0 testdata/wc
 ```
 
 If you run `wildcat` on server mode, run the following command.
 
 ```shell
-$ docker run -p 8080:8080 -v $PWD:/home/wildcat ghcr.io/tamada/wildcat:1.0.0 --server
+$ docker run -p 8080:8080 -v $PWD:/home/wildcat ghcr.io/tamada/wildcat:1.1.0 --server
 ```
 
 #### versions
 
-* `1.0.3`, `latest`
+* `1.1.0`, `latest`
+* `1.0.3`
 * `1.0.2`
 * `1.0.1`
 * `1.0.0`
@@ -200,7 +201,5 @@ Post the files to `https://secret-coast-70208.herokuapp.com/wildcat/api/counts`,
 
 ```
 $ curl -X POST --data-binary @testdata/archives/wc.jar https://secret-coast-70208.herokuapp.com/wildcat/api/counts
-{"timestamp":"2021-02-22T02:40:26+09:00","results":[{"filename":"<request>","lines":5,"words":62,"characters":1054,"bytes":1080}]}
-$ curl -X POST --data-binary @testdata/archives/wc.jar https://secret-coast-70208.herokuapp.com/wildcat/api/counts?file-name=wc.jar
-{"timestamp":"2021-02-22T02:40:35+09:00","results":[{"filename":"wc.jar!humpty_dumpty.txt","lines":4,"words":26,"characters":142,"bytes":142},{"filename":"wc.jar!ja/","lines":0,"words":0,"characters":0,"bytes":0},{"filename":"wc.jar!ja/sakura_sakura.txt","lines":15,"words":26,"characters":118,"bytes":298},{"filename":"wc.jar!london_bridge_is_broken_down.txt","lines":59,"words":260,"characters":1341,"bytes":1341},{"filename":"total","lines":78,"words":312,"characters":1601,"bytes":1781}]}
+{"timestamp":"2021-02-22T02:40:35+09:00","results":[{"filename":"<request>!humpty_dumpty.txt","lines":4,"words":26,"characters":142,"bytes":142},{"filename":"<request>!ja/","lines":0,"words":0,"characters":0,"bytes":0},{"filename":"<request>!ja/sakura_sakura.txt","lines":15,"words":26,"characters":118,"bytes":298},{"filename":"<request>!london_bridge_is_broken_down.txt","lines":59,"words":260,"characters":1341,"bytes":1341},{"filename":"total","lines":78,"words":312,"characters":1601,"bytes":1781}]}
 ```
