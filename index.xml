@@ -26,7 +26,7 @@ $ brew tap tamada/brew $ brew install wildcat 💪 Compiling yourself $ git clon
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>https://tamada.github.io/wildcat/usage/</guid>
-      <description>👞 CLI mode wildcat version 1.0.0 wildcat [CLI_MODE_OPTIONS|SERVER_MODE_OPTIONS] [FILEs...|DIRs...|URLs...] CLI_MODE_OPTIONS -b, --byte prints the number of bytes in each input file. -l, --line prints the number of lines in each input file. -c, --character prints the number of characters in each input file. If the current locale does not support multibyte characters, this option is equal to the -c option. -w, --word prints the number of words in each input file.</description>
+      <description>👞 CLI mode wildcat version 1.0.3 wildcat [CLI_MODE_OPTIONS|SERVER_MODE_OPTIONS] [FILEs...|DIRs...|URLs...] CLI_MODE_OPTIONS -b, --byte Prints the number of bytes in each input file. -l, --line Prints the number of lines in each input file. -c, --character Prints the number of characters in each input file. If the current locale does not support multibyte characters, this option is equal to the -c option. -w, --word Prints the number of words in each input file.</description>
     </item>
     
     <item>

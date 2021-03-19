@@ -70,34 +70,37 @@
     
   <h1>🏃‍♂️ Usage</h1>
   <h3 id="-cli-mode">👞 CLI mode</h3>
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">wildcat version 1.0.0
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">wildcat version 1.0.3
 wildcat <span style="color:#666">[</span>CLI_MODE_OPTIONS|SERVER_MODE_OPTIONS<span style="color:#666">]</span> <span style="color:#666">[</span>FILEs...|DIRs...|URLs...<span style="color:#666">]</span>
 CLI_MODE_OPTIONS
-    -b, --byte                  prints the number of bytes in each input file.
-    -l, --line                  prints the number of lines in each input file.
-    -c, --character             prints the number of characters in each input file.
+    -b, --byte                  Prints the number of bytes in each input file.
+    -l, --line                  Prints the number of lines in each input file.
+    -c, --character             Prints the number of characters in each input file.
                                 If the current locale does not support multibyte characters,
                                 this option is equal to the -c option.
-    -w, --word                  prints the number of words in each input file.
-    -f, --format &lt;FORMAT&gt;       prints results in a specified format.  Available formats are:
+    -w, --word                  Prints the number of words in each input file.
+    -f, --format &lt;FORMAT&gt;       Prints results in a specified format.  Available formats are:
                                 csv, json, xml, and default. Default is default.
+    -H, --humanize              Prints sizes in humanization.
     -n, --no-ignore             Does not respect ignore files <span style="color:#666">(</span>.gitignore<span style="color:#666">)</span>.
                                 If this option was specified, wildcat <span style="color:#008000">read</span> .gitignore.
     -N, --no-extract-archive    Does not extract archive files. If this option was specified,
                                 wildcat treats archive files as the single binary file.
-    -o, --output &lt;DEST&gt;         specifies the destination of the result.  Default is standard output.
-    -@, --filelist              treats the contents of argument files as file list.
+    -o, --output &lt;DEST&gt;         Specifies the destination of the result.  Default is standard output.
+    -S, --store-content         Sets to store the content of url targets.
+    -@, --filelist              Treats the contents of arguments as file list.
 
-    -h, --help                  prints this message.
+    -h, --help                  Prints this message.
+    -v, --version               Prints the version of wildcat.
 SERVER_MODE_OPTIONS
-    -p, --port &lt;PORT&gt;           specifies the port number of server.  Default is 8080.
+    -p, --port &lt;PORT&gt;           Specifies the port number of server.  Default is 8080.
                                 If <span style="color:#ba2121">&#39;--server&#39;</span> option did not specified, wildcat ignores this option.
-    -s, --server                launches wildcat in the server mode. With this option, wildcat ignores
+    -s, --server                Launches wildcat in the server mode. With this option, wildcat ignores
                                 CLI_MODE_OPTIONS and arguments.
 ARGUMENTS
-    FILEs...                    specifies counting targets. wildcat accepts zip/tar/tar.gz/tar.bz2/jar files.
-    DIRs...                     files in the given directory are as the input files.
-    URLs...                     specifies the urls <span style="color:#008000;font-weight:bold">for</span> counting files <span style="color:#666">(</span>accept archive files<span style="color:#666">)</span>.
+    FILEs...                    Specifies counting targets. wildcat accepts zip/tar/tar.gz/tar.bz2/jar/war files.
+    DIRs...                     Files in the given directory are as the input files.
+    URLs...                     Specifies the urls <span style="color:#008000;font-weight:bold">for</span> counting files <span style="color:#666">(</span>accept archive files<span style="color:#666">)</span>.
 
 If no arguments are specified, the standard input is used.
 Moreover, -@ option is specified, the content of given files are the target files.
@@ -140,14 +143,14 @@ The examples of results are as follows by executing <code>wildcat testdata/wc --
 <div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">lines      words characters      bytes
     <span style="color:#666">4</span>         <span style="color:#666">26</span>        <span style="color:#666">142</span>        <span style="color:#666">142</span> testdata/wc/humpty_dumpty.txt
    <span style="color:#666">15</span>         <span style="color:#666">26</span>        <span style="color:#666">118</span>        <span style="color:#666">298</span> testdata/wc/ja/sakura_sakura.txt
-   <span style="color:#666">59</span>        <span style="color:#666">260</span>       <span style="color:#666">1341</span>       <span style="color:#666">1341</span> testdata/wc/london_bridge_is_broken_down.txt
-   <span style="color:#666">78</span>        <span style="color:#666">312</span>       <span style="color:#666">1601</span>       <span style="color:#666">1781</span> total
+   <span style="color:#666">59</span>        <span style="color:#666">260</span>      1,341      1,341 testdata/wc/london_bridge_is_broken_down.txt
+   <span style="color:#666">78</span>        <span style="color:#666">312</span>      1,601      1,781 total
 </code></pre></div><h4 id="csv">Csv</h4>
 <pre><code class="language-csv" data-lang="csv">file name,lines,words,characters,bytes
-testdata/wc/humpty_dumpty.txt,4,26,142,142
-testdata/wc/ja/sakura_sakura.txt,15,26,118,298
-testdata/wc/london_bridge_is_broken_down.txt,59,260,1341,1341
-total,78,312,1601,1781
+testdata/wc/humpty_dumpty.txt,&quot;4&quot;,&quot;26&quot;,&quot;142&quot;,&quot;142&quot;
+testdata/wc/ja/sakura_sakura.txt,&quot;15&quot;,&quot;26&quot;,&quot;118&quot;,&quot;298&quot;
+testdata/wc/london_bridge_is_broken_down.txt,&quot;59&quot;,&quot;260&quot;,&quot;1,341&quot;,&quot;1,341&quot;
+total,&quot;78&quot;,&quot;312&quot;,&quot;1,601&quot;,&quot;1,781&quot;
 </code></pre><h4 id="json">Json</h4>
 <p>The following json is formatted by <code>jq .</code>.</p>
 <div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-JSON" data-lang="JSON">{
@@ -155,31 +158,31 @@ total,78,312,1601,1781
   <span style="color:#008000;font-weight:bold">&#34;results&#34;</span>: [
     {
       <span style="color:#008000;font-weight:bold">&#34;filename&#34;</span>: <span style="color:#ba2121">&#34;testdata/wc/humpty_dumpty.txt&#34;</span>,
-      <span style="color:#008000;font-weight:bold">&#34;lines&#34;</span>: <span style="color:#666">4</span>,
-      <span style="color:#008000;font-weight:bold">&#34;words&#34;</span>: <span style="color:#666">26</span>,
-      <span style="color:#008000;font-weight:bold">&#34;characters&#34;</span>: <span style="color:#666">142</span>,
-      <span style="color:#008000;font-weight:bold">&#34;bytes&#34;</span>: <span style="color:#666">142</span>
+      <span style="color:#008000;font-weight:bold">&#34;lines&#34;</span>: <span style="color:#ba2121">&#34;4&#34;</span>,
+      <span style="color:#008000;font-weight:bold">&#34;words&#34;</span>: <span style="color:#ba2121">&#34;26&#34;</span>,
+      <span style="color:#008000;font-weight:bold">&#34;characters&#34;</span>: <span style="color:#ba2121">&#34;142&#34;</span>,
+      <span style="color:#008000;font-weight:bold">&#34;bytes&#34;</span>: <span style="color:#ba2121">&#34;142&#34;</span>
     },
     {
       <span style="color:#008000;font-weight:bold">&#34;filename&#34;</span>: <span style="color:#ba2121">&#34;testdata/wc/ja/sakura_sakura.txt&#34;</span>,
-      <span style="color:#008000;font-weight:bold">&#34;lines&#34;</span>: <span style="color:#666">15</span>,
-      <span style="color:#008000;font-weight:bold">&#34;words&#34;</span>: <span style="color:#666">26</span>,
-      <span style="color:#008000;font-weight:bold">&#34;characters&#34;</span>: <span style="color:#666">118</span>,
-      <span style="color:#008000;font-weight:bold">&#34;bytes&#34;</span>: <span style="color:#666">298</span>
+      <span style="color:#008000;font-weight:bold">&#34;lines&#34;</span>: <span style="color:#ba2121">&#34;15&#34;</span>,
+      <span style="color:#008000;font-weight:bold">&#34;words&#34;</span>: <span style="color:#ba2121">&#34;26&#34;</span>,
+      <span style="color:#008000;font-weight:bold">&#34;characters&#34;</span>: <span style="color:#ba2121">&#34;118&#34;</span>,
+      <span style="color:#008000;font-weight:bold">&#34;bytes&#34;</span>: <span style="color:#ba2121">&#34;298&#34;</span>
     },
     {
       <span style="color:#008000;font-weight:bold">&#34;filename&#34;</span>: <span style="color:#ba2121">&#34;testdata/wc/london_bridge_is_broken_down.txt&#34;</span>,
-      <span style="color:#008000;font-weight:bold">&#34;lines&#34;</span>: <span style="color:#666">59</span>,
-      <span style="color:#008000;font-weight:bold">&#34;words&#34;</span>: <span style="color:#666">260</span>,
-      <span style="color:#008000;font-weight:bold">&#34;characters&#34;</span>: <span style="color:#666">1341</span>,
-      <span style="color:#008000;font-weight:bold">&#34;bytes&#34;</span>: <span style="color:#666">1341</span>
+      <span style="color:#008000;font-weight:bold">&#34;lines&#34;</span>: <span style="color:#ba2121">&#34;59&#34;</span>,
+      <span style="color:#008000;font-weight:bold">&#34;words&#34;</span>: <span style="color:#ba2121">&#34;260&#34;</span>,
+      <span style="color:#008000;font-weight:bold">&#34;characters&#34;</span>: <span style="color:#ba2121">&#34;1,341&#34;</span>,
+      <span style="color:#008000;font-weight:bold">&#34;bytes&#34;</span>: <span style="color:#ba2121">&#34;1,341&#34;</span>
     },
     {
       <span style="color:#008000;font-weight:bold">&#34;filename&#34;</span>: <span style="color:#ba2121">&#34;total&#34;</span>,
-      <span style="color:#008000;font-weight:bold">&#34;lines&#34;</span>: <span style="color:#666">78</span>,
-      <span style="color:#008000;font-weight:bold">&#34;words&#34;</span>: <span style="color:#666">312</span>,
-      <span style="color:#008000;font-weight:bold">&#34;characters&#34;</span>: <span style="color:#666">1601</span>,
-      <span style="color:#008000;font-weight:bold">&#34;bytes&#34;</span>: <span style="color:#666">1781</span>
+      <span style="color:#008000;font-weight:bold">&#34;lines&#34;</span>: <span style="color:#ba2121">&#34;78&#34;</span>,
+      <span style="color:#008000;font-weight:bold">&#34;words&#34;</span>: <span style="color:#ba2121">&#34;312&#34;</span>,
+      <span style="color:#008000;font-weight:bold">&#34;characters&#34;</span>: <span style="color:#ba2121">&#34;1,601&#34;</span>,
+      <span style="color:#008000;font-weight:bold">&#34;bytes&#34;</span>: <span style="color:#ba2121">&#34;1,781&#34;</span>
     }
   ]
 }
@@ -207,35 +210,36 @@ total,78,312,1601,1781
       <span style="color:#008000;font-weight:bold">&lt;file-name&gt;</span>testdata/wc/london_bridge_is_broken_down.txt<span style="color:#008000;font-weight:bold">&lt;/file-name&gt;</span>
       <span style="color:#008000;font-weight:bold">&lt;lines&gt;</span>59<span style="color:#008000;font-weight:bold">&lt;/lines&gt;</span>
       <span style="color:#008000;font-weight:bold">&lt;words&gt;</span>260<span style="color:#008000;font-weight:bold">&lt;/words&gt;</span>
-      <span style="color:#008000;font-weight:bold">&lt;characters&gt;</span>1341<span style="color:#008000;font-weight:bold">&lt;/characters&gt;</span>
-      <span style="color:#008000;font-weight:bold">&lt;bytes&gt;</span>1341<span style="color:#008000;font-weight:bold">&lt;/bytes&gt;</span>
+      <span style="color:#008000;font-weight:bold">&lt;characters&gt;</span>1,341<span style="color:#008000;font-weight:bold">&lt;/characters&gt;</span>
+      <span style="color:#008000;font-weight:bold">&lt;bytes&gt;</span>1,341<span style="color:#008000;font-weight:bold">&lt;/bytes&gt;</span>
     <span style="color:#008000;font-weight:bold">&lt;/result&gt;</span>
     <span style="color:#008000;font-weight:bold">&lt;result&gt;</span>
       <span style="color:#008000;font-weight:bold">&lt;file-name&gt;</span>total<span style="color:#008000;font-weight:bold">&lt;/file-name&gt;</span>
       <span style="color:#008000;font-weight:bold">&lt;lines&gt;</span>78<span style="color:#008000;font-weight:bold">&lt;/lines&gt;</span>
       <span style="color:#008000;font-weight:bold">&lt;words&gt;</span>312<span style="color:#008000;font-weight:bold">&lt;/words&gt;</span>
-      <span style="color:#008000;font-weight:bold">&lt;characters&gt;</span>1601<span style="color:#008000;font-weight:bold">&lt;/characters&gt;</span>
-      <span style="color:#008000;font-weight:bold">&lt;bytes&gt;</span>1781<span style="color:#008000;font-weight:bold">&lt;/bytes&gt;</span>
+      <span style="color:#008000;font-weight:bold">&lt;characters&gt;</span>1,601<span style="color:#008000;font-weight:bold">&lt;/characters&gt;</span>
+      <span style="color:#008000;font-weight:bold">&lt;bytes&gt;</span>1,781<span style="color:#008000;font-weight:bold">&lt;/bytes&gt;</span>
     <span style="color:#008000;font-weight:bold">&lt;/result&gt;</span>
   <span style="color:#008000;font-weight:bold">&lt;/results&gt;</span>
 <span style="color:#008000;font-weight:bold">&lt;/wildcat&gt;</span>
 </code></pre></div><h3 id="-docker">🐳 Docker</h3>
-<p><a href="https://github.com/users/tamada/packages/container/package/wildcat"><img src="https://img.shields.io/badge/Docker-ghcr.io%2Ftamada%2Fwildcat%3A1.0.2-green?logo=docker" alt="Docker"></a></p>
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ docker run -v <span style="color:#19177c">$PWD</span>:/home/wildcat ghcr.io/tamada/wildcat:1.0.0 testdata/wc
+<p><a href="https://github.com/users/tamada/packages/container/package/wildcat"><img src="https://img.shields.io/badge/Docker-ghcr.io%2Ftamada%2Fwildcat%3A1.1.0-green?logo=docker" alt="Docker"></a></p>
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ docker run -v <span style="color:#19177c">$PWD</span>:/home/wildcat ghcr.io/tamada/wildcat:1.1.0 testdata/wc
 </code></pre></div><p>If you run <code>wildcat</code> on server mode, run the following command.</p>
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ docker run -p 8080:8080 -v <span style="color:#19177c">$PWD</span>:/home/wildcat ghcr.io/tamada/wildcat:1.0.0 --server
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ docker run -p 8080:8080 -v <span style="color:#19177c">$PWD</span>:/home/wildcat ghcr.io/tamada/wildcat:1.1.0 --server
 </code></pre></div><h4 id="versions">versions</h4>
 <ul>
-<li><code>1.0.1</code>, <code>latest</code></li>
+<li><code>1.1.0</code>, <code>latest</code></li>
+<li><code>1.0.3</code></li>
+<li><code>1.0.2</code></li>
+<li><code>1.0.1</code></li>
 <li><code>1.0.0</code></li>
 </ul>
 <h3 id="-heroku">🏄‍♂️ Heroku</h3>
 <p><a href="https://secret-coast-70208.herokuapp.com/wildcat/"><img src="https://img.shields.io/badge/Heroku-secret--coast--70208-green?logo=heroku" alt="Heroku"></a></p>
 <p>Post the files to <code>https://secret-coast-70208.herokuapp.com/wildcat/api/counts</code>, like below.</p>
 <pre><code>$ curl -X POST --data-binary @testdata/archives/wc.jar https://secret-coast-70208.herokuapp.com/wildcat/api/counts
-{&quot;timestamp&quot;:&quot;2021-02-22T02:40:26+09:00&quot;,&quot;results&quot;:[{&quot;filename&quot;:&quot;&lt;request&gt;&quot;,&quot;lines&quot;:5,&quot;words&quot;:62,&quot;characters&quot;:1054,&quot;bytes&quot;:1080}]}
-$ curl -X POST --data-binary @testdata/archives/wc.jar https://secret-coast-70208.herokuapp.com/wildcat/api/counts?file-name=wc.jar
-{&quot;timestamp&quot;:&quot;2021-02-22T02:40:35+09:00&quot;,&quot;results&quot;:[{&quot;filename&quot;:&quot;wc.jar!humpty_dumpty.txt&quot;,&quot;lines&quot;:4,&quot;words&quot;:26,&quot;characters&quot;:142,&quot;bytes&quot;:142},{&quot;filename&quot;:&quot;wc.jar!ja/&quot;,&quot;lines&quot;:0,&quot;words&quot;:0,&quot;characters&quot;:0,&quot;bytes&quot;:0},{&quot;filename&quot;:&quot;wc.jar!ja/sakura_sakura.txt&quot;,&quot;lines&quot;:15,&quot;words&quot;:26,&quot;characters&quot;:118,&quot;bytes&quot;:298},{&quot;filename&quot;:&quot;wc.jar!london_bridge_is_broken_down.txt&quot;,&quot;lines&quot;:59,&quot;words&quot;:260,&quot;characters&quot;:1341,&quot;bytes&quot;:1341},{&quot;filename&quot;:&quot;total&quot;,&quot;lines&quot;:78,&quot;words&quot;:312,&quot;characters&quot;:1601,&quot;bytes&quot;:1781}]}
+{&quot;timestamp&quot;:&quot;2021-02-22T02:40:35+09:00&quot;,&quot;results&quot;:[{&quot;filename&quot;:&quot;&lt;request&gt;!humpty_dumpty.txt&quot;,&quot;lines&quot;:4,&quot;words&quot;:26,&quot;characters&quot;:142,&quot;bytes&quot;:142},{&quot;filename&quot;:&quot;&lt;request&gt;!ja/&quot;,&quot;lines&quot;:0,&quot;words&quot;:0,&quot;characters&quot;:0,&quot;bytes&quot;:0},{&quot;filename&quot;:&quot;&lt;request&gt;!ja/sakura_sakura.txt&quot;,&quot;lines&quot;:15,&quot;words&quot;:26,&quot;characters&quot;:118,&quot;bytes&quot;:298},{&quot;filename&quot;:&quot;&lt;request&gt;!london_bridge_is_broken_down.txt&quot;,&quot;lines&quot;:59,&quot;words&quot;:260,&quot;characters&quot;:1341,&quot;bytes&quot;:1341},{&quot;filename&quot;:&quot;total&quot;,&quot;lines&quot;:78,&quot;words&quot;:312,&quot;characters&quot;:1601,&quot;bytes&quot;:1781}]}
 </code></pre>
 
     <footer class="site-footer">
