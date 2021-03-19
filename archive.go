@@ -20,6 +20,10 @@ func ConvertToArchiveEntry(entry Entry) (Entry, bool) {
 	}
 	gotKind, _ := filetype.MatchReader(reader)
 	ext := gotKind.Extension
+	return createArchiveEntry(entry, ext)
+}
+
+func createArchiveEntry(entry Entry, ext string) (Entry, bool) {
 	if ext == "gz" || ext == "bz2" {
 		return wrapReaderAndTryAgain(entry, ext)
 	} else if ext == "jar" || ext == "zip" {

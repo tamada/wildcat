@@ -46,7 +46,7 @@ func (ce *CompressedEntry) Open() (io.ReadCloser, error) {
 		ce.reader.Seek(0, 0)
 		return ce.reader, nil
 	}
-	reader, err := openImpl(ce)
+	reader, err := ce.openImpl()
 	if err == nil {
 		ce.reader = NewReadSeekCloser(reader)
 	}
@@ -57,7 +57,7 @@ func (ce *CompressedEntry) Count(generator Generator) *Either {
 	return CountDefault(ce, generator())
 }
 
-func openImpl(ce *CompressedEntry) (io.ReadCloser, error) {
+func (ce *CompressedEntry) openImpl() (io.ReadCloser, error) {
 	reader, err := ce.entry.Open()
 	if err != nil {
 		return nil, err
@@ -153,6 +153,10 @@ func (ue *URLEntry) Open() (io.ReadCloser, error) {
 		ue.reader.Seek(0, 0)
 		return ue.reader, nil
 	}
+	return ue.openImpl()
+}
+
+func (ue *URLEntry) openImpl() (io.ReadCloser, error) {
 	response, err := http.Get(ue.Name())
 	if err != nil {
 		return nil, fmt.Errorf("%s: http error: %w", ue.Name(), err)
