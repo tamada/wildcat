@@ -4,28 +4,6 @@ import (
 	"testing"
 )
 
-func TestIsArchiveFile(t *testing.T) {
-	testdata := []struct {
-		giveFileName  string
-		wontIsArchive bool
-	}{
-		{"file.zip", true},
-		{"file.txt", false},
-		{"file.jar", true},
-		{"file.tar", true},
-		{"file.tar.gz", true},
-		{"file.tar.bz2", true},
-		{"file.war", false}, // not support
-	}
-
-	for _, td := range testdata {
-		gotIsArchive := IsArchiveFile(td.giveFileName)
-		if gotIsArchive != td.wontIsArchive {
-			t.Errorf(`IsArchiveFile("%s") did not match, wont %v, got %v`, td.giveFileName, td.wontIsArchive, gotIsArchive)
-		}
-	}
-}
-
 func TestArchives(t *testing.T) {
 	testdata := []struct {
 		giveFileName   string
@@ -38,8 +16,7 @@ func TestArchives(t *testing.T) {
 		{"testdata/archives/wc.tar", 4, 78, 312, 1781},
 		{"testdata/archives/wc.tar.gz", 4, 78, 312, 1781},
 		{"testdata/archives/wc.tar.bz2", 4, 78, 312, 1781},
-		// not supported archive format. Therefore, read as binary file.
-		{"testdata/archives/wc.war", 1, 5, 62, 1080},
+		{"testdata/archives/wc.war", 4, 78, 312, 1781},
 	}
 
 	for _, td := range testdata {

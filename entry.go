@@ -9,48 +9,164 @@ import (
 	"path"
 )
 
-type nameIndex interface {
-	Name() string
-	Index() int
-}
-
-type indexString struct {
-	value string
-	index int
-}
-
-func (is *indexString) Name() string {
-	return is.value
-}
-
-func (is *indexString) Index() int {
-	return is.index
-}
-
 // Entry shows the input for the each line in the results.
 type Entry interface {
-	nameIndex
+	NameAndIndex
+	Count(generator Generator) *Either
 	Open() (io.ReadCloser, error)
-	Count(generator func() Counter) *Either
 }
 
-// Either shows either the list of result or error.
-type Either struct {
-	Err     error
-	Results []*Result
+// NameAndIndex means that the implemented object has the name and index.
+type NameAndIndex interface {
+	Name() string
+	Index() int
+	Reindex(newIndex int)
 }
 
-// Result is the counted result of each entry.
-type Result struct {
-	nameIndex nameIndex
-	counter   Counter
+type CompressedEntry struct {
+	entry  Entry
+	kind   string
+	reader io.ReadSeekCloser
 }
 
-func newResult(entry Entry, counter Counter) *Result {
-	return &Result{
-		nameIndex: entry,
-		counter:   counter,
+func (ce *CompressedEntry) Name() string {
+	return ce.entry.Name()
+}
+
+func (ce *CompressedEntry) Index() int {
+	return ce.entry.Index()
+}
+
+func (ce *CompressedEntry) Reindex(newIndex int) {
+	ce.entry.Reindex(newIndex)
+}
+
+func (ce *CompressedEntry) Open() (io.ReadCloser, error) {
+	if ce.reader != nil {
+		ce.reader.Seek(0, 0)
+		return ce.reader, nil
 	}
+	reader, err := openImpl(ce)
+	if err == nil {
+		ce.reader = NewReadSeekCloser(reader)
+	}
+	return ce.reader, err
+}
+
+func (ce *CompressedEntry) Count(generator Generator) *Either {
+	return CountDefault(ce, generator())
+}
+
+func openImpl(ce *CompressedEntry) (io.ReadCloser, error) {
+	reader, err := ce.entry.Open()
+	if err != nil {
+		return nil, err
+	}
+	return wrapReader(reader, ce.kind), nil
+}
+
+type ArchiveEntry struct {
+	entry Entry
+}
+
+func (ae *ArchiveEntry) Name() string {
+	return ae.entry.Name()
+}
+
+func (ae *ArchiveEntry) Index() int {
+	return ae.entry.Index()
+}
+
+func (ae *ArchiveEntry) Reindex(newIndex int) {
+	ae.entry.Reindex(newIndex)
+}
+
+func (ae *ArchiveEntry) Open() (io.ReadCloser, error) {
+	return ae.entry.Open()
+}
+
+func (ae *ArchiveEntry) Count(generator Generator) *Either {
+	return &Either{Err: fmt.Errorf("not implement yet.")}
+}
+
+type FileEntry struct {
+	nai    NameAndIndex
+	reader io.ReadSeekCloser
+}
+
+func NewFileEntry(fileName string) *FileEntry {
+	return &FileEntry{nai: NewArg(0, fileName)}
+}
+
+func NewFileEntryWithIndex(fileName string, index int) *FileEntry {
+	return &FileEntry{nai: NewArg(index, fileName)}
+}
+
+func (fe *FileEntry) Name() string {
+	return fe.nai.Name()
+}
+
+func (fe *FileEntry) Index() int {
+	return fe.nai.Index()
+}
+
+func (fe *FileEntry) Reindex(newIndex int) {
+	fe.nai.Reindex(newIndex)
+}
+
+func (fe *FileEntry) Open() (io.ReadCloser, error) {
+	if fe.reader != nil {
+		fe.reader.Seek(0, 0)
+		return fe.reader, nil
+	}
+	reader, err := os.Open(fe.Name())
+	if err != nil {
+		return nil, err
+	}
+	fe.reader = NewReadSeekCloser(reader)
+	return fe.reader, nil
+}
+
+func (fe *FileEntry) Count(generator Generator) *Either {
+	return CountDefault(fe, generator())
+}
+
+type URLEntry struct {
+	nai    NameAndIndex
+	reader io.ReadSeekCloser
+}
+
+func (ue *URLEntry) Name() string {
+	return ue.nai.Name()
+}
+
+func (ue *URLEntry) Index() int {
+	return ue.nai.Index()
+}
+
+func (ue *URLEntry) Reindex(newIndex int) {
+	ue.nai.Reindex(newIndex)
+}
+
+func (ue *URLEntry) Open() (io.ReadCloser, error) {
+	if ue.reader != nil {
+		ue.reader.Seek(0, 0)
+		return ue.reader, nil
+	}
+	response, err := http.Get(ue.Name())
+	if err != nil {
+		return nil, fmt.Errorf("%s: http error: %w", ue.Name(), err)
+	}
+	if response.StatusCode == 404 {
+		defer response.Body.Close()
+		return nil, fmt.Errorf("%s: file not found", ue.Name())
+	}
+	ue.reader = NewReadSeekCloser(response.Body)
+	return ue.reader, nil
+}
+
+func (ue *URLEntry) Count(generator Generator) *Either {
+	return CountDefault(ue, generator())
 }
 
 type stdinEntry struct {
@@ -63,6 +179,7 @@ func CountDefault(entry Entry, counter Counter) *Either {
 	if err != nil {
 		return &Either{Err: err}
 	}
+	defer reader.Close()
 	drainDataFromReader(reader, counter)
 	return &Either{Results: []*Result{newResult(entry, counter)}}
 }
@@ -71,7 +188,7 @@ func (se *stdinEntry) Name() string {
 	return "<stdin>"
 }
 
-func (se *stdinEntry) Count(generator func() Counter) *Either {
+func (se *stdinEntry) Count(generator Generator) *Either {
 	return CountDefault(se, generator())
 }
 
@@ -83,75 +200,27 @@ func (se *stdinEntry) Index() int {
 	return se.index
 }
 
-// NewArchiveEntry creates an instance of Entry for treating archive file, such as tar, and zip.
-func NewArchiveEntry(entry Entry) Entry {
-	return &archiveEntry{entry: entry}
-}
-
-type archiveEntry struct {
-	entry Entry
-	index *int
-}
-
-func (ae *archiveEntry) Name() string {
-	return ae.entry.Name()
-}
-
-func (ae *archiveEntry) Open() (io.ReadCloser, error) {
-	return ae.entry.Open()
-}
-
-func (ae *archiveEntry) Count(generator func() Counter) *Either {
-	archiver := newArchiver(ae)
-	file, err := ae.Open()
-	if err != nil {
-		return &Either{Err: err}
-	}
-	defer file.Close()
-	return archiver.traverse(generator)
-}
-
-func (ae *archiveEntry) Index() int {
-	if ae.index != nil {
-		return *ae.index
-	}
-	return ae.entry.Index()
-}
-
-type defaultEntry struct {
-	fileName string
-	index    int
-}
-
-func (de *defaultEntry) Name() string {
-	return de.fileName
-}
-
-func (de *defaultEntry) Open() (io.ReadCloser, error) {
-	return os.Open(de.fileName)
-}
-
-func (de *defaultEntry) Count(generator func() Counter) *Either {
-	return CountDefault(de, generator())
-}
-
-func (de *defaultEntry) Index() int {
-	return de.index
+func (se *stdinEntry) Reindex(newIndex int) {
+	se.index = newIndex
 }
 
 type downloadURLEntry struct {
-	entry *urlEntry
+	entry *URLEntry
 }
 
 func (due *downloadURLEntry) Index() int {
 	return due.entry.Index()
 }
 
+func (due *downloadURLEntry) Reindex(newIndex int) {
+	due.entry.Reindex(newIndex)
+}
+
 func (due *downloadURLEntry) Name() string {
 	return due.entry.Name()
 }
 
-func (due *downloadURLEntry) Count(generator func() Counter) *Either {
+func (due *downloadURLEntry) Count(generator Generator) *Either {
 	return CountDefault(due, generator())
 }
 
@@ -176,37 +245,8 @@ func createTeeReader(reader io.ReadCloser, name string) (io.ReadCloser, error) {
 	return newMyTeeReader(reader, writer), nil
 }
 
-type urlEntry struct {
-	url   string
-	index int
-}
-
-func (ue *urlEntry) Index() int {
-	return ue.index
-}
-
-func (ue *urlEntry) Name() string {
-	return ue.url
-}
-
-func (ue *urlEntry) Count(generator func() Counter) *Either {
-	return CountDefault(ue, generator())
-}
-
-func (ue *urlEntry) Open() (io.ReadCloser, error) {
-	response, err := http.Get(ue.url)
-	if err != nil {
-		return nil, fmt.Errorf("%s: http error: %w", ue.url, err)
-	}
-	if response.StatusCode == 404 {
-		defer response.Body.Close()
-		return nil, fmt.Errorf("%s: file not found", ue.url)
-	}
-	return response.Body, nil
-}
-
-func toURLEntry(entry Entry, opts *ReadOptions) Entry {
-	newEntry := &urlEntry{url: entry.Name(), index: entry.Index()}
+func toURLEntry(arg *Arg, opts *ReadOptions) Entry {
+	newEntry := &URLEntry{nai: arg}
 	if opts.StoreContent {
 		return &downloadURLEntry{entry: newEntry}
 	}

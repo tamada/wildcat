@@ -16,17 +16,42 @@ type ReadOptions struct {
 
 // Argf shows the command line arguments and stdin (if no command line arguments).
 type Argf struct {
-	Options *ReadOptions
-	Entries []Entry
+	Options   *ReadOptions
+	Arguments []*Arg
+}
+
+// Arg represents the one of command line arguments and its index.
+type Arg struct {
+	name  string
+	index int
+}
+
+// NewArg creates an instance of Arg with given parameters.
+func NewArg(index int, name string) *Arg {
+	return &Arg{index: index, name: name}
+}
+
+// Name returns the name of receiver Arg object.
+func (arg *Arg) Name() string {
+	return arg.name
+}
+
+// Index returns the index of receiver Arg object.
+func (arg *Arg) Index() int {
+	return arg.index
+}
+
+func (arg *Arg) Reindex(newIndex int) {
+	arg.index = newIndex
 }
 
 // NewArgf creates an instance of Argf for treating command line arguments.
 func NewArgf(arguments []string, opts *ReadOptions) *Argf {
-	entries := []Entry{}
+	entries := []*Arg{}
 	for index, arg := range arguments {
-		entries = append(entries, &defaultEntry{fileName: arg, index: index})
+		entries = append(entries, NewArg(index, arg))
 	}
-	return &Argf{Entries: entries, Options: opts}
+	return &Argf{Arguments: entries, Options: opts}
 }
 
 // Generator is the type for generating Counter object.
@@ -39,11 +64,10 @@ func drainDataFromReader(in io.Reader, counter Counter) error {
 	reader := bufio.NewReader(in)
 	for {
 		line, err := reader.ReadBytes('\n')
+		counter.update(line)
 		if err == io.EOF {
-			counter.update(line)
 			break
 		}
-		counter.update(line)
 	}
 	return nil
 }

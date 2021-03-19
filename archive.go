@@ -9,12 +9,30 @@ import (
 	"fmt"
 	"io"
 	"strings"
+
+	"github.com/h2non/filetype"
 )
 
-// IsArchiveFile checks the given fileName shows archive file.
-// This function examines by the suffix of the fileName.
-func IsArchiveFile(fileName string) bool {
-	return hasSuffix(fileName, ".zip", ".tar", ".tar.gz", ".tar.bz2", ".jar")
+func ConvertToArchiveEntry(entry Entry) (Entry, bool) {
+	reader, err := entry.Open()
+	if err != nil {
+		return entry, false
+	}
+	gotKind, _ := filetype.MatchReader(reader)
+	ext := gotKind.Extension
+	if ext == "gz" || ext == "bz2" {
+		return wrapReaderAndTryAgain(entry, ext)
+	} else if ext == "jar" || ext == "zip" {
+		return &ZipEntry{entry: entry}, true
+	} else if ext == "tar" {
+		return &TarEntry{entry: entry}, true
+	}
+	return entry, false
+}
+
+func wrapReaderAndTryAgain(entry Entry, gotKind string) (Entry, bool) {
+	newEntry := &CompressedEntry{entry: entry, kind: gotKind}
+	return ConvertToArchiveEntry(newEntry)
 }
 
 func hasSuffix(fileName string, suffixes ...string) bool {
@@ -54,61 +72,68 @@ func wrapReader(reader io.ReadCloser, fileName string) io.ReadCloser {
 }
 
 type archiver interface {
-	nameIndex
+	NameAndIndex
 	traverse(generator func() Counter) *Either
 }
 
 type archiveItem interface {
-	nameIndex
+	NameAndIndex
 	Count(counter Counter) error
 }
 
-type tarArchiver struct {
-	entry Entry
-}
-
 type tarItem struct {
-	nameIndex nameIndex
+	nameIndex NameAndIndex
 	tar       *tar.Reader
 }
 
-func countArchiveItem(counter Counter, item archiveItem) (*Result, error) {
-	item.Count(counter)
-	return &Result{nameIndex: item, counter: counter}, nil
+type TarEntry struct {
+	entry Entry
 }
 
-func (tt *tarArchiver) Name() string {
-	return tt.entry.Name()
+func (te *TarEntry) Name() string {
+	return te.entry.Name()
 }
 
-func (tt *tarArchiver) Index() int {
-	return tt.entry.Index()
+func (te *TarEntry) Index() int {
+	return te.entry.Index()
 }
 
-func (tt *tarArchiver) traverse(generator func() Counter) *Either {
-	plainIn, err := tt.entry.Open()
+func (te *TarEntry) Reindex(newIndex int) {
+	te.entry.Reindex(newIndex)
+}
+
+func (te *TarEntry) Open() (io.ReadCloser, error) {
+	return te.entry.Open()
+}
+
+func (te *TarEntry) Count(generator Generator) *Either {
+	reader, err := te.Open()
 	if err != nil {
 		return &Either{Err: err}
 	}
-	in := wrapReader(plainIn, tt.entry.Name())
-	return tt.traverseTarImpl(generator, tar.NewReader(in))
+	return countTarEntries(te, generator, tar.NewReader(reader))
 }
 
-func (tt *tarArchiver) traverseTarImpl(generator func() Counter, tar *tar.Reader) *Either {
+func countTarEntries(entry Entry, generator Generator, tar *tar.Reader) *Either {
 	results := []*Result{}
 	for {
 		header, err := tar.Next()
 		if err == io.EOF {
 			break
 		}
-		name := fmt.Sprintf("%s!%s", tt.entry.Name(), header.Name)
-		result, err := countArchiveItem(generator(), &tarItem{tar: tar, nameIndex: &indexString{index: tt.entry.Index(), value: name}})
+		name := fmt.Sprintf("%s!%s", entry.Name(), header.Name)
+		result, err := countArchiveItem(generator(), &tarItem{tar: tar, nameIndex: NewArg(entry.Index(), name)})
 		if err != nil {
 			return &Either{Err: err}
 		}
 		results = append(results, result)
 	}
 	return &Either{Results: results}
+}
+
+func countArchiveItem(counter Counter, item archiveItem) (*Result, error) {
+	item.Count(counter)
+	return &Result{nameIndex: item, counter: counter}, nil
 }
 
 func (tf *tarItem) Count(counter Counter) error {
@@ -123,16 +148,8 @@ func (tf *tarItem) Index() int {
 	return tf.nameIndex.Index()
 }
 
-type zipArchiver struct {
-	entry Entry
-}
-
-func (zt *zipArchiver) Name() string {
-	return zt.entry.Name()
-}
-
-func (zt *zipArchiver) Index() int {
-	return zt.entry.Index()
+func (tf *tarItem) Reindex(newIndex int) {
+	tf.nameIndex.Reindex(newIndex)
 }
 
 func copyDataFromSource(in io.Reader) (io.ReaderAt, int64, error) {
@@ -152,37 +169,17 @@ func createZipReader(in io.Reader) (*zip.Reader, error) {
 	return zip.NewReader(reader, size)
 }
 
-func (zt *zipArchiver) traverseImpl(rr *zip.Reader, generator func() Counter) *Either {
-	results := []*Result{}
-	for _, f := range rr.File {
-		r, err := countArchiveItem(generator(), &zipItem{file: f, nameIndex: &indexString{index: zt.entry.Index(), value: zt.entry.Name()}})
-		if err != nil {
-			return &Either{Err: err}
-		}
-		results = append(results, r)
-	}
-	return &Either{Results: results}
-}
-
-func (zt *zipArchiver) traverse(generator func() Counter) *Either {
-	in, err := zt.entry.Open()
-	if err != nil {
-		return &Either{Err: err}
-	}
-	rr, err := createZipReader(in)
-	if err != nil {
-		return &Either{Err: err}
-	}
-	return zt.traverseImpl(rr, generator)
-}
-
 type zipItem struct {
-	nameIndex nameIndex
+	nameIndex NameAndIndex
 	file      *zip.File
 }
 
 func (zf *zipItem) Index() int {
 	return zf.nameIndex.Index()
+}
+
+func (zf *zipItem) Reindex(newIndex int) {
+	zf.nameIndex.Reindex(newIndex)
 }
 
 func (zf *zipItem) Name() string {
@@ -198,13 +195,47 @@ func (zf *zipItem) Count(counter Counter) error {
 	return drainDataFromReader(reader, counter)
 }
 
-func newArchiver(entry *archiveEntry) archiver {
-	fileName := entry.Name()
-	if hasSuffix(fileName, ".jar", ".zip") {
-		return &zipArchiver{entry: entry}
+type ZipEntry struct {
+	entry Entry
+	file  *zip.File
+}
+
+func (ze *ZipEntry) Index() int {
+	return ze.entry.Index()
+}
+
+func (ze *ZipEntry) Name() string {
+	return ze.entry.Name()
+}
+
+func (ze *ZipEntry) Reindex(newIndex int) {
+	ze.entry.Reindex(newIndex)
+}
+
+func (ze *ZipEntry) Open() (io.ReadCloser, error) {
+	return ze.entry.Open()
+}
+
+func (ze *ZipEntry) Count(generator Generator) *Either {
+	in, err := ze.Open()
+	if err != nil {
+		return &Either{Err: err}
 	}
-	if hasSuffix(fileName, ".tar", ".tar.gz", ".tar.bz2") {
-		return &tarArchiver{entry: entry}
+	rr, err := createZipReader(in)
+	if err != nil {
+		return &Either{Err: err}
 	}
-	return nil
+	return countZipEntries(ze, rr, generator)
+}
+
+func countZipEntries(entry Entry, rr *zip.Reader, generator Generator) *Either {
+	results := []*Result{}
+	for _, f := range rr.File {
+		r, err := countArchiveItem(generator(), &zipItem{file: f, nameIndex: NewArg(entry.Index(), entry.Name())})
+		if err != nil {
+			return &Either{Err: err}
+		}
+		results = append(results, r)
+	}
+	return &Either{Results: results}
 }

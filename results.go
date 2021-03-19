@@ -2,16 +2,35 @@ package wildcat
 
 import "sort"
 
+// Either shows either the list of result or error.
+type Either struct {
+	Err     error
+	Results []*Result
+}
+
+// Result is the counted result of each entry.
+type Result struct {
+	nameIndex NameAndIndex
+	counter   Counter
+}
+
+func newResult(entry NameAndIndex, counter Counter) *Result {
+	return &Result{
+		nameIndex: entry,
+		counter:   counter,
+	}
+}
+
 // ResultSet shows the set of results.
 type ResultSet struct {
 	results map[string]Counter
-	list    []*indexString
+	list    []*Arg
 	total   *totalCounter
 }
 
 // NewResultSet creates an instance of ResultSet.
 func NewResultSet() *ResultSet {
-	return &ResultSet{results: map[string]Counter{}, list: []*indexString{}, total: &totalCounter{}}
+	return &ResultSet{results: map[string]Counter{}, list: []*Arg{}, total: &totalCounter{}}
 }
 
 // Size returns the file count in the ResultSet.
@@ -24,19 +43,12 @@ func (rs *ResultSet) CounterType() CounterType {
 	return rs.total.ct
 }
 
-// Merge merges the content of other to receiver ResultSet.
-func (rs *ResultSet) Merge(other *ResultSet) {
-	for _, name := range other.list {
-		rs.push(name.value, name.index, other.results[name.value])
-	}
-}
-
 // Print prints the content of receiver ResultSet instance through given printer.
 func (rs *ResultSet) Print(printer Printer) error {
 	index := 0
 	printer.PrintHeader(rs.total.ct)
 	for _, name := range rs.list {
-		printer.PrintEach(name.value, rs.Counter(name.value), index)
+		printer.PrintEach(name.name, rs.Counter(name.name), index)
 		index++
 	}
 	if index > 1 {
@@ -54,7 +66,7 @@ func (rs *ResultSet) Push(r *Result) {
 // Push stores given counter with given fileName to the receiver ResultSet.
 func (rs *ResultSet) push(fileName string, index int, counter Counter) {
 	rs.results[fileName] = counter
-	is := &indexString{value: fileName, index: index}
+	is := NewArg(index, fileName)
 	rs.list = append(rs.list, is)
 	sort.SliceStable(rs.list, func(i, j int) bool {
 		return rs.list[i].index < rs.list[j].index
