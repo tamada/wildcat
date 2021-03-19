@@ -19,6 +19,7 @@ import (
 type multipartEntry struct {
 	header *multipart.FileHeader
 	index  int
+	reader io.ReadSeekCloser
 }
 
 func (me *multipartEntry) Name() string {
@@ -26,14 +27,26 @@ func (me *multipartEntry) Name() string {
 }
 
 func (me *multipartEntry) Open() (io.ReadCloser, error) {
-	return me.header.Open()
+	if me.reader != nil {
+		me.reader.Seek(0, 0)
+		return me.reader, nil
+	}
+	reader, err := me.header.Open()
+	if err == nil {
+		me.reader = wildcat.NewReadSeekCloser(reader)
+	}
+	return me.reader, nil
 }
 
 func (me *multipartEntry) Index() int {
 	return me.index
 }
 
-func (me *multipartEntry) Count(generator func() wildcat.Counter) *wildcat.Either {
+func (me *multipartEntry) Reindex(newIndex int) {
+	me.index = newIndex
+}
+
+func (me *multipartEntry) Count(generator wildcat.Generator) *wildcat.Either {
 	return wildcat.CountDefault(me, generator())
 }
 
@@ -52,7 +65,7 @@ func parseQueryParams(req *http.Request) *wildcat.ReadOptions {
 
 type myEntry struct {
 	name   string
-	reader io.ReadCloser
+	reader io.ReadSeekCloser
 }
 
 func (me *myEntry) Name() string {
@@ -60,6 +73,7 @@ func (me *myEntry) Name() string {
 }
 
 func (me *myEntry) Open() (io.ReadCloser, error) {
+	me.reader.Seek(0, 0)
 	return me.reader, nil
 }
 
@@ -67,7 +81,10 @@ func (me *myEntry) Index() int {
 	return 0
 }
 
-func (me *myEntry) Count(generator func() wildcat.Counter) *wildcat.Either {
+func (me *myEntry) Reindex(newIndex int) {
+}
+
+func (me *myEntry) Count(generator wildcat.Generator) *wildcat.Either {
 	return wildcat.CountDefault(me, generator())
 }
 
@@ -101,16 +118,16 @@ func readAsTargetList(targets *wildcat.Targets, entry wildcat.Entry, opts *wildc
 	newOpts := *opts
 	newOpts.FileList = false
 	reader, err := entry.Open()
+	config := wildcat.NewConfig(wildcat.NewNoIgnore(), &newOpts, errors.New())
 	if err == nil {
-		ec := errors.New()
-		targets.ReadFileListFromReader(reader, wildcat.NewConfig(wildcat.NewNoIgnore(), &newOpts, ec))
+		targets.ReadFileListFromReader(reader, 0, config)
 	}
 	return targets
 }
 
 func createTargets(req *http.Request, name string, opts *wildcat.ReadOptions) *wildcat.Targets {
 	targets := &wildcat.Targets{}
-	var entry wildcat.Entry = &myEntry{name: name, reader: req.Body}
+	var entry wildcat.Entry = &myEntry{name: name, reader: wildcat.NewReadSeekCloser(req.Body)}
 	appendTargetItem(targets, entry, opts)
 	return targets
 }
@@ -136,10 +153,11 @@ func counts(res http.ResponseWriter, req *http.Request) {
 		{"*", countsBody},
 	}
 	opts := parseQueryParams(req)
+	sizer := wildcat.BuildSizer(false)
 	for _, handler := range handlers {
 		if handler.contentType == "*" || strings.HasPrefix(contentType, handler.contentType) {
 			rs, err := handler.execFunc(res, req, opts)
-			respond(rs, err, res, wildcat.BuildSizer(false))
+			respond(rs, err, res, sizer)
 			break
 		}
 	}
@@ -153,8 +171,9 @@ func appendTargetItem(targets *wildcat.Targets, entry wildcat.Entry, opts *wildc
 			readAsTargetList(targets, entry, opts)
 		}
 	} else {
-		if !opts.NoExtract && wildcat.IsArchiveFile(entry.Name()) {
-			entry = wildcat.NewArchiveEntry(entry)
+		if !opts.NoExtract {
+			convertedEntry, _ := wildcat.ConvertToArchiveEntry(entry)
+			entry = convertedEntry
 		}
 		targets.Push(entry)
 	}

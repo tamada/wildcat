@@ -12,6 +12,7 @@ import (
 var labels = []string{"lines", "words", "characters", "bytes"}
 var types = []CounterType{Lines, Words, Characters, Bytes}
 
+// Sizer is an interface for representing a counted number.
 type Sizer interface {
 	Convert(number int64, t CounterType) string
 }
@@ -40,6 +41,7 @@ func (ch *humanizeSizer) Convert(number int64, t CounterType) string {
 	return humanize.Comma(number)
 }
 
+// BuildSizer creates an suitable instance of Sizer by the given flag.
 func BuildSizer(humanize bool) Sizer {
 	if humanize {
 		return &humanizeSizer{}

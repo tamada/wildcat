@@ -47,15 +47,16 @@ func TestBasicRequest(t *testing.T) {
 	}{
 		{"/wildcat/api/counts", "../../testdata/wc/humpty_dumpty.txt", 200, `"results":[{"filename":"<request>","lines":"4","words":"26","characters":"142","bytes":"142"}]}`},
 		{"/wildcat/api/counts?file-name=humpty_dumpty.txt", "../../testdata/wc/humpty_dumpty.txt", 200, `"results":[{"filename":"humpty_dumpty.txt","lines":"4","words":"26","characters":"142","bytes":"142"}]}`},
+		{"/wildcat/api/counts", "../../testdata/archives/wc.jar", 200, `"results":[{"filename":"<request>!humpty_dumpty.txt","lines":"4","words":"26","characters":"142","bytes":"142"},{"filename":"<request>!ja/","lines":"0","words":"0","characters":"0","bytes":"0"},{"filename":"<request>!ja/sakura_sakura.txt","lines":"15","words":"26","characters":"118","bytes":"298"},{"filename":"<request>!london_bridge_is_broken_down.txt","lines":"59","words":"260","characters":"1,341","bytes":"1,341"},{"filename":"total","lines":"78","words":"312","characters":"1,601","bytes":"1,781"}]`},
 		{"/wildcat/api/counts?file-name=wc.jar", "../../testdata/archives/wc.jar", 200, `"results":[{"filename":"wc.jar!humpty_dumpty.txt","lines":"4","words":"26","characters":"142","bytes":"142"},{"filename":"wc.jar!ja/","lines":"0","words":"0","characters":"0","bytes":"0"},{"filename":"wc.jar!ja/sakura_sakura.txt","lines":"15","words":"26","characters":"118","bytes":"298"},{"filename":"wc.jar!london_bridge_is_broken_down.txt","lines":"59","words":"260","characters":"1,341","bytes":"1,341"},{"filename":"total","lines":"78","words":"312","characters":"1,601","bytes":"1,781"}]`},
 		{"/wildcat/api/counts?file-name=wc.jar&readAs=no-extract", "../../testdata/archives/wc.jar", 200, `"results":[{"filename":"wc.jar","lines":"5","words":"62","characters":"1,054","bytes":"1,080"}]`},
 	}
 
 	router := createRestAPIServer()
 	for _, td := range testdata {
-		file, _ := os.Open(td.giveContentPath)
-		defer file.Close()
-		req := httptest.NewRequest("POST", td.giveURL, file)
+		reader, _ := os.Open(td.giveContentPath)
+		defer reader.Close()
+		req := httptest.NewRequest("POST", td.giveURL, reader)
 		rec := httptest.NewRecorder()
 		req.Header["Content-Type"] = []string{"application/x-www-form-urlencoded"}
 		router.ServeHTTP(rec, req)

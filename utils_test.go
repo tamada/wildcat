@@ -5,7 +5,7 @@ import "testing"
 func TestIsUrl(t *testing.T) {
 	testdata := []struct {
 		giveString string
-		wontUrl    bool
+		wontURL    bool
 	}{
 		{"http://github.com/tamada", true},
 		{"github.com/tamada", false},
@@ -13,9 +13,9 @@ func TestIsUrl(t *testing.T) {
 		{"https://github.com/tamada", true},
 	}
 	for _, td := range testdata {
-		gotFlag := IsUrl(td.giveString)
-		if gotFlag != td.wontUrl {
-			t.Errorf(`IsUrl("%s") did not match, wont %v, got %v`, td.giveString, td.wontUrl, gotFlag)
+		gotFlag := IsURL(td.giveString)
+		if gotFlag != td.wontURL {
+			t.Errorf(`IsUrl("%s") did not match, wont %v, got %v`, td.giveString, td.wontURL, gotFlag)
 		}
 	}
 }

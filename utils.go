@@ -19,7 +19,8 @@ func ExistDir(path string) bool {
 	return err == nil && stat.IsDir()
 }
 
-func IsUrl(path string) bool {
+// IsURL checks the given path is the form of url.
+func IsURL(path string) bool {
 	u, err := url.Parse(path)
 	if err != nil {
 		return false

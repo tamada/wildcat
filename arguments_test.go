@@ -8,19 +8,19 @@ import (
 	"github.com/tamada/wildcat/errors"
 )
 
-func toStr(list []*indexString) []string {
+func toStr(list []*Arg) []string {
 	result := []string{}
 	for _, item := range list {
-		result = append(result, item.value)
+		result = append(result, item.name)
 	}
 	return result
 }
 
-func match(list []*indexString, wonts []string) bool {
+func match(list []*Arg, wonts []string) bool {
 	for _, wont := range wonts {
 		found := false
 		for _, item := range list {
-			if strings.Contains(item.value, wont) {
+			if strings.Contains(item.name, wont) {
 				found = true
 				break
 			}
