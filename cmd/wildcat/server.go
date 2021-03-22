@@ -18,7 +18,7 @@ import (
 
 type multipartEntry struct {
 	header *multipart.FileHeader
-	index  int
+	index  *wildcat.Order
 	reader io.ReadSeekCloser
 }
 
@@ -38,12 +38,12 @@ func (me *multipartEntry) Open() (io.ReadCloser, error) {
 	return me.reader, nil
 }
 
-func (me *multipartEntry) Index() int {
+func (me *multipartEntry) Index() *wildcat.Order {
 	return me.index
 }
 
 func (me *multipartEntry) Reindex(newIndex int) {
-	me.index = newIndex
+	// me.index = newIndex
 }
 
 func (me *multipartEntry) Count(generator wildcat.Generator) *wildcat.Either {
@@ -65,6 +65,7 @@ func parseQueryParams(req *http.Request) *wildcat.ReadOptions {
 
 type myEntry struct {
 	name   string
+	order  *wildcat.Order
 	reader io.ReadSeekCloser
 }
 
@@ -77,8 +78,11 @@ func (me *myEntry) Open() (io.ReadCloser, error) {
 	return me.reader, nil
 }
 
-func (me *myEntry) Index() int {
-	return 0
+func (me *myEntry) Index() *wildcat.Order {
+	if me.order == nil {
+		me.order = wildcat.NewOrder()
+	}
+	return me.order
 }
 
 func (me *myEntry) Reindex(newIndex int) {
@@ -120,7 +124,7 @@ func readAsTargetList(targets *wildcat.Targets, entry wildcat.Entry, opts *wildc
 	reader, err := entry.Open()
 	config := wildcat.NewConfig(wildcat.NewNoIgnore(), &newOpts, errors.New())
 	if err == nil {
-		targets.ReadFileListFromReader(reader, 0, config)
+		targets.ReadFileListFromReader(reader, wildcat.NewOrder(), config)
 	}
 	return targets
 }
@@ -184,9 +188,11 @@ func countsMultipartBody(res http.ResponseWriter, req *http.Request, opts *wildc
 		return nil, fmt.Errorf("ParseMultpartForm: %w", err)
 	}
 	targets := &wildcat.Targets{}
+	index := wildcat.NewOrder()
 	for _, headers := range req.MultipartForm.File {
-		for index, header := range headers {
+		for _, header := range headers {
 			appendTargetItem(targets, &multipartEntry{header: header, index: index}, opts)
+			index = index.Next()
 		}
 	}
 	return targets.CountAll(wildcat.DefaultGenerator)
