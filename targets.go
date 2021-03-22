@@ -94,10 +94,12 @@ func (targets *Targets) dirTargets(arg *Arg, config *Config) {
 		config.ec.Push(err)
 		return
 	}
+	index := arg.Index().Sub()
 	for _, fileInfo := range fileInfos {
 		newName := filepath.Join(arg.Name(), fileInfo.Name())
 		if !isIgnore(config.opts, currentIgnore, newName) {
-			targets.handleItem(NewArg(arg.Index(), newName), config)
+			targets.handleItem(NewArgWithIndex(index, newName), config)
+			index = index.Next()
 		}
 	}
 }
@@ -121,17 +123,19 @@ func (argf *Argf) pushEach(targets *Targets, config *Config) {
 }
 
 // ReadFileListFromReader reads from the given reader as the file list.
-func (targets *Targets) ReadFileListFromReader(in io.Reader, index int, config *Config) {
+func (targets *Targets) ReadFileListFromReader(in io.Reader, index *Order, config *Config) {
 	reader := bufio.NewReader(in)
+	order := index.Sub()
 	for {
 		line, err := reader.ReadString('\n')
 		line = strings.TrimSpace(line)
 		if line != "" && !config.IsIgnore(line) {
-			targets.handleItem(NewArg(index, line), config)
+			targets.handleItem(NewArgWithIndex(order, line), config)
 		}
 		if err == io.EOF {
 			break
 		}
+		order = order.Next()
 	}
 	targets.reindex()
 }
@@ -140,9 +144,9 @@ func buildTargetsFromStdin(targets *Targets, config *Config) {
 	if config.opts.FileList {
 		newOpts := *config.opts
 		newOpts.FileList = false
-		targets.ReadFileListFromReader(os.Stdin, 0, config.updateOpts(&newOpts))
+		targets.ReadFileListFromReader(os.Stdin, NewOrder(), config.updateOpts(&newOpts))
 	} else {
-		targets.Push(&stdinEntry{index: 0})
+		targets.Push(&stdinEntry{index: NewOrder()})
 	}
 }
 

@@ -19,7 +19,7 @@ type Entry interface {
 // NameAndIndex means that the implemented object has the name and index.
 type NameAndIndex interface {
 	Name() string
-	Index() int
+	Index() *Order
 	Reindex(newIndex int)
 }
 
@@ -33,7 +33,7 @@ func (ce *CompressedEntry) Name() string {
 	return ce.entry.Name()
 }
 
-func (ce *CompressedEntry) Index() int {
+func (ce *CompressedEntry) Index() *Order {
 	return ce.entry.Index()
 }
 
@@ -73,7 +73,7 @@ func (ae *ArchiveEntry) Name() string {
 	return ae.entry.Name()
 }
 
-func (ae *ArchiveEntry) Index() int {
+func (ae *ArchiveEntry) Index() *Order {
 	return ae.entry.Index()
 }
 
@@ -95,18 +95,18 @@ type FileEntry struct {
 }
 
 func NewFileEntry(fileName string) *FileEntry {
-	return &FileEntry{nai: NewArg(0, fileName)}
+	return &FileEntry{nai: NewArg(fileName)}
 }
 
 func NewFileEntryWithIndex(fileName string, index int) *FileEntry {
-	return &FileEntry{nai: NewArg(index, fileName)}
+	return &FileEntry{nai: NewArgWithIndex(NewOrderWithIndex(index), fileName)}
 }
 
 func (fe *FileEntry) Name() string {
 	return fe.nai.Name()
 }
 
-func (fe *FileEntry) Index() int {
+func (fe *FileEntry) Index() *Order {
 	return fe.nai.Index()
 }
 
@@ -140,7 +140,7 @@ func (ue *URLEntry) Name() string {
 	return ue.nai.Name()
 }
 
-func (ue *URLEntry) Index() int {
+func (ue *URLEntry) Index() *Order {
 	return ue.nai.Index()
 }
 
@@ -174,7 +174,7 @@ func (ue *URLEntry) Count(generator Generator) *Either {
 }
 
 type stdinEntry struct {
-	index int
+	index *Order
 }
 
 // CountDefault is the default routine for counting.
@@ -200,19 +200,19 @@ func (se *stdinEntry) Open() (io.ReadCloser, error) {
 	return os.Stdin, nil
 }
 
-func (se *stdinEntry) Index() int {
+func (se *stdinEntry) Index() *Order {
 	return se.index
 }
 
 func (se *stdinEntry) Reindex(newIndex int) {
-	se.index = newIndex
+	// se.index = newIndex
 }
 
 type downloadURLEntry struct {
 	entry *URLEntry
 }
 
-func (due *downloadURLEntry) Index() int {
+func (due *downloadURLEntry) Index() *Order {
 	return due.entry.Index()
 }
 

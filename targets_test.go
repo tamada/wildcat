@@ -29,10 +29,13 @@ func TestBuildTargets(t *testing.T) {
 		if ec.Size() != td.wontErrorCount {
 			t.Errorf("error size did not match, wont %d, got %d", td.wontErrorCount, ec.Size())
 		}
-		for index, entry := range targets.entries {
-			if index != entry.Index() {
-				t.Errorf("%s: index did not match, wont %d, got %d", entry.Name(), index, entry.Index())
+		order := NewOrderWithIndex(-1)
+		for _, entry := range targets.entries {
+			// targets.entries are arranged in order, therefore, comparing before and current index should be 1.
+			if order.Compare(entry.Index()) >= 0 {
+				t.Errorf("%s: index did not match, wont %s, got %s", entry.Name(), order.String(), entry.Index().String())
 			}
+			order = entry.Index()
 		}
 	}
 }
