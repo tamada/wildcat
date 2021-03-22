@@ -20,7 +20,6 @@ type Entry interface {
 type NameAndIndex interface {
 	Name() string
 	Index() *Order
-	Reindex(newIndex int)
 }
 
 type CompressedEntry struct {
@@ -35,10 +34,6 @@ func (ce *CompressedEntry) Name() string {
 
 func (ce *CompressedEntry) Index() *Order {
 	return ce.entry.Index()
-}
-
-func (ce *CompressedEntry) Reindex(newIndex int) {
-	ce.entry.Reindex(newIndex)
 }
 
 func (ce *CompressedEntry) Open() (io.ReadCloser, error) {
@@ -77,10 +72,6 @@ func (ae *ArchiveEntry) Index() *Order {
 	return ae.entry.Index()
 }
 
-func (ae *ArchiveEntry) Reindex(newIndex int) {
-	ae.entry.Reindex(newIndex)
-}
-
 func (ae *ArchiveEntry) Open() (io.ReadCloser, error) {
 	return ae.entry.Open()
 }
@@ -108,10 +99,6 @@ func (fe *FileEntry) Name() string {
 
 func (fe *FileEntry) Index() *Order {
 	return fe.nai.Index()
-}
-
-func (fe *FileEntry) Reindex(newIndex int) {
-	fe.nai.Reindex(newIndex)
 }
 
 func (fe *FileEntry) Open() (io.ReadCloser, error) {
@@ -142,10 +129,6 @@ func (ue *URLEntry) Name() string {
 
 func (ue *URLEntry) Index() *Order {
 	return ue.nai.Index()
-}
-
-func (ue *URLEntry) Reindex(newIndex int) {
-	ue.nai.Reindex(newIndex)
 }
 
 func (ue *URLEntry) Open() (io.ReadCloser, error) {
@@ -204,20 +187,12 @@ func (se *stdinEntry) Index() *Order {
 	return se.index
 }
 
-func (se *stdinEntry) Reindex(newIndex int) {
-	// se.index = newIndex
-}
-
 type downloadURLEntry struct {
 	entry *URLEntry
 }
 
 func (due *downloadURLEntry) Index() *Order {
 	return due.entry.Index()
-}
-
-func (due *downloadURLEntry) Reindex(newIndex int) {
-	due.entry.Reindex(newIndex)
 }
 
 func (due *downloadURLEntry) Name() string {

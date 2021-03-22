@@ -137,7 +137,6 @@ func (targets *Targets) ReadFileListFromReader(in io.Reader, index *Order, confi
 		}
 		order = order.Next()
 	}
-	targets.reindex()
 }
 
 func buildTargetsFromStdin(targets *Targets, config *Config) {
@@ -150,12 +149,6 @@ func buildTargetsFromStdin(targets *Targets, config *Config) {
 	}
 }
 
-func (targets *Targets) reindex() {
-	for index, entry := range targets.entries {
-		entry.Reindex(index)
-	}
-}
-
 // CollectTargets collects targets from Argf.
 func (argf *Argf) CollectTargets() (*Targets, *errors.Center) {
 	config := NewConfig(ignores(".", !argf.Options.NoIgnore, nil), argf.Options, errors.New())
@@ -165,7 +158,6 @@ func (argf *Argf) CollectTargets() (*Targets, *errors.Center) {
 	} else {
 		argf.pushEach(targets, config)
 	}
-	targets.reindex()
 	return targets, config.ec
 }
 

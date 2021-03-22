@@ -26,6 +26,7 @@ type Arg struct {
 	index *Order
 }
 
+// NewArg creates an instance of Arg with the given name.
 func NewArg(name string) *Arg {
 	return NewArgWithIndex(NewOrder(), name)
 }
@@ -43,10 +44,6 @@ func (arg *Arg) Name() string {
 // Index returns the index of receiver Arg object.
 func (arg *Arg) Index() *Order {
 	return arg.index
-}
-
-func (arg *Arg) Reindex(newIndex int) {
-	//	arg.index.index = newIndex
 }
 
 // NewArgf creates an instance of Argf for treating command line arguments.

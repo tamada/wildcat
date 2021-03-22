@@ -100,6 +100,10 @@ func (order *Order) Compare(other *Order) int {
 			return 1
 		}
 	}
+	return compareImpl(orders, others)
+}
+
+func compareImpl(orders, others []*Order) int {
 	switch {
 	case len(orders) > len(others):
 		return 1

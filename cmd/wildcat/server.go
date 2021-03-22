@@ -42,10 +42,6 @@ func (me *multipartEntry) Index() *wildcat.Order {
 	return me.index
 }
 
-func (me *multipartEntry) Reindex(newIndex int) {
-	// me.index = newIndex
-}
-
 func (me *multipartEntry) Count(generator wildcat.Generator) *wildcat.Either {
 	return wildcat.CountDefault(me, generator())
 }
@@ -83,9 +79,6 @@ func (me *myEntry) Index() *wildcat.Order {
 		me.order = wildcat.NewOrder()
 	}
 	return me.order
-}
-
-func (me *myEntry) Reindex(newIndex int) {
 }
 
 func (me *myEntry) Count(generator wildcat.Generator) *wildcat.Either {

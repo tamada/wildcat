@@ -104,10 +104,6 @@ func (te *TarEntry) Index() *Order {
 	return te.entry.Index()
 }
 
-func (te *TarEntry) Reindex(newIndex int) {
-	te.entry.Reindex(newIndex)
-}
-
 func (te *TarEntry) Open() (io.ReadCloser, error) {
 	return te.entry.Open()
 }
@@ -156,10 +152,6 @@ func (tf *tarItem) Index() *Order {
 	return tf.nameIndex.Index()
 }
 
-func (tf *tarItem) Reindex(newIndex int) {
-	tf.nameIndex.Reindex(newIndex)
-}
-
 func copyDataFromSource(in io.Reader) (io.ReaderAt, int64, error) {
 	buff := bytes.NewBuffer([]byte{})
 	size, err := io.Copy(buff, in)
@@ -186,10 +178,6 @@ func (zf *zipItem) Index() *Order {
 	return zf.nameIndex.Index()
 }
 
-func (zf *zipItem) Reindex(newIndex int) {
-	zf.nameIndex.Reindex(newIndex)
-}
-
 func (zf *zipItem) Name() string {
 	return zf.nameIndex.Name() + "!" + zf.file.Name
 }
@@ -214,10 +202,6 @@ func (ze *ZipEntry) Index() *Order {
 
 func (ze *ZipEntry) Name() string {
 	return ze.entry.Name()
-}
-
-func (ze *ZipEntry) Reindex(newIndex int) {
-	// ze.entry.Reindex(newIndex)
 }
 
 func (ze *ZipEntry) Open() (io.ReadCloser, error) {
