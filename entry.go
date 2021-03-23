@@ -137,7 +137,8 @@ func (ue *URLEntry) Count(generator Generator) *Either {
 }
 
 type stdinEntry struct {
-	index *Order
+	index  *Order
+	reader io.ReadSeekCloser
 }
 
 // CountDefault is the default routine for counting.
@@ -160,7 +161,11 @@ func (se *stdinEntry) Count(generator Generator) *Either {
 }
 
 func (se *stdinEntry) Open() (io.ReadCloser, error) {
-	return os.Stdin, nil
+	if se.reader == nil {
+		se.reader = NewReadSeekCloser(os.Stdin)
+	}
+	se.reader.Seek(0, 0)
+	return se.reader, nil
 }
 
 func (se *stdinEntry) Index() *Order {

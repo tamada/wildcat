@@ -45,8 +45,17 @@ func (rs *ResultSet) CounterType() CounterType {
 	return rs.total.ct
 }
 
+func (rs *ResultSet) sort() {
+	// fmt.Fprintf(os.Stderr, "sorting...")
+	sort.SliceStable(rs.list, func(i, j int) bool {
+		return rs.list[i].Index().Compare(rs.list[j].Index()) < 0
+	})
+	// fmt.Fprintf(os.Stderr, "done\n")
+}
+
 // Print prints the content of receiver ResultSet instance through given printer.
 func (rs *ResultSet) Print(printer Printer) error {
+	rs.sort()
 	index := 0
 	printer.PrintHeader(rs.total.ct)
 	for _, name := range rs.list {
@@ -69,9 +78,6 @@ func (rs *ResultSet) Push(r *Result) {
 func (rs *ResultSet) push(nai NameAndIndex, counter Counter) {
 	rs.results[nai.Name()] = counter
 	rs.list = append(rs.list, nai)
-	sort.SliceStable(rs.list, func(i, j int) bool {
-		return rs.list[i].Index().Compare(rs.list[j].Index()) < 0
-	})
 	updateTotal(rs.total, counter)
 }
 

@@ -113,22 +113,17 @@ func respondImpl(res http.ResponseWriter, statusCode int, message []byte) {
 
 func countsBody(res http.ResponseWriter, req *http.Request, opts *wildcat.ReadOptions) (*wildcat.ResultSet, error) {
 	wc := wildcat.NewWildcat(opts, wildcat.DefaultGenerator)
-	if opts.FileList {
-		order := wildcat.NewOrder()
-		wc.ReadFileListFromReader(req.Body, order)
-		return wc.CountEntries([]wildcat.Entry{})
-	}
 	fileName := req.URL.Query().Get("file-name")
 	if fileName == "" {
 		fileName = "<request>"
 	}
-	return wc.CountEntries([]wildcat.Entry{&myEntry{name: fileName, reader: wildcat.NewReadSeekCloser(req.Body)}})
+	entry := &myEntry{name: fileName, reader: wildcat.NewReadSeekCloser(req.Body)}
+	return wc.CountEntries([]wildcat.Entry{entry})
 }
 
 func counts(res http.ResponseWriter, req *http.Request) {
 	logger.Infof("counts: %s\n", req.URL)
 	contentType := req.Header.Get("Content-Type")
-	defer req.Body.Close()
 	handlers := []struct {
 		contentType string
 		execFunc    func(http.ResponseWriter, *http.Request, *wildcat.ReadOptions) (*wildcat.ResultSet, error)

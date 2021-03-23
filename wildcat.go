@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -44,9 +43,8 @@ func (wc *Wildcat) run(f func(Generator, *Config) *Either) {
 func (wc *Wildcat) CountEntries(entries []Entry) (*ResultSet, *errors.Center) {
 	for _, entry := range entries {
 		e := entry
-		wc.run(func(generator Generator, config *Config) *Either {
-			return wc.handleItem(e)
-		})
+		err := wc.handleItem(e)
+		wc.config.ec.Push(err)
 	}
 	go func() {
 		wc.group.Wait()
@@ -58,13 +56,11 @@ func (wc *Wildcat) CountEntries(entries []Entry) (*ResultSet, *errors.Center) {
 // CountAll counts the arguments in the given Argf.
 func (wc *Wildcat) CountAll(argf *Argf) (*ResultSet, *errors.Center) {
 	for _, arg := range argf.Arguments {
-		arg := arg
-		wc.run(func(generator Generator, config *Config) *Either {
-			return wc.handleItem(arg)
-		})
+		err := wc.handleItem(arg)
+		wc.config.ec.Push(err)
 	}
 	if len(argf.Arguments) == 0 {
-		wc.countStdin()
+		wc.handleEntry(&stdinEntry{index: NewOrder()})
 	}
 	go func() {
 		wc.group.Wait()
@@ -75,11 +71,10 @@ func (wc *Wildcat) CountAll(argf *Argf) (*ResultSet, *errors.Center) {
 
 func (wc *Wildcat) receiveImpl() (*ResultSet, *errors.Center) {
 	rs := NewResultSet()
-	ec := errors.New()
 	for either := range wc.eitherChan {
-		receiveEither(either, rs, ec)
+		receiveEither(either, rs, wc.config.ec)
 	}
-	return rs, ec
+	return rs, wc.config.ec
 }
 
 // Close finishes the receiver object.
@@ -99,9 +94,8 @@ func (wc *Wildcat) ReadFileListFromReader(in io.Reader, index *Order) {
 		line = strings.TrimSpace(line)
 		if line != "" && !newWc.config.IsIgnore(line) {
 			order := order
-			newWc.run(func(generator Generator, config *Config) *Either {
-				return newWc.handleItem(NewArgWithIndex(order, line))
-			})
+			err := newWc.handleItem(NewArgWithIndex(order, line))
+			newWc.config.ec.Push(err)
 		}
 		if err == io.EOF {
 			break
@@ -121,10 +115,8 @@ func (wc *Wildcat) handleDir(arg NameAndIndex) *Either {
 		newName := filepath.Join(arg.Name(), info.Name())
 		if !isIgnore(wc.config.opts, currentIgnore, newName) {
 			newWc := wc.updateIgnore(currentIgnore)
-			index := index
-			newWc.run(func(generator Generator, config *Config) *Either {
-				return newWc.handleItem(NewArgWithIndex(index, newName))
-			})
+			err := newWc.handleItem(NewArgWithIndex(index, newName))
+			newWc.config.ec.Push(err)
 			index = index.Next()
 		}
 	}
@@ -137,7 +129,7 @@ func (wc *Wildcat) handleEntryAsFileList(entry Entry) *Either {
 	if err != nil {
 		return &Either{Err: err}
 	}
-	wc.ReadFileListFromReader(reader, entry.Index().Sub())
+	wc.ReadFileListFromReader(reader, entry.Index())
 	return &Either{Results: []*Result{}}
 }
 
@@ -150,25 +142,29 @@ func (wc *Wildcat) handleEntry(entry Entry) *Either {
 	if wc.config.opts.FileList {
 		return wc.handleEntryAsFileList(targetEntry)
 	}
-	return targetEntry.Count(wc.generator)
+	wc.run(func(arg1 Generator, arg2 *Config) *Either {
+		// fmt.Fprintf(os.Stderr, "%s,%s,%s\n", "counting", targetEntry.Name(), targetEntry.Index())
+		return targetEntry.Count(wc.generator)
+	})
+	return &Either{Results: []*Result{}}
 }
 
-func (wc *Wildcat) handleItem(arg NameAndIndex) *Either {
-	// fmt.Fprintf(os.Stderr, "%s (%s)\n", arg.Name(), arg.Index())
+func (wc *Wildcat) handleItem(arg NameAndIndex) error {
 	name := arg.Name()
 	entry, ok := arg.(Entry)
 	switch {
 	case ok:
-		return wc.handleEntry(entry)
+		wc.handleEntry(entry)
 	case IsURL(name):
-		return wc.handleEntry(toURLEntry(arg, wc.config.opts))
+		wc.handleEntry(toURLEntry(arg, wc.config.opts))
 	case ExistDir(name):
-		return wc.handleDir(arg)
+		wc.handleDir(arg)
 	case ExistFile(name):
-		return wc.handleEntry(NewFileEntryWithIndex(arg))
+		wc.handleEntry(NewFileEntryWithIndex(arg))
 	default:
-		return &Either{Err: fmt.Errorf("%s: file or directory not found", name)}
+		return fmt.Errorf("%s: file or directory not found", name)
 	}
+	return nil
 }
 
 func (wc *Wildcat) updateIgnore(newIgnore Ignore) *Wildcat {
@@ -189,23 +185,12 @@ func (wc *Wildcat) updateOpts(newOpts *ReadOptions) *Wildcat {
 	}
 }
 
-func (wc *Wildcat) countStdin() {
-	if wc.config.opts.FileList {
-		newOpts := *wc.config.opts
-		newOpts.FileList = false
-		wc.updateOpts(&newOpts).ReadFileListFromReader(os.Stdin, NewOrder())
-	} else {
-		wc.run(func(generator Generator, config *Config) *Either {
-			return CountDefault(&stdinEntry{index: NewOrder()}, generator())
-		})
-	}
-}
-
 func receiveEither(either *Either, rs *ResultSet, ec *errors.Center) {
 	if either.Err != nil {
 		ec.Push(either.Err)
 	} else {
 		for _, result := range either.Results {
+			// fmt.Fprintf(os.Stderr, "%s,%s,%s\n", "receive", result.nameIndex.Name(), result.nameIndex.Index())
 			rs.Push(result)
 		}
 	}

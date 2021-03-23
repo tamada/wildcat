@@ -29,7 +29,7 @@ func (ec *Center) Push(err error) bool {
 	if err != nil {
 		if errors.As(err, &otherCenter) {
 			ec.errs = append(ec.errs, otherCenter.errs...)
-		} else {
+		} else if err != io.EOF {
 			ec.errs = append(ec.errs, err)
 		}
 	}
