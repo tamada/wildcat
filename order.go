@@ -100,6 +100,10 @@ func min(a, b int) int {
 func (order *Order) Compare(other *Order) int {
 	orders := order.toSlice()
 	others := other.toSlice()
+	return compare(orders, others)
+}
+
+func compare(orders, others []*Order) int {
 	loop := min(len(orders), len(others))
 	for i := 0; i < loop; i++ {
 		if orders[i].index < others[i].index {
