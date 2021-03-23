@@ -53,9 +53,7 @@ func TestStdin(t *testing.T) {
 		}()
 		argf := NewArgf([]string{}, td.opts)
 		ec := errors.New()
-		targets, err := argf.CollectTargets()
-		ec.Push(err)
-		rs, err := targets.CountAll(func() Counter { return NewCounter(All) })
+		rs, err := NewWildcat(td.opts, DefaultGenerator).CountAll(argf)
 		ec.Push(err)
 
 		if len(rs.list) != td.listSize {
@@ -89,20 +87,17 @@ func TestCountAll(t *testing.T) {
 	}
 	for _, td := range testdata {
 		argf := NewArgf(td.args, td.opts)
-		ec := errors.New()
-		targets, err := argf.CollectTargets()
-		ec.Push(err)
-		rs, err := targets.CountAll(func() Counter { return NewCounter(All) })
-		ec.Push(err)
+		wc := NewWildcat(td.opts, DefaultGenerator)
+		rs, ec := wc.CountAll(argf)
 
 		if len(rs.list) != td.listSize {
-			t.Errorf("%v: ResultSet size did not match, wont %d, got %d (%v)", td.args, td.listSize, len(rs.list), rs.list)
+			t.Errorf("%v: ResultSet size did not match, wont %d, got %d (%v)", td.args, td.listSize, len(rs.list), toStr(rs.list))
 		}
 		if !match(rs.list, td.wontFileNames) {
 			t.Errorf("%v: ResultSet files did not match, wont %v, got %v", td.args, td.wontFileNames, toStr(rs.list))
 		}
 		if ec.Size() != td.wontErrorSize {
-			t.Errorf("ErrorSize did not match, wont %d, got %d (%v)", td.wontErrorSize, ec.Size(), ec.Error())
+			t.Errorf("%v: ErrorSize did not match, wont %d, got %d (%v)", td.args, td.wontErrorSize, ec.Size(), ec.Error())
 		}
 	}
 }
@@ -116,8 +111,7 @@ func TestStoreFile(t *testing.T) {
 	}
 	for _, td := range testdata {
 		argf := NewArgf([]string{td.url}, &ReadOptions{FileList: false, NoIgnore: false, NoExtract: false, StoreContent: true})
-		targets, _ := argf.CollectTargets()
-		_, err := targets.CountAll(func() Counter { return NewCounter(All) })
+		_, err := NewWildcat(argf.Options, DefaultGenerator).CountAll(argf)
 		if !err.IsEmpty() {
 			t.Errorf("some error: %s", err.Error())
 		}

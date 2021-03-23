@@ -1,6 +1,6 @@
 GO := go
 NAME := wildcat
-VERSION := 1.1.0
+VERSION := 1.1.1
 DIST := $(NAME)-$(VERSION)
 
 all: test build

@@ -1,6 +1,8 @@
 package wildcat
 
-import "sort"
+import (
+	"sort"
+)
 
 // Either shows either the list of result or error.
 type Either struct {
@@ -60,14 +62,13 @@ func (rs *ResultSet) Print(printer Printer) error {
 
 // Push adds the given result to the receiver ResultSet.
 func (rs *ResultSet) Push(r *Result) {
-	rs.push(r.nameIndex.Name(), r.nameIndex.Index(), r.counter)
+	rs.push(r.nameIndex, r.counter)
 }
 
 // Push stores given counter with given fileName to the receiver ResultSet.
-func (rs *ResultSet) push(fileName string, index *Order, counter Counter) {
-	rs.results[fileName] = counter
-	is := NewArgWithIndex(index, fileName)
-	rs.list = append(rs.list, is)
+func (rs *ResultSet) push(nai NameAndIndex, counter Counter) {
+	rs.results[nai.Name()] = counter
+	rs.list = append(rs.list, nai)
 	sort.SliceStable(rs.list, func(i, j int) bool {
 		return rs.list[i].Index().Compare(rs.list[j].Index()) < 0
 	})

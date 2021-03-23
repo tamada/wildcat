@@ -70,7 +70,7 @@ func Example_wildcat() {
 func Example_help() {
 	goMain([]string{"wildcat", "--version", "--help"})
 	// Output:
-	// wildcat version 1.1.0
+	// wildcat version 1.1.1
 	// wildcat [CLI_MODE_OPTIONS|SERVER_MODE_OPTIONS] [FILEs...|DIRs...|URLs...]
 	// CLI_MODE_OPTIONS
 	//     -b, --byte                  Prints the number of bytes in each input file.

@@ -86,6 +86,13 @@ func (order *Order) depth() int {
 	return 1
 }
 
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 // Compare compares the receiver instance and the given order.
 // If order < other, returns -1
 //    order == other, return 0
@@ -93,7 +100,8 @@ func (order *Order) depth() int {
 func (order *Order) Compare(other *Order) int {
 	orders := order.toSlice()
 	others := other.toSlice()
-	for i := 0; i < len(orders) && i < len(others); i++ {
+	loop := min(len(orders), len(others))
+	for i := 0; i < loop; i++ {
 		if orders[i].index < others[i].index {
 			return -1
 		} else if orders[i].index > others[i].index {

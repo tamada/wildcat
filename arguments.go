@@ -75,7 +75,7 @@ func drainDataFromReader(in io.Reader, counter Counter) error {
 
 func ignores(dir string, withIgnoreFile bool, parent Ignore) Ignore {
 	if withIgnoreFile {
-		return newIgnore(dir)
+		return newIgnoreWithParent(dir, parent)
 	}
 	return &noIgnore{parent: parent}
 }

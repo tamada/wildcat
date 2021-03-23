@@ -224,7 +224,7 @@ func createTeeReader(reader io.ReadCloser, name string) (io.ReadCloser, error) {
 	return newMyTeeReader(reader, writer), nil
 }
 
-func toURLEntry(arg *Arg, opts *ReadOptions) Entry {
+func toURLEntry(arg NameAndIndex, opts *ReadOptions) Entry {
 	newEntry := &URLEntry{nai: arg}
 	if opts.StoreContent {
 		return &downloadURLEntry{entry: newEntry}
