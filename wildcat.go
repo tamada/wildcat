@@ -114,8 +114,7 @@ func (wc *Wildcat) handleDir(arg NameAndIndex) *Either {
 	currentIgnore := ignores(arg.Name(), !wc.config.opts.NoIgnore, wc.config.ignore)
 	fileInfos, err := ioutil.ReadDir(arg.Name())
 	if err != nil {
-		wc.config.ec.Push(err)
-		return &Either{Err: wc.config.ec}
+		return &Either{Err: err}
 	}
 	index := arg.Index().Sub()
 	for _, info := range fileInfos {
@@ -166,10 +165,9 @@ func (wc *Wildcat) handleItem(arg NameAndIndex) *Either {
 	case ExistDir(name):
 		return wc.handleDir(arg)
 	case ExistFile(name):
-		return wc.handleEntry(&FileEntry{nai: arg})
+		return wc.handleEntry(NewFileEntryWithIndex(arg))
 	default:
-		wc.config.ec.Push(fmt.Errorf("%s: file or directory not found", name))
-		return &Either{Err: wc.config.ec}
+		return &Either{Err: fmt.Errorf("%s: file or directory not found", name)}
 	}
 }
 

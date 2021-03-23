@@ -147,18 +147,23 @@ func counts(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func countsMultipartBody(res http.ResponseWriter, req *http.Request, opts *wildcat.ReadOptions) (*wildcat.ResultSet, error) {
-	if err := req.ParseMultipartForm(32 << 20); err != nil {
-		return nil, fmt.Errorf("ParseMultpartForm: %w", err)
-	}
-	entries := []wildcat.Entry{}
+func generateEntriesFromMultipart(req *http.Request) []wildcat.Entry {
 	index := wildcat.NewOrder()
+	entries := []wildcat.Entry{}
 	for _, headers := range req.MultipartForm.File {
 		for _, header := range headers {
 			entries = append(entries, &multipartEntry{header: header, index: index})
 			index = index.Next()
 		}
 	}
+	return entries
+}
+
+func countsMultipartBody(res http.ResponseWriter, req *http.Request, opts *wildcat.ReadOptions) (*wildcat.ResultSet, error) {
+	if err := req.ParseMultipartForm(32 << 20); err != nil {
+		return nil, fmt.Errorf("ParseMultpartForm: %w", err)
+	}
+	entries := generateEntriesFromMultipart(req)
 	wc := wildcat.NewWildcat(opts, wildcat.DefaultGenerator)
 	return wc.CountEntries(entries)
 }

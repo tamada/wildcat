@@ -60,37 +60,17 @@ func (ce *CompressedEntry) openImpl() (io.ReadCloser, error) {
 	return wrapReader(reader, ce.kind), nil
 }
 
-type ArchiveEntry struct {
-	entry Entry
-}
-
-func (ae *ArchiveEntry) Name() string {
-	return ae.entry.Name()
-}
-
-func (ae *ArchiveEntry) Index() *Order {
-	return ae.entry.Index()
-}
-
-func (ae *ArchiveEntry) Open() (io.ReadCloser, error) {
-	return ae.entry.Open()
-}
-
-func (ae *ArchiveEntry) Count(generator Generator) *Either {
-	return &Either{Err: fmt.Errorf("not implement yet.")}
-}
-
 type FileEntry struct {
 	nai    NameAndIndex
 	reader io.ReadSeekCloser
 }
 
 func NewFileEntry(fileName string) *FileEntry {
-	return &FileEntry{nai: NewArg(fileName)}
+	return NewFileEntryWithIndex(NewArgWithIndex(NewOrder(), fileName))
 }
 
-func NewFileEntryWithIndex(fileName string, index int) *FileEntry {
-	return &FileEntry{nai: NewArgWithIndex(NewOrderWithIndex(index), fileName)}
+func NewFileEntryWithIndex(nai NameAndIndex) *FileEntry {
+	return &FileEntry{nai: nai}
 }
 
 func (fe *FileEntry) Name() string {
