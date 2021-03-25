@@ -76,9 +76,9 @@ func TestFileList(t *testing.T) {
 		wontStatus int
 		wontSuffix string
 	}{
-		// {"/wildcat/api/counts", 200, `"results":[{"filename":"<request>","lines":"1","words":"2","characters":"140","bytes":"140"}]`},
+		{"/wildcat/api/counts", 200, `"results":[{"filename":"<request>","lines":"1","words":"2","characters":"140","bytes":"140"}]`},
 		{"/wildcat/api/counts?readAs=file-list", 200, `"results":[{"filename":"https://github.com/tamada/wildcat/raw/main/testdata/archives/wc.jar!humpty_dumpty.txt","lines":"4","words":"26","characters":"142","bytes":"142"},{"filename":"https://github.com/tamada/wildcat/raw/main/testdata/archives/wc.jar!ja/","lines":"0","words":"0","characters":"0","bytes":"0"},{"filename":"https://github.com/tamada/wildcat/raw/main/testdata/archives/wc.jar!ja/sakura_sakura.txt","lines":"15","words":"26","characters":"118","bytes":"298"},{"filename":"https://github.com/tamada/wildcat/raw/main/testdata/archives/wc.jar!london_bridge_is_broken_down.txt","lines":"59","words":"260","characters":"1,341","bytes":"1,341"},{"filename":"https://github.com/tamada/wildcat/raw/main/testdata/wc/humpty_dumpty.txt","lines":"4","words":"26","characters":"142","bytes":"142"},{"filename":"total","lines":"82","words":"338","characters":"1,743","bytes":"1,923"}]`},
-		// {"/wildcat/api/counts?readAs=no-extract,file-list", 200, `"results":[{"filename":"https://github.com/tamada/wildcat/raw/main/testdata/archives/wc.jar","lines":"5","words":"62","characters":"1,054","bytes":"1,080"},{"filename":"https://github.com/tamada/wildcat/raw/main/testdata/wc/humpty_dumpty.txt","lines":"4","words":"26","characters":"142","bytes":"142"},{"filename":"total","lines":"9","words":"88","characters":"1,196","bytes":"1,222"}]`},
+		{"/wildcat/api/counts?readAs=no-extract,file-list", 200, `"results":[{"filename":"https://github.com/tamada/wildcat/raw/main/testdata/archives/wc.jar","lines":"5","words":"62","characters":"1,054","bytes":"1,080"},{"filename":"https://github.com/tamada/wildcat/raw/main/testdata/wc/humpty_dumpty.txt","lines":"4","words":"26","characters":"142","bytes":"142"},{"filename":"total","lines":"9","words":"88","characters":"1,196","bytes":"1,222"}]`},
 	}
 	content := `https://github.com/tamada/wildcat/raw/main/testdata/archives/wc.jar
 https://github.com/tamada/wildcat/raw/main/testdata/wc/humpty_dumpty.txt`

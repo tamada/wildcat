@@ -40,7 +40,7 @@ func TestStdin(t *testing.T) {
 		wontFileNames []string
 		wontErrorSize int
 	}{
-		// {"testdata/wc/london_bridge_is_broken_down.txt", &ReadOptions{FileList: false, NoIgnore: true, NoExtract: true}, 1, []string{"<stdin>"}, 0},
+		{"testdata/wc/london_bridge_is_broken_down.txt", &ReadOptions{FileList: false, NoIgnore: true, NoExtract: true}, 1, []string{"<stdin>"}, 0},
 		{"testdata/filelist.txt", &ReadOptions{FileList: true, NoIgnore: false, NoExtract: false}, 4, []string{"humpty_dumpty.txt", "sakura_sakura.txt", "london_bridge_is_broken_down.txt", "https://www.apache.org/licenses/LICENSE-2.0.txt"}, 0},
 	}
 	for _, td := range testdata {
@@ -64,7 +64,7 @@ func TestStdin(t *testing.T) {
 			t.Errorf("%v: ResultSet files did not match, wont %v, got %v", td.stdinFile, td.wontFileNames, rs.list)
 		}
 		if ec.Size() != td.wontErrorSize {
-			t.Errorf( "%v: ErrorSize did not match, wont %d, got %d (%v)", td.stdinFile, td.wontErrorSize, ec.Size(), ec.Error())
+			t.Errorf("%v: ErrorSize did not match, wont %d, got %d (%v)", td.stdinFile, td.wontErrorSize, ec.Size(), ec.Error())
 		}
 	}
 }
@@ -112,7 +112,8 @@ func TestStoreFile(t *testing.T) {
 	}
 	for _, td := range testdata {
 		argf := NewArgf([]string{td.url}, &ReadOptions{FileList: false, NoIgnore: false, NoExtract: false, StoreContent: true})
-		_, err := NewWildcat(argf.Options, DefaultGenerator).CountAll(argf)
+		wc := NewWildcat(argf.Options, DefaultGenerator)
+		_, err := wc.CountAll(argf)
 		if !err.IsEmpty() {
 			t.Errorf("some error: %s", err.Error())
 		}

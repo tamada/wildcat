@@ -3,12 +3,12 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"mime/multipart"
 	"net/http"
 	"strings"
 
 	"github.com/tamada/wildcat/errors"
+	"github.com/tamada/wildcat/iowrapper"
 
 	"github.com/gorilla/mux"
 	"github.com/tamada/wildcat"
@@ -19,21 +19,20 @@ import (
 type multipartEntry struct {
 	header *multipart.FileHeader
 	index  *wildcat.Order
-	reader io.ReadSeekCloser
+	reader iowrapper.ReadCloseTypeParser
 }
 
 func (me *multipartEntry) Name() string {
 	return me.header.Filename
 }
 
-func (me *multipartEntry) Open() (io.ReadCloser, error) {
+func (me *multipartEntry) Open() (iowrapper.ReadCloseTypeParser, error) {
 	if me.reader != nil {
-		me.reader.Seek(0, 0)
 		return me.reader, nil
 	}
 	reader, err := me.header.Open()
 	if err == nil {
-		me.reader = wildcat.NewReadSeekCloser(reader)
+		me.reader = iowrapper.NewReader(reader)
 	}
 	return me.reader, nil
 }
@@ -62,15 +61,14 @@ func parseQueryParams(req *http.Request) *wildcat.ReadOptions {
 type myEntry struct {
 	name   string
 	order  *wildcat.Order
-	reader io.ReadSeekCloser
+	reader iowrapper.ReadCloseTypeParser
 }
 
 func (me *myEntry) Name() string {
 	return me.name
 }
 
-func (me *myEntry) Open() (io.ReadCloser, error) {
-	me.reader.Seek(0, 0)
+func (me *myEntry) Open() (iowrapper.ReadCloseTypeParser, error) {
 	return me.reader, nil
 }
 
@@ -117,7 +115,7 @@ func countsBody(res http.ResponseWriter, req *http.Request, opts *wildcat.ReadOp
 	if fileName == "" {
 		fileName = "<request>"
 	}
-	entry := &myEntry{name: fileName, reader: wildcat.NewReadSeekCloser(req.Body)}
+	entry := &myEntry{name: fileName, reader: iowrapper.NewReader(req.Body)}
 	return wc.CountEntries([]wildcat.Entry{entry})
 }
 

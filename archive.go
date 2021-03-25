@@ -10,7 +10,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/h2non/filetype"
+	"github.com/tamada/wildcat/iowrapper"
 )
 
 func ConvertToArchiveEntry(entry Entry) (Entry, bool) {
@@ -18,7 +18,7 @@ func ConvertToArchiveEntry(entry Entry) (Entry, bool) {
 	if err != nil {
 		return entry, false
 	}
-	gotKind, _ := filetype.MatchReader(reader)
+	gotKind, _ := reader.ParseFileType()
 	ext := gotKind.Extension
 	return createArchiveEntry(entry, ext)
 }
@@ -37,7 +37,7 @@ func createArchiveEntry(entry Entry, ext string) (Entry, bool) {
 }
 
 func wrapReaderAndTryAgain(entry Entry, gotKind string) (Entry, bool) {
-	newEntry := &CompressedEntry{entry: entry, kind: gotKind}
+	newEntry := &CompressedEntry{entry: entry}
 	return ConvertToArchiveEntry(newEntry)
 }
 
@@ -66,11 +66,15 @@ func (mrc *myReadCloser) Close() error {
 	return mrc.closer.Close()
 }
 
-func wrapReader(reader io.ReadCloser, fileName string) io.ReadCloser {
-	if hasSuffix(fileName, "bz2") {
+func wrapReader(reader iowrapper.ReadCloseTypeParser) io.ReadCloser {
+	ft, err := reader.ParseFileType()
+	if err != nil {
+		return reader
+	}
+	if hasSuffix(ft.Extension, "bz2") {
 		return &myReadCloser{reader: bzip2.NewReader(reader), closer: reader}
 	}
-	if hasSuffix(fileName, "gz") {
+	if hasSuffix(ft.Extension, "gz") {
 		r, _ := gzip.NewReader(reader)
 		return r
 	}
@@ -104,7 +108,7 @@ func (te *TarEntry) Index() *Order {
 	return te.entry.Index()
 }
 
-func (te *TarEntry) Open() (io.ReadCloser, error) {
+func (te *TarEntry) Open() (iowrapper.ReadCloseTypeParser, error) {
 	return te.entry.Open()
 }
 
@@ -204,7 +208,7 @@ func (ze *ZipEntry) Name() string {
 	return ze.entry.Name()
 }
 
-func (ze *ZipEntry) Open() (io.ReadCloser, error) {
+func (ze *ZipEntry) Open() (iowrapper.ReadCloseTypeParser, error) {
 	return ze.entry.Open()
 }
 

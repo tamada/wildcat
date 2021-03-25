@@ -2,6 +2,7 @@ package wildcat
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -10,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/tamada/wildcat/errors"
+	"golang.org/x/sync/semaphore"
 )
 
 // Wildcat is the struct treating to count the specified files, directories, and urls.
@@ -18,6 +20,7 @@ type Wildcat struct {
 	eitherChan chan *Either
 	generator  Generator
 	group      *sync.WaitGroup
+	semaphore  *semaphore.Weighted
 }
 
 // NewWildcat creates an instance of Wildcat.
@@ -27,14 +30,17 @@ func NewWildcat(opts *ReadOptions, generator Generator) *Wildcat {
 		config:     NewConfig(ignores(".", !opts.NoIgnore, nil), opts, errors.New()),
 		eitherChan: channel,
 		generator:  generator,
+		semaphore:  semaphore.NewWeighted(10),
 		group:      new(sync.WaitGroup),
 	}
 }
 
 func (wc *Wildcat) run(f func(Generator, *Config) *Either) {
+	wc.semaphore.Acquire(context.Background(), 1)
 	wc.group.Add(1)
 	go func() {
 		defer wc.group.Done()
+		defer wc.semaphore.Release(1)
 		either := f(wc.generator, wc.config)
 		wc.eitherChan <- either
 	}()
@@ -55,13 +61,17 @@ func (wc *Wildcat) CountEntries(entries []Entry) (*ResultSet, *errors.Center) {
 
 // CountAll counts the arguments in the given Argf.
 func (wc *Wildcat) CountAll(argf *Argf) (*ResultSet, *errors.Center) {
-	for _, arg := range argf.Arguments {
-		err := wc.handleItem(arg)
-		wc.config.ec.Push(err)
-	}
-	if len(argf.Arguments) == 0 {
-		wc.handleEntry(&stdinEntry{index: NewOrder()})
-	}
+	wc.group.Add(1)
+	go func() {
+		for _, arg := range argf.Arguments {
+			err := wc.handleItem(arg)
+			wc.config.ec.Push(err)
+		}
+		if len(argf.Arguments) == 0 {
+			wc.handleEntry(&stdinEntry{index: NewOrder()})
+		}
+		wc.group.Done()
+	}()
 	go func() {
 		wc.group.Wait()
 		wc.Close()
@@ -143,7 +153,6 @@ func (wc *Wildcat) handleEntry(entry Entry) *Either {
 		return wc.handleEntryAsFileList(targetEntry)
 	}
 	wc.run(func(arg1 Generator, arg2 *Config) *Either {
-		// fmt.Fprintf(os.Stderr, "%s,%s,%s\n", "counting", targetEntry.Name(), targetEntry.Index())
 		return targetEntry.Count(wc.generator)
 	})
 	return &Either{Results: []*Result{}}
@@ -172,6 +181,7 @@ func (wc *Wildcat) updateIgnore(newIgnore Ignore) *Wildcat {
 		config:     wc.config.updateIgnore(newIgnore),
 		eitherChan: wc.eitherChan,
 		generator:  wc.generator,
+		semaphore:  wc.semaphore,
 		group:      wc.group,
 	}
 }
@@ -181,6 +191,7 @@ func (wc *Wildcat) updateOpts(newOpts *ReadOptions) *Wildcat {
 		config:     wc.config.updateOpts(newOpts),
 		eitherChan: wc.eitherChan,
 		generator:  wc.generator,
+		semaphore:  wc.semaphore,
 		group:      wc.group,
 	}
 }
@@ -190,7 +201,6 @@ func receiveEither(either *Either, rs *ResultSet, ec *errors.Center) {
 		ec.Push(either.Err)
 	} else {
 		for _, result := range either.Results {
-			// fmt.Fprintf(os.Stderr, "%s,%s,%s\n", "receive", result.nameIndex.Name(), result.nameIndex.Index())
 			rs.Push(result)
 		}
 	}

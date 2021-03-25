@@ -69,6 +69,9 @@ func drainDataFromReader(in io.Reader, counter Counter) error {
 		if err == io.EOF {
 			break
 		}
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
