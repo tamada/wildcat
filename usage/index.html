@@ -70,14 +70,14 @@
     
   <h1>🏃‍♂️ Usage</h1>
   <h3 id="-cli-mode">👞 CLI mode</h3>
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">wildcat version 1.1.0
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">wildcat version 1.1.1
 wildcat <span style="color:#666">[</span>CLI_MODE_OPTIONS|SERVER_MODE_OPTIONS<span style="color:#666">]</span> <span style="color:#666">[</span>FILEs...|DIRs...|URLs...<span style="color:#666">]</span>
 CLI_MODE_OPTIONS
     -b, --byte                  Prints the number of bytes in each input file.
     -l, --line                  Prints the number of lines in each input file.
     -c, --character             Prints the number of characters in each input file.
-                                If the current locale does not support multibyte characters,
-                                this option is equal to the -c option.
+                                If the given arguments <span style="color:#008000;font-weight:bold">do</span> not contain multibyte characters,
+                                this option is equal to -b <span style="color:#666">(</span>--byte<span style="color:#666">)</span> option.
     -w, --word                  Prints the number of words in each input file.
     -f, --format &lt;FORMAT&gt;       Prints results in a specified format.  Available formats are:
                                 csv, json, xml, and default. Default is default.
@@ -223,13 +223,14 @@ total,&quot;78&quot;,&quot;312&quot;,&quot;1,601&quot;,&quot;1,781&quot;
   <span style="color:#008000;font-weight:bold">&lt;/results&gt;</span>
 <span style="color:#008000;font-weight:bold">&lt;/wildcat&gt;</span>
 </code></pre></div><h3 id="-docker">🐳 Docker</h3>
-<p><a href="https://github.com/users/tamada/packages/container/package/wildcat"><img src="https://img.shields.io/badge/Docker-ghcr.io%2Ftamada%2Fwildcat%3A1.1.0-green?logo=docker" alt="Docker"></a></p>
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ docker run -v <span style="color:#19177c">$PWD</span>:/home/wildcat ghcr.io/tamada/wildcat:1.1.0 testdata/wc
+<p><a href="https://github.com/users/tamada/packages/container/package/wildcat"><img src="https://img.shields.io/badge/Docker-ghcr.io%2Ftamada%2Fwildcat%3A1.1.1-green?logo=docker" alt="Docker"></a></p>
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ docker run -v <span style="color:#19177c">$PWD</span>:/home/wildcat ghcr.io/tamada/wildcat:1.1.1 testdata/wc
 </code></pre></div><p>If you run <code>wildcat</code> on server mode, run the following command.</p>
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ docker run -p 8080:8080 -v <span style="color:#19177c">$PWD</span>:/home/wildcat ghcr.io/tamada/wildcat:1.1.0 --server
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ docker run -p 8080:8080 -v <span style="color:#19177c">$PWD</span>:/home/wildcat ghcr.io/tamada/wildcat:1.1.1 --server
 </code></pre></div><h4 id="versions">versions</h4>
 <ul>
-<li><code>1.1.0</code>, <code>latest</code></li>
+<li><code>1.1.1</code>, <code>latest</code></li>
+<li><code>1.1.0</code></li>
 <li><code>1.0.3</code></li>
 <li><code>1.0.2</code></li>
 <li><code>1.0.1</code></li>
