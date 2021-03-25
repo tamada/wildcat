@@ -92,18 +92,21 @@ func (wc *Wildcat) Close() {
 	close(wc.eitherChan)
 }
 
+func (wc *Wildcat) updateFileList(fileList bool) *Wildcat {
+	newOpts := *wc.config.opts
+	newOpts.FileList = fileList
+	return wc.updateOpts(&newOpts)
+}
+
 // ReadFileListFromReader reads data from the given reader as the file list.
 func (wc *Wildcat) ReadFileListFromReader(in io.Reader, index *Order) {
 	reader := bufio.NewReader(in)
 	order := index.Sub()
-	newOpts := *wc.config.opts
-	newOpts.FileList = false
-	newWc := wc.updateOpts(&newOpts)
+	newWc := wc.updateFileList(false)
 	for {
 		line, err := reader.ReadString('\n')
 		line = strings.TrimSpace(line)
 		if line != "" && !newWc.config.IsIgnore(line) {
-			order := order
 			err := newWc.handleItem(NewArgWithIndex(order, line))
 			newWc.config.ec.Push(err)
 		}

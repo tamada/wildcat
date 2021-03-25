@@ -2,6 +2,7 @@ package iowrapper
 
 import "io"
 
+// NewTeeReader creates an instance of ReadCloser for writing data read from the given reader into the given writer.
 func NewTeeReader(reader io.ReadCloser, writer io.WriteCloser) io.ReadCloser {
 	tee := &myTeeReader{reader: reader, writer: writer}
 	tee.tee = io.TeeReader(reader, writer)
