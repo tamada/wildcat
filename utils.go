@@ -27,13 +27,3 @@ func IsURL(path string) bool {
 	}
 	return u.Host != "" && u.Scheme != ""
 }
-
-// Contains examines the given slice has the given item.
-func Contains(slice []string, item string) bool {
-	for _, s := range slice {
-		if s == item {
-			return true
-		}
-	}
-	return false
-}
