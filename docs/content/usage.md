@@ -11,8 +11,8 @@ CLI_MODE_OPTIONS
     -b, --byte                  Prints the number of bytes in each input file.
     -l, --line                  Prints the number of lines in each input file.
     -c, --character             Prints the number of characters in each input file.
-                                If the current locale does not support multibyte characters,
-                                this option is equal to the -c option.
+                                If the given arguments do not contain multibyte characters,
+                                this option is equal to -b (--byte) option.
     -w, --word                  Prints the number of words in each input file.
     -f, --format <FORMAT>       Prints results in a specified format.  Available formats are:
                                 csv, json, xml, and default. Default is default.
@@ -187,7 +187,8 @@ $ docker run -p 8080:8080 -v $PWD:/home/wildcat ghcr.io/tamada/wildcat:1.1.1 --s
 
 #### versions
 
-* `1.1.0`, `latest`
+* `1.1.1`, `latest`
+* `1.1.0`
 * `1.0.3`
 * `1.0.2`
 * `1.0.1`
