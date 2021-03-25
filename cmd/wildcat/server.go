@@ -3,12 +3,12 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"mime/multipart"
 	"net/http"
 	"strings"
 
 	"github.com/tamada/wildcat/errors"
+	"github.com/tamada/wildcat/iowrapper"
 
 	"github.com/gorilla/mux"
 	"github.com/tamada/wildcat"
@@ -18,32 +18,27 @@ import (
 
 type multipartEntry struct {
 	header *multipart.FileHeader
-	index  int
-	reader io.ReadSeekCloser
+	index  *wildcat.Order
+	reader iowrapper.ReadCloseTypeParser
 }
 
 func (me *multipartEntry) Name() string {
 	return me.header.Filename
 }
 
-func (me *multipartEntry) Open() (io.ReadCloser, error) {
+func (me *multipartEntry) Open() (iowrapper.ReadCloseTypeParser, error) {
 	if me.reader != nil {
-		me.reader.Seek(0, 0)
 		return me.reader, nil
 	}
 	reader, err := me.header.Open()
 	if err == nil {
-		me.reader = wildcat.NewReadSeekCloser(reader)
+		me.reader = iowrapper.NewReader(reader)
 	}
 	return me.reader, nil
 }
 
-func (me *multipartEntry) Index() int {
+func (me *multipartEntry) Index() *wildcat.Order {
 	return me.index
-}
-
-func (me *multipartEntry) Reindex(newIndex int) {
-	me.index = newIndex
 }
 
 func (me *multipartEntry) Count(generator wildcat.Generator) *wildcat.Either {
@@ -65,23 +60,23 @@ func parseQueryParams(req *http.Request) *wildcat.ReadOptions {
 
 type myEntry struct {
 	name   string
-	reader io.ReadSeekCloser
+	order  *wildcat.Order
+	reader iowrapper.ReadCloseTypeParser
 }
 
 func (me *myEntry) Name() string {
 	return me.name
 }
 
-func (me *myEntry) Open() (io.ReadCloser, error) {
-	me.reader.Seek(0, 0)
+func (me *myEntry) Open() (iowrapper.ReadCloseTypeParser, error) {
 	return me.reader, nil
 }
 
-func (me *myEntry) Index() int {
-	return 0
-}
-
-func (me *myEntry) Reindex(newIndex int) {
+func (me *myEntry) Index() *wildcat.Order {
+	if me.order == nil {
+		me.order = wildcat.NewOrder()
+	}
+	return me.order
 }
 
 func (me *myEntry) Count(generator wildcat.Generator) *wildcat.Either {
@@ -114,37 +109,19 @@ func respondImpl(res http.ResponseWriter, statusCode int, message []byte) {
 	res.Write(message)
 }
 
-func readAsTargetList(targets *wildcat.Targets, entry wildcat.Entry, opts *wildcat.ReadOptions) *wildcat.Targets {
-	newOpts := *opts
-	newOpts.FileList = false
-	reader, err := entry.Open()
-	config := wildcat.NewConfig(wildcat.NewNoIgnore(), &newOpts, errors.New())
-	if err == nil {
-		targets.ReadFileListFromReader(reader, 0, config)
-	}
-	return targets
-}
-
-func createTargets(req *http.Request, name string, opts *wildcat.ReadOptions) *wildcat.Targets {
-	targets := &wildcat.Targets{}
-	var entry wildcat.Entry = &myEntry{name: name, reader: wildcat.NewReadSeekCloser(req.Body)}
-	appendTargetItem(targets, entry, opts)
-	return targets
-}
-
 func countsBody(res http.ResponseWriter, req *http.Request, opts *wildcat.ReadOptions) (*wildcat.ResultSet, error) {
+	wc := wildcat.NewWildcat(opts, wildcat.DefaultGenerator)
 	fileName := req.URL.Query().Get("file-name")
 	if fileName == "" {
 		fileName = "<request>"
 	}
-	targets := createTargets(req, fileName, opts)
-	return targets.CountAll(wildcat.DefaultGenerator)
+	entry := &myEntry{name: fileName, reader: iowrapper.NewReader(req.Body)}
+	return wc.CountEntries([]wildcat.Entry{entry})
 }
 
 func counts(res http.ResponseWriter, req *http.Request) {
 	logger.Infof("counts: %s\n", req.URL)
 	contentType := req.Header.Get("Content-Type")
-	defer req.Body.Close()
 	handlers := []struct {
 		contentType string
 		execFunc    func(http.ResponseWriter, *http.Request, *wildcat.ReadOptions) (*wildcat.ResultSet, error)
@@ -163,33 +140,25 @@ func counts(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func appendTargetItem(targets *wildcat.Targets, entry wildcat.Entry, opts *wildcat.ReadOptions) {
-	if opts.FileList {
-		reader, err := entry.Open()
-		if err == nil {
-			defer reader.Close()
-			readAsTargetList(targets, entry, opts)
+func generateEntriesFromMultipart(req *http.Request) []wildcat.Entry {
+	index := wildcat.NewOrder()
+	entries := []wildcat.Entry{}
+	for _, headers := range req.MultipartForm.File {
+		for _, header := range headers {
+			entries = append(entries, &multipartEntry{header: header, index: index})
+			index = index.Next()
 		}
-	} else {
-		if !opts.NoExtract {
-			convertedEntry, _ := wildcat.ConvertToArchiveEntry(entry)
-			entry = convertedEntry
-		}
-		targets.Push(entry)
 	}
+	return entries
 }
 
 func countsMultipartBody(res http.ResponseWriter, req *http.Request, opts *wildcat.ReadOptions) (*wildcat.ResultSet, error) {
 	if err := req.ParseMultipartForm(32 << 20); err != nil {
 		return nil, fmt.Errorf("ParseMultpartForm: %w", err)
 	}
-	targets := &wildcat.Targets{}
-	for _, headers := range req.MultipartForm.File {
-		for index, header := range headers {
-			appendTargetItem(targets, &multipartEntry{header: header, index: index}, opts)
-		}
-	}
-	return targets.CountAll(wildcat.DefaultGenerator)
+	entries := generateEntriesFromMultipart(req)
+	wc := wildcat.NewWildcat(opts, wildcat.DefaultGenerator)
+	return wc.CountEntries(entries)
 }
 
 func wrapHandler(h http.Handler) http.HandlerFunc {

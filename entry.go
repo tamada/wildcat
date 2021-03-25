@@ -7,48 +7,43 @@ import (
 	"net/url"
 	"os"
 	"path"
+
+	"github.com/tamada/wildcat/iowrapper"
 )
 
 // Entry shows the input for the each line in the results.
 type Entry interface {
 	NameAndIndex
 	Count(generator Generator) *Either
-	Open() (io.ReadCloser, error)
+	Open() (iowrapper.ReadCloseTypeParser, error)
 }
 
 // NameAndIndex means that the implemented object has the name and index.
 type NameAndIndex interface {
 	Name() string
-	Index() int
-	Reindex(newIndex int)
+	Index() *Order
 }
 
 type CompressedEntry struct {
 	entry  Entry
-	kind   string
-	reader io.ReadSeekCloser
+	reader iowrapper.ReadCloseTypeParser
 }
 
 func (ce *CompressedEntry) Name() string {
 	return ce.entry.Name()
 }
 
-func (ce *CompressedEntry) Index() int {
+func (ce *CompressedEntry) Index() *Order {
 	return ce.entry.Index()
 }
 
-func (ce *CompressedEntry) Reindex(newIndex int) {
-	ce.entry.Reindex(newIndex)
-}
-
-func (ce *CompressedEntry) Open() (io.ReadCloser, error) {
+func (ce *CompressedEntry) Open() (iowrapper.ReadCloseTypeParser, error) {
 	if ce.reader != nil {
-		ce.reader.Seek(0, 0)
 		return ce.reader, nil
 	}
 	reader, err := ce.openImpl()
 	if err == nil {
-		ce.reader = NewReadSeekCloser(reader)
+		ce.reader = iowrapper.NewReader(reader)
 	}
 	return ce.reader, err
 }
@@ -62,68 +57,39 @@ func (ce *CompressedEntry) openImpl() (io.ReadCloser, error) {
 	if err != nil {
 		return nil, err
 	}
-	return wrapReader(reader, ce.kind), nil
-}
-
-type ArchiveEntry struct {
-	entry Entry
-}
-
-func (ae *ArchiveEntry) Name() string {
-	return ae.entry.Name()
-}
-
-func (ae *ArchiveEntry) Index() int {
-	return ae.entry.Index()
-}
-
-func (ae *ArchiveEntry) Reindex(newIndex int) {
-	ae.entry.Reindex(newIndex)
-}
-
-func (ae *ArchiveEntry) Open() (io.ReadCloser, error) {
-	return ae.entry.Open()
-}
-
-func (ae *ArchiveEntry) Count(generator Generator) *Either {
-	return &Either{Err: fmt.Errorf("not implement yet.")}
+	return wrapReader(iowrapper.NewReader(reader)), nil
 }
 
 type FileEntry struct {
 	nai    NameAndIndex
-	reader io.ReadSeekCloser
+	reader iowrapper.ReadCloseTypeParser
 }
 
 func NewFileEntry(fileName string) *FileEntry {
-	return &FileEntry{nai: NewArg(0, fileName)}
+	return NewFileEntryWithIndex(NewArgWithIndex(NewOrder(), fileName))
 }
 
-func NewFileEntryWithIndex(fileName string, index int) *FileEntry {
-	return &FileEntry{nai: NewArg(index, fileName)}
+func NewFileEntryWithIndex(nai NameAndIndex) *FileEntry {
+	return &FileEntry{nai: nai}
 }
 
 func (fe *FileEntry) Name() string {
 	return fe.nai.Name()
 }
 
-func (fe *FileEntry) Index() int {
+func (fe *FileEntry) Index() *Order {
 	return fe.nai.Index()
 }
 
-func (fe *FileEntry) Reindex(newIndex int) {
-	fe.nai.Reindex(newIndex)
-}
-
-func (fe *FileEntry) Open() (io.ReadCloser, error) {
+func (fe *FileEntry) Open() (iowrapper.ReadCloseTypeParser, error) {
 	if fe.reader != nil {
-		fe.reader.Seek(0, 0)
 		return fe.reader, nil
 	}
 	reader, err := os.Open(fe.Name())
 	if err != nil {
 		return nil, err
 	}
-	fe.reader = NewReadSeekCloser(reader)
+	fe.reader = iowrapper.NewReader(reader)
 	return fe.reader, nil
 }
 
@@ -133,30 +99,25 @@ func (fe *FileEntry) Count(generator Generator) *Either {
 
 type URLEntry struct {
 	nai    NameAndIndex
-	reader io.ReadSeekCloser
+	reader iowrapper.ReadCloseTypeParser
 }
 
 func (ue *URLEntry) Name() string {
 	return ue.nai.Name()
 }
 
-func (ue *URLEntry) Index() int {
+func (ue *URLEntry) Index() *Order {
 	return ue.nai.Index()
 }
 
-func (ue *URLEntry) Reindex(newIndex int) {
-	ue.nai.Reindex(newIndex)
-}
-
-func (ue *URLEntry) Open() (io.ReadCloser, error) {
+func (ue *URLEntry) Open() (iowrapper.ReadCloseTypeParser, error) {
 	if ue.reader != nil {
-		ue.reader.Seek(0, 0)
 		return ue.reader, nil
 	}
 	return ue.openImpl()
 }
 
-func (ue *URLEntry) openImpl() (io.ReadCloser, error) {
+func (ue *URLEntry) openImpl() (iowrapper.ReadCloseTypeParser, error) {
 	response, err := http.Get(ue.Name())
 	if err != nil {
 		return nil, fmt.Errorf("%s: http error: %w", ue.Name(), err)
@@ -165,7 +126,7 @@ func (ue *URLEntry) openImpl() (io.ReadCloser, error) {
 		defer response.Body.Close()
 		return nil, fmt.Errorf("%s: file not found", ue.Name())
 	}
-	ue.reader = NewReadSeekCloser(response.Body)
+	ue.reader = iowrapper.NewReader(response.Body)
 	return ue.reader, nil
 }
 
@@ -174,7 +135,8 @@ func (ue *URLEntry) Count(generator Generator) *Either {
 }
 
 type stdinEntry struct {
-	index int
+	index  *Order
+	reader iowrapper.ReadCloseTypeParser
 }
 
 // CountDefault is the default routine for counting.
@@ -184,7 +146,9 @@ func CountDefault(entry Entry, counter Counter) *Either {
 		return &Either{Err: err}
 	}
 	defer reader.Close()
-	drainDataFromReader(reader, counter)
+	if err := drainDataFromReader(reader, counter); err != nil {
+		return &Either{Err: err}
+	}
 	return &Either{Results: []*Result{newResult(entry, counter)}}
 }
 
@@ -196,28 +160,24 @@ func (se *stdinEntry) Count(generator Generator) *Either {
 	return CountDefault(se, generator())
 }
 
-func (se *stdinEntry) Open() (io.ReadCloser, error) {
-	return os.Stdin, nil
+func (se *stdinEntry) Open() (iowrapper.ReadCloseTypeParser, error) {
+	if se.reader == nil {
+		se.reader = iowrapper.NewReader(os.Stdin)
+	}
+	return se.reader, nil
 }
 
-func (se *stdinEntry) Index() int {
+func (se *stdinEntry) Index() *Order {
 	return se.index
 }
 
-func (se *stdinEntry) Reindex(newIndex int) {
-	se.index = newIndex
-}
-
 type downloadURLEntry struct {
-	entry *URLEntry
+	entry  *URLEntry
+	reader iowrapper.ReadCloseTypeParser
 }
 
-func (due *downloadURLEntry) Index() int {
+func (due *downloadURLEntry) Index() *Order {
 	return due.entry.Index()
-}
-
-func (due *downloadURLEntry) Reindex(newIndex int) {
-	due.entry.Reindex(newIndex)
 }
 
 func (due *downloadURLEntry) Name() string {
@@ -228,15 +188,20 @@ func (due *downloadURLEntry) Count(generator Generator) *Either {
 	return CountDefault(due, generator())
 }
 
-func (due *downloadURLEntry) Open() (io.ReadCloser, error) {
+func (due *downloadURLEntry) Open() (iowrapper.ReadCloseTypeParser, error) {
+	if due.reader != nil {
+		return due.reader, nil
+	}
 	reader, err := due.entry.Open()
 	if err != nil {
 		return nil, err
 	}
-	return createTeeReader(reader, due.Name())
+	in, err := createTeeReader(reader, due.Name())
+	due.reader = in
+	return in, err
 }
 
-func createTeeReader(reader io.ReadCloser, name string) (io.ReadCloser, error) {
+func createTeeReader(reader io.ReadCloser, name string) (iowrapper.ReadCloseTypeParser, error) {
 	u, err := url.Parse(name)
 	if err != nil {
 		return nil, fmt.Errorf("url.Parse failed: %w", err)
@@ -244,12 +209,12 @@ func createTeeReader(reader io.ReadCloser, name string) (io.ReadCloser, error) {
 	newName := path.Base(u.Path)
 	writer, err := os.Create(newName)
 	if err != nil {
-		return nil, fmt.Errorf("%s: file not found (%w)", newName, err)
+		return nil, fmt.Errorf("%s: file creation error (%w)", newName, err)
 	}
-	return newMyTeeReader(reader, writer), nil
+	return iowrapper.NewReader(iowrapper.NewTeeReader(reader, writer)), nil
 }
 
-func toURLEntry(arg *Arg, opts *ReadOptions) Entry {
+func toURLEntry(arg NameAndIndex, opts *ReadOptions) Entry {
 	newEntry := &URLEntry{nai: arg}
 	if opts.StoreContent {
 		return &downloadURLEntry{entry: newEntry}

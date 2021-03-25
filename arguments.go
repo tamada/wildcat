@@ -23,11 +23,16 @@ type Argf struct {
 // Arg represents the one of command line arguments and its index.
 type Arg struct {
 	name  string
-	index int
+	index *Order
 }
 
-// NewArg creates an instance of Arg with given parameters.
-func NewArg(index int, name string) *Arg {
+// NewArg creates an instance of Arg with the given name.
+func NewArg(name string) *Arg {
+	return NewArgWithIndex(NewOrder(), name)
+}
+
+// NewArgWithIndex creates an instance of Arg with given parameters.
+func NewArgWithIndex(index *Order, name string) *Arg {
 	return &Arg{index: index, name: name}
 }
 
@@ -37,19 +42,15 @@ func (arg *Arg) Name() string {
 }
 
 // Index returns the index of receiver Arg object.
-func (arg *Arg) Index() int {
+func (arg *Arg) Index() *Order {
 	return arg.index
-}
-
-func (arg *Arg) Reindex(newIndex int) {
-	arg.index = newIndex
 }
 
 // NewArgf creates an instance of Argf for treating command line arguments.
 func NewArgf(arguments []string, opts *ReadOptions) *Argf {
 	entries := []*Arg{}
 	for index, arg := range arguments {
-		entries = append(entries, NewArg(index, arg))
+		entries = append(entries, NewArgWithIndex(NewOrderWithIndex(index), arg))
 	}
 	return &Argf{Arguments: entries, Options: opts}
 }
@@ -68,13 +69,16 @@ func drainDataFromReader(in io.Reader, counter Counter) error {
 		if err == io.EOF {
 			break
 		}
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
 func ignores(dir string, withIgnoreFile bool, parent Ignore) Ignore {
 	if withIgnoreFile {
-		return newIgnore(dir)
+		return newIgnoreWithParent(dir, parent)
 	}
 	return &noIgnore{parent: parent}
 }

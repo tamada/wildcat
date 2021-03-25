@@ -25,15 +25,16 @@ func (ec *Center) Size() int {
 
 // Push puts the given error into the receiver error center instance.
 func (ec *Center) Push(err error) bool {
-	var otherCenter *Center
-	if err != nil {
-		if errors.As(err, &otherCenter) {
-			ec.errs = append(ec.errs, otherCenter.errs...)
-		} else {
-			ec.errs = append(ec.errs, err)
-		}
+	if err == nil {
+		return false
 	}
-	return err != nil
+	var otherCenter *Center
+	if errors.As(err, &otherCenter) {
+		ec.errs = append(ec.errs, otherCenter.errs...)
+	} else if err != io.EOF {
+		ec.errs = append(ec.errs, err)
+	}
+	return true
 }
 
 // IsEmpty confirms the errors in the receiver error center instance is zero.

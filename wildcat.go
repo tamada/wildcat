@@ -1,155 +1,210 @@
 package wildcat
 
 import (
-	"unicode/utf8"
+	"bufio"
+	"context"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"path/filepath"
+	"strings"
+	"sync"
+
+	"github.com/tamada/wildcat/errors"
+	"golang.org/x/sync/semaphore"
 )
 
-type calculator interface {
-	calculate(data []byte) int64
+// Wildcat is the struct treating to count the specified files, directories, and urls.
+type Wildcat struct {
+	config     *Config
+	eitherChan chan *Either
+	generator  Generator
+	group      *sync.WaitGroup
+	semaphore  *semaphore.Weighted
 }
 
-// Counter shows
-type Counter interface {
-	IsType(ct CounterType) bool
-	Type() CounterType
-	update(data []byte)
-	Count(ct CounterType) int64
-}
-
-// CounterType represents the types of counting.
-type CounterType int
-
-const (
-	// Bytes shows the counter type for counting byte size.
-	Bytes CounterType = 1
-	// Characters shows the counter type for counting characters.
-	Characters = 2
-	// Words shows the counter type for counting the words.
-	Words = 4
-	// Lines shows the counter type for counting the lines.
-	Lines = 8
-	// All shows the counter type for counting byte size, characters, words, and lines.
-	All = Lines | Words | Characters | Bytes
-)
-
-// IsType checks the equality between the receiver and the given counter type.
-func (ct CounterType) IsType(ct2 CounterType) bool {
-	return ct&ct2 == ct2
-}
-
-// NewCounter generates Counter by CounterTypes.
-func NewCounter(counterType CounterType) Counter {
-	counter := &multipleCounter{ct: counterType, counters: map[CounterType]Counter{}}
-	generators := []struct {
-		ct        CounterType
-		generator func() Counter
-	}{
-		{Bytes, func() Counter { return &singleCounter{ct: Bytes, number: 0, calculator: &byteCalculator{}} }},
-		{Characters, func() Counter { return &singleCounter{ct: Characters, number: 0, calculator: &characterCalculator{}} }},
-		{Words, func() Counter { return &singleCounter{ct: Words, number: 0, calculator: &wordCalculator{}} }},
-		{Lines, func() Counter { return &singleCounter{ct: Lines, number: 0, calculator: &lineCalculator{}} }},
+// NewWildcat creates an instance of Wildcat.
+func NewWildcat(opts *ReadOptions, generator Generator) *Wildcat {
+	channel := make(chan *Either)
+	return &Wildcat{
+		config:     NewConfig(ignores(".", !opts.NoIgnore, nil), opts, errors.New()),
+		eitherChan: channel,
+		generator:  generator,
+		semaphore:  semaphore.NewWeighted(10),
+		group:      new(sync.WaitGroup),
 	}
-	for _, gens := range generators {
-		if counterType&gens.ct == gens.ct {
-			counter.counters[gens.ct] = gens.generator()
+}
+
+func (wc *Wildcat) run(f func(Generator, *Config) *Either) {
+	wc.semaphore.Acquire(context.Background(), 1)
+	wc.group.Add(1)
+	go func() {
+		defer wc.group.Done()
+		defer wc.semaphore.Release(1)
+		either := f(wc.generator, wc.config)
+		wc.eitherChan <- either
+	}()
+}
+
+func (wc *Wildcat) CountEntries(entries []Entry) (*ResultSet, *errors.Center) {
+	for _, entry := range entries {
+		e := entry
+		err := wc.handleItem(e)
+		wc.config.ec.Push(err)
+	}
+	go func() {
+		wc.group.Wait()
+		wc.Close()
+	}()
+	return wc.receiveImpl()
+}
+
+// CountAll counts the arguments in the given Argf.
+func (wc *Wildcat) CountAll(argf *Argf) (*ResultSet, *errors.Center) {
+	wc.group.Add(1)
+	go func() {
+		for _, arg := range argf.Arguments {
+			err := wc.handleItem(arg)
+			wc.config.ec.Push(err)
+		}
+		if len(argf.Arguments) == 0 {
+			wc.handleEntry(&stdinEntry{index: NewOrder()})
+		}
+		wc.group.Done()
+	}()
+	go func() {
+		wc.group.Wait()
+		wc.Close()
+	}()
+	return wc.receiveImpl()
+}
+
+func (wc *Wildcat) receiveImpl() (*ResultSet, *errors.Center) {
+	rs := NewResultSet()
+	for either := range wc.eitherChan {
+		receiveEither(either, rs, wc.config.ec)
+	}
+	return rs, wc.config.ec
+}
+
+// Close finishes the receiver object.
+func (wc *Wildcat) Close() {
+	close(wc.eitherChan)
+}
+
+func (wc *Wildcat) updateFileList(fileList bool) *Wildcat {
+	newOpts := *wc.config.opts
+	newOpts.FileList = fileList
+	return wc.updateOpts(&newOpts)
+}
+
+// ReadFileListFromReader reads data from the given reader as the file list.
+func (wc *Wildcat) ReadFileListFromReader(in io.Reader, index *Order) {
+	reader := bufio.NewReader(in)
+	order := index.Sub()
+	newWc := wc.updateFileList(false)
+	for {
+		line, err := reader.ReadString('\n')
+		line = strings.TrimSpace(line)
+		if line != "" && !newWc.config.IsIgnore(line) {
+			err := newWc.handleItem(NewArgWithIndex(order, line))
+			newWc.config.ec.Push(err)
+		}
+		if err == io.EOF {
+			break
+		}
+		order = order.Next()
+	}
+}
+
+func (wc *Wildcat) handleDir(arg NameAndIndex) *Either {
+	currentIgnore := ignores(arg.Name(), !wc.config.opts.NoIgnore, wc.config.ignore)
+	fileInfos, err := ioutil.ReadDir(arg.Name())
+	if err != nil {
+		return &Either{Err: err}
+	}
+	index := arg.Index().Sub()
+	for _, info := range fileInfos {
+		newName := filepath.Join(arg.Name(), info.Name())
+		if !isIgnore(wc.config.opts, currentIgnore, newName) {
+			newWc := wc.updateIgnore(currentIgnore)
+			err := newWc.handleItem(NewArgWithIndex(index, newName))
+			newWc.config.ec.Push(err)
+			index = index.Next()
 		}
 	}
-	return counter
+	return &Either{Results: []*Result{}}
 }
 
-type multipleCounter struct {
-	ct       CounterType
-	counters map[CounterType]Counter
+func (wc *Wildcat) handleEntryAsFileList(entry Entry) *Either {
+	reader, err := entry.Open()
+	defer reader.Close()
+	if err != nil {
+		return &Either{Err: err}
+	}
+	wc.ReadFileListFromReader(reader, entry.Index())
+	return &Either{Results: []*Result{}}
 }
 
-func (mc *multipleCounter) IsType(ct CounterType) bool {
-	return mc.ct&ct == ct
+func (wc *Wildcat) handleEntry(entry Entry) *Either {
+	targetEntry := entry
+	if !wc.config.opts.NoExtract {
+		newEntry, _ := ConvertToArchiveEntry(entry)
+		targetEntry = newEntry
+	}
+	if wc.config.opts.FileList {
+		return wc.handleEntryAsFileList(targetEntry)
+	}
+	wc.run(func(arg1 Generator, arg2 *Config) *Either {
+		return targetEntry.Count(wc.generator)
+	})
+	return &Either{Results: []*Result{}}
 }
 
-func (mc *multipleCounter) Type() CounterType {
-	return mc.ct
+func (wc *Wildcat) handleItem(arg NameAndIndex) error {
+	name := arg.Name()
+	entry, ok := arg.(Entry)
+	switch {
+	case ok:
+		wc.handleEntry(entry)
+	case IsURL(name):
+		wc.handleEntry(toURLEntry(arg, wc.config.opts))
+	case ExistDir(name):
+		wc.handleDir(arg)
+	case ExistFile(name):
+		wc.handleEntry(NewFileEntryWithIndex(arg))
+	default:
+		return fmt.Errorf("%s: file or directory not found", name)
+	}
+	return nil
 }
 
-func (mc *multipleCounter) update(data []byte) {
-	for _, v := range mc.counters {
-		v.update(data)
+func (wc *Wildcat) updateIgnore(newIgnore Ignore) *Wildcat {
+	return &Wildcat{
+		config:     wc.config.updateIgnore(newIgnore),
+		eitherChan: wc.eitherChan,
+		generator:  wc.generator,
+		semaphore:  wc.semaphore,
+		group:      wc.group,
 	}
 }
 
-func (mc *multipleCounter) Count(ct CounterType) int64 {
-	counter, ok := mc.counters[ct]
-	if !ok {
-		return -1
+func (wc *Wildcat) updateOpts(newOpts *ReadOptions) *Wildcat {
+	return &Wildcat{
+		config:     wc.config.updateOpts(newOpts),
+		eitherChan: wc.eitherChan,
+		generator:  wc.generator,
+		semaphore:  wc.semaphore,
+		group:      wc.group,
 	}
-	return counter.Count(ct)
 }
 
-type singleCounter struct {
-	ct         CounterType
-	number     int64
-	calculator calculator
-}
-
-func (sc *singleCounter) IsType(ct CounterType) bool {
-	return sc.ct.IsType(ct)
-}
-
-func (sc *singleCounter) Type() CounterType {
-	return sc.ct
-}
-
-func (sc *singleCounter) Count(ct CounterType) int64 {
-	return sc.number
-}
-
-func (sc *singleCounter) update(data []byte) {
-	sc.number = sc.number + sc.calculator.calculate(data)
-}
-
-type lineCalculator struct {
-}
-
-func (lc *lineCalculator) calculate(data []byte) int64 {
-	var number int64
-	number = 0
-	for _, datum := range data {
-		if datum == '\n' {
-			number++
+func receiveEither(either *Either, rs *ResultSet, ec *errors.Center) {
+	if either.Err != nil {
+		ec.Push(either.Err)
+	} else {
+		for _, result := range either.Results {
+			rs.Push(result)
 		}
 	}
-	return number
-}
-
-type wordCalculator struct {
-}
-
-func isWhiteSpace(data byte) bool {
-	return data == 0 || data == ' ' || data == '\t' || data == '\n' || data == '\r'
-}
-
-func (wc *wordCalculator) calculate(data []byte) int64 {
-	number := int64(0)
-	if len(data) > 0 && !isWhiteSpace(data[0]) {
-		number++
-	}
-	for i, datum := range data {
-		if i > 0 && isWhiteSpace(data[i-1]) && !isWhiteSpace(datum) {
-			number++
-		}
-	}
-	return number
-}
-
-type byteCalculator struct {
-}
-
-func (bc *byteCalculator) calculate(data []byte) int64 {
-	return int64(len(data))
-}
-
-type characterCalculator struct {
-}
-
-func (cc *characterCalculator) calculate(data []byte) int64 {
-	return int64(utf8.RuneCount(data))
 }

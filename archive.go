@@ -10,7 +10,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/h2non/filetype"
+	"github.com/tamada/wildcat/iowrapper"
 )
 
 func ConvertToArchiveEntry(entry Entry) (Entry, bool) {
@@ -18,7 +18,7 @@ func ConvertToArchiveEntry(entry Entry) (Entry, bool) {
 	if err != nil {
 		return entry, false
 	}
-	gotKind, _ := filetype.MatchReader(reader)
+	gotKind, _ := reader.ParseFileType()
 	ext := gotKind.Extension
 	return createArchiveEntry(entry, ext)
 }
@@ -37,7 +37,7 @@ func createArchiveEntry(entry Entry, ext string) (Entry, bool) {
 }
 
 func wrapReaderAndTryAgain(entry Entry, gotKind string) (Entry, bool) {
-	newEntry := &CompressedEntry{entry: entry, kind: gotKind}
+	newEntry := &CompressedEntry{entry: entry}
 	return ConvertToArchiveEntry(newEntry)
 }
 
@@ -66,11 +66,15 @@ func (mrc *myReadCloser) Close() error {
 	return mrc.closer.Close()
 }
 
-func wrapReader(reader io.ReadCloser, fileName string) io.ReadCloser {
-	if hasSuffix(fileName, "bz2") {
+func wrapReader(reader iowrapper.ReadCloseTypeParser) io.ReadCloser {
+	ft, err := reader.ParseFileType()
+	if err != nil {
+		return reader
+	}
+	if hasSuffix(ft.Extension, "bz2") {
 		return &myReadCloser{reader: bzip2.NewReader(reader), closer: reader}
 	}
-	if hasSuffix(fileName, "gz") {
+	if hasSuffix(ft.Extension, "gz") {
 		r, _ := gzip.NewReader(reader)
 		return r
 	}
@@ -100,15 +104,11 @@ func (te *TarEntry) Name() string {
 	return te.entry.Name()
 }
 
-func (te *TarEntry) Index() int {
+func (te *TarEntry) Index() *Order {
 	return te.entry.Index()
 }
 
-func (te *TarEntry) Reindex(newIndex int) {
-	te.entry.Reindex(newIndex)
-}
-
-func (te *TarEntry) Open() (io.ReadCloser, error) {
+func (te *TarEntry) Open() (iowrapper.ReadCloseTypeParser, error) {
 	return te.entry.Open()
 }
 
@@ -122,17 +122,19 @@ func (te *TarEntry) Count(generator Generator) *Either {
 
 func countTarEntries(entry Entry, generator Generator, tar *tar.Reader) *Either {
 	results := []*Result{}
+	index := entry.Index().Sub()
 	for {
 		header, err := tar.Next()
 		if err == io.EOF {
 			break
 		}
 		name := fmt.Sprintf("%s!%s", entry.Name(), header.Name)
-		result, err := countArchiveItem(generator(), &tarItem{tar: tar, nameIndex: NewArg(entry.Index(), name)})
+		result, err := countArchiveItem(generator(), &tarItem{tar: tar, nameIndex: NewArgWithIndex(index, name)})
 		if err != nil {
 			return &Either{Err: err}
 		}
 		results = append(results, result)
+		index = index.Next()
 	}
 	return &Either{Results: results}
 }
@@ -150,12 +152,8 @@ func (tf *tarItem) Name() string {
 	return tf.nameIndex.Name()
 }
 
-func (tf *tarItem) Index() int {
+func (tf *tarItem) Index() *Order {
 	return tf.nameIndex.Index()
-}
-
-func (tf *tarItem) Reindex(newIndex int) {
-	tf.nameIndex.Reindex(newIndex)
 }
 
 func copyDataFromSource(in io.Reader) (io.ReaderAt, int64, error) {
@@ -180,12 +178,8 @@ type zipItem struct {
 	file      *zip.File
 }
 
-func (zf *zipItem) Index() int {
+func (zf *zipItem) Index() *Order {
 	return zf.nameIndex.Index()
-}
-
-func (zf *zipItem) Reindex(newIndex int) {
-	zf.nameIndex.Reindex(newIndex)
 }
 
 func (zf *zipItem) Name() string {
@@ -206,7 +200,7 @@ type ZipEntry struct {
 	file  *zip.File
 }
 
-func (ze *ZipEntry) Index() int {
+func (ze *ZipEntry) Index() *Order {
 	return ze.entry.Index()
 }
 
@@ -214,11 +208,7 @@ func (ze *ZipEntry) Name() string {
 	return ze.entry.Name()
 }
 
-func (ze *ZipEntry) Reindex(newIndex int) {
-	ze.entry.Reindex(newIndex)
-}
-
-func (ze *ZipEntry) Open() (io.ReadCloser, error) {
+func (ze *ZipEntry) Open() (iowrapper.ReadCloseTypeParser, error) {
 	return ze.entry.Open()
 }
 
@@ -236,12 +226,14 @@ func (ze *ZipEntry) Count(generator Generator) *Either {
 
 func countZipEntries(entry Entry, rr *zip.Reader, generator Generator) *Either {
 	results := []*Result{}
+	index := entry.Index().Sub()
 	for _, f := range rr.File {
-		r, err := countArchiveItem(generator(), &zipItem{file: f, nameIndex: NewArg(entry.Index(), entry.Name())})
+		r, err := countArchiveItem(generator(), &zipItem{file: f, nameIndex: NewArgWithIndex(index, entry.Name())})
 		if err != nil {
 			return &Either{Err: err}
 		}
 		results = append(results, r)
+		index = index.Next()
 	}
 	return &Either{Results: results}
 }

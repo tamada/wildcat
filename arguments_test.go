@@ -8,19 +8,19 @@ import (
 	"github.com/tamada/wildcat/errors"
 )
 
-func toStr(list []*Arg) []string {
+func toStr(list []NameAndIndex) []string {
 	result := []string{}
 	for _, item := range list {
-		result = append(result, item.name)
+		result = append(result, item.Name())
 	}
 	return result
 }
 
-func match(list []*Arg, wonts []string) bool {
+func match(list []NameAndIndex, wonts []string) bool {
 	for _, wont := range wonts {
 		found := false
 		for _, item := range list {
-			if strings.Contains(item.name, wont) {
+			if strings.Contains(item.Name(), wont) {
 				found = true
 				break
 			}
@@ -53,19 +53,18 @@ func TestStdin(t *testing.T) {
 		}()
 		argf := NewArgf([]string{}, td.opts)
 		ec := errors.New()
-		targets, err := argf.CollectTargets()
-		ec.Push(err)
-		rs, err := targets.CountAll(func() Counter { return NewCounter(All) })
+		wc := NewWildcat(td.opts, DefaultGenerator)
+		rs, err := wc.CountAll(argf)
 		ec.Push(err)
 
 		if len(rs.list) != td.listSize {
-			t.Errorf("ResultSet size did not match, wont %d, got %d (%v)", td.listSize, len(rs.list), rs.list)
+			t.Errorf("%v: ResultSet size did not match, wont %d, got %d (%v)", td.stdinFile, td.listSize, len(rs.list), rs.list)
 		}
 		if !match(rs.list, td.wontFileNames) {
-			t.Errorf("ResultSet files did not match, wont %v, got %v", td.wontFileNames, rs.list)
+			t.Errorf("%v: ResultSet files did not match, wont %v, got %v", td.stdinFile, td.wontFileNames, rs.list)
 		}
 		if ec.Size() != td.wontErrorSize {
-			t.Errorf("ErrorSize did not match, wont %d, got %d (%v)", td.wontErrorSize, ec.Size(), ec.Error())
+			t.Errorf("%v: ErrorSize did not match, wont %d, got %d (%v)", td.stdinFile, td.wontErrorSize, ec.Size(), ec.Error())
 		}
 	}
 }
@@ -89,20 +88,17 @@ func TestCountAll(t *testing.T) {
 	}
 	for _, td := range testdata {
 		argf := NewArgf(td.args, td.opts)
-		ec := errors.New()
-		targets, err := argf.CollectTargets()
-		ec.Push(err)
-		rs, err := targets.CountAll(func() Counter { return NewCounter(All) })
-		ec.Push(err)
+		wc := NewWildcat(td.opts, DefaultGenerator)
+		rs, ec := wc.CountAll(argf)
 
 		if len(rs.list) != td.listSize {
-			t.Errorf("%v: ResultSet size did not match, wont %d, got %d (%v)", td.args, td.listSize, len(rs.list), rs.list)
+			t.Errorf("%v: ResultSet size did not match, wont %d, got %d (%v)", td.args, td.listSize, len(rs.list), toStr(rs.list))
 		}
 		if !match(rs.list, td.wontFileNames) {
 			t.Errorf("%v: ResultSet files did not match, wont %v, got %v", td.args, td.wontFileNames, toStr(rs.list))
 		}
 		if ec.Size() != td.wontErrorSize {
-			t.Errorf("ErrorSize did not match, wont %d, got %d (%v)", td.wontErrorSize, ec.Size(), ec.Error())
+			t.Errorf("%v: ErrorSize did not match, wont %d, got %d (%v)", td.args, td.wontErrorSize, ec.Size(), ec.Error())
 		}
 	}
 }
@@ -116,8 +112,8 @@ func TestStoreFile(t *testing.T) {
 	}
 	for _, td := range testdata {
 		argf := NewArgf([]string{td.url}, &ReadOptions{FileList: false, NoIgnore: false, NoExtract: false, StoreContent: true})
-		targets, _ := argf.CollectTargets()
-		_, err := targets.CountAll(func() Counter { return NewCounter(All) })
+		wc := NewWildcat(argf.Options, DefaultGenerator)
+		_, err := wc.CountAll(argf)
 		if !err.IsEmpty() {
 			t.Errorf("some error: %s", err.Error())
 		}

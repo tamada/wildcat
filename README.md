@@ -6,10 +6,10 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/tamada/wildcat)](https://goreportcard.com/report/github.com/tamada/wildcat)
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?logo=spdx)](https://github.com/tamada/wildcat/blob/main/LICENSE)
-[![Version](https://img.shields.io/badge/Version-1.1.0-blue.svg)](https://github.com/tamada/tjdoe/releases/tag/v1.1.0)
+[![Version](https://img.shields.io/badge/Version-1.1.1-blue.svg)](https://github.com/tamada/tjdoe/releases/tag/v1.1.1)
 [![DOI](https://zenodo.org/badge/338797861.svg)](https://zenodo.org/badge/latestdoi/338797861)
 
-[![Docker](https://img.shields.io/badge/Docker-ghcr.io%2Ftamada%2Fwildcat%3A1.1.0-green?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
+[![Docker](https://img.shields.io/badge/Docker-ghcr.io%2Ftamada%2Fwildcat%3A1.1.1-green?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
 [![Heroku](https://img.shields.io/badge/Heroku-secret--coast--70208-green?logo=heroku)](https://secret-coast-70208.herokuapp.com/wildcat/)
 [![tamada/brew/wildcat](https://img.shields.io/badge/Homebrew-tamada%2Fbrew%2Fwildcat-green?logo=homebrew)](https://github.com/tamada/homebrew-brew)
 
@@ -43,14 +43,14 @@ Note that this product is an example project for implementing Open Source Softwa
 ### :shoe: CLI mode
 
 ```shell
-wildcat version 1.0.3
+wildcat version 1.1.1
 wildcat [CLI_MODE_OPTIONS|SERVER_MODE_OPTIONS] [FILEs...|DIRs...|URLs...]
 CLI_MODE_OPTIONS
     -b, --byte                  Prints the number of bytes in each input file.
     -l, --line                  Prints the number of lines in each input file.
     -c, --character             Prints the number of characters in each input file.
-                                If the current locale does not support multibyte characters,
-                                this option is equal to the -c option.
+                                If the given arguments do not contain multibyte characters,
+                                this option is equal to -b (--byte) option.
     -w, --word                  Prints the number of words in each input file.
     -f, --format <FORMAT>       Prints results in a specified format.  Available formats are:
                                 csv, json, xml, and default. Default is default.
@@ -211,21 +211,22 @@ The following xml is formatted by `xmllint --format -`
 
 ### :whale: Docker
 
-[![Docker](https://img.shields.io/badge/Docker-ghcr.io%2Ftamada%2Fwildcat%3A1.1.0-green?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
+[![Docker](https://img.shields.io/badge/Docker-ghcr.io%2Ftamada%2Fwildcat%3A1.1.1-green?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
 
 ```shell
-$ docker run -v $PWD:/home/wildcat ghcr.io/tamada/wildcat:1.1.0 testdata/wc
+$ docker run -v $PWD:/home/wildcat ghcr.io/tamada/wildcat:1.1.1 testdata/wc
 ```
 
 If you run `wildcat` on server mode, run the following command.
 
 ```shell
-$ docker run -p 8080:8080 -v $PWD:/home/wildcat ghcr.io/tamada/wildcat:1.1.0 --server
+$ docker run -p 8080:8080 -v $PWD:/home/wildcat ghcr.io/tamada/wildcat:1.1.1 --server
 ```
 
 #### versions
 
-* `1.1.0`, `latest`
+* `1.1.1`, `latest`
+* `1.1.0`
 * `1.0.3`
 * `1.0.2`
 * `1.0.1`

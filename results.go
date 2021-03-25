@@ -1,6 +1,8 @@
 package wildcat
 
-import "sort"
+import (
+	"sort"
+)
 
 // Either shows either the list of result or error.
 type Either struct {
@@ -24,13 +26,13 @@ func newResult(entry NameAndIndex, counter Counter) *Result {
 // ResultSet shows the set of results.
 type ResultSet struct {
 	results map[string]Counter
-	list    []*Arg
+	list    []NameAndIndex
 	total   *totalCounter
 }
 
 // NewResultSet creates an instance of ResultSet.
 func NewResultSet() *ResultSet {
-	return &ResultSet{results: map[string]Counter{}, list: []*Arg{}, total: &totalCounter{}}
+	return &ResultSet{results: map[string]Counter{}, list: []NameAndIndex{}, total: &totalCounter{}}
 }
 
 // Size returns the file count in the ResultSet.
@@ -43,12 +45,21 @@ func (rs *ResultSet) CounterType() CounterType {
 	return rs.total.ct
 }
 
+func (rs *ResultSet) sort() {
+	// fmt.Fprintf(os.Stderr, "sorting...")
+	sort.SliceStable(rs.list, func(i, j int) bool {
+		return rs.list[i].Index().Compare(rs.list[j].Index()) < 0
+	})
+	// fmt.Fprintf(os.Stderr, "done\n")
+}
+
 // Print prints the content of receiver ResultSet instance through given printer.
 func (rs *ResultSet) Print(printer Printer) error {
+	rs.sort()
 	index := 0
 	printer.PrintHeader(rs.total.ct)
 	for _, name := range rs.list {
-		printer.PrintEach(name.name, rs.Counter(name.name), index)
+		printer.PrintEach(name.Name(), rs.Counter(name.Name()), index)
 		index++
 	}
 	if index > 1 {
@@ -60,17 +71,13 @@ func (rs *ResultSet) Print(printer Printer) error {
 
 // Push adds the given result to the receiver ResultSet.
 func (rs *ResultSet) Push(r *Result) {
-	rs.push(r.nameIndex.Name(), r.nameIndex.Index(), r.counter)
+	rs.push(r.nameIndex, r.counter)
 }
 
 // Push stores given counter with given fileName to the receiver ResultSet.
-func (rs *ResultSet) push(fileName string, index int, counter Counter) {
-	rs.results[fileName] = counter
-	is := NewArg(index, fileName)
-	rs.list = append(rs.list, is)
-	sort.SliceStable(rs.list, func(i, j int) bool {
-		return rs.list[i].index < rs.list[j].index
-	})
+func (rs *ResultSet) push(nai NameAndIndex, counter Counter) {
+	rs.results[nai.Name()] = counter
+	rs.list = append(rs.list, nai)
 	updateTotal(rs.total, counter)
 }
 

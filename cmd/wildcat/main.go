@@ -11,7 +11,7 @@ import (
 )
 
 // VERSION represents the version of this project.
-const VERSION = "1.1.0"
+const VERSION = "1.1.1"
 
 func helpMessage(name string) string {
 	return fmt.Sprintf(`%s [CLI_MODE_OPTIONS|SERVER_MODE_OPTIONS] [FILEs...|DIRs...|URLs...]
@@ -19,8 +19,8 @@ CLI_MODE_OPTIONS
     -b, --byte                  Prints the number of bytes in each input file.
     -l, --line                  Prints the number of lines in each input file.
     -c, --character             Prints the number of characters in each input file.
-                                If the current locale does not support multibyte characters,
-                                this option is equal to the -c option.
+                                If the given arguments do not contain multibyte characters,
+                                this option is equal to -b (--byte) option.
     -w, --word                  Prints the number of words in each input file.
     -f, --format <FORMAT>       Prints results in a specified format.  Available formats are:
                                 csv, json, xml, and default. Default is default.
@@ -154,20 +154,20 @@ func printAll(cli *cliOptions, rs *wildcat.ResultSet) error {
 	return rs.Print(printer)
 }
 
-func performImpl(opts *options, argf *wildcat.Argf) *errors.Center {
-	targets, ec := argf.CollectTargets()
+func performImpl(argf *wildcat.Argf, opts *options) *errors.Center {
+	wildcat := wildcat.NewWildcat(argf.Options, func() wildcat.Counter {
+		return opts.count.generateCounter()
+	})
+	rs, ec := wildcat.CountAll(argf)
 	if !ec.IsEmpty() {
 		return ec
 	}
-	rs, ec := targets.CountAll(func() wildcat.Counter {
-		return opts.count.generateCounter()
-	})
 	ec.Push(printAll(opts.cli, rs))
 	return ec
 }
 
-func perform(opts *options, argf *wildcat.Argf) int {
-	err := performImpl(opts, argf)
+func perform(argf *wildcat.Argf, opts *options) int {
+	err := performImpl(argf, opts)
 	if err != nil && !err.IsEmpty() {
 		fmt.Println(err.Error())
 		return 1
@@ -195,7 +195,7 @@ func execute(prog string, opts *options, argf *wildcat.Argf) int {
 	if IsServerMode(opts.server) {
 		return opts.server.launchServer()
 	}
-	return perform(opts, argf)
+	return perform(argf, opts)
 }
 
 func goMain(args []string) int {
