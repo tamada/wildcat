@@ -17,7 +17,7 @@ To cite this product, use the following BibTeX entry.
 ```latex
 @misc{ tamada_wildcat,
     author       = {Haruaki Tamada},
-    title        = {Wildcat: another implementation of wc (word count), version 1.0.1},
+    title        = {Wildcat: another implementation of wc (word count), version 1.2.0},
     publisher    = {GitHub},
     howpublished = {\url{https://github.com/tamada/wildcat}},
     year         = {2021},

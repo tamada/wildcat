@@ -70,7 +70,7 @@ func Example_wildcat() {
 func Example_help() {
 	goMain([]string{"wildcat", "--version", "--help"})
 	// Output:
-	// wildcat version 1.1.1
+	// wildcat version 1.2.0
 	// wildcat [CLI_MODE_OPTIONS|SERVER_MODE_OPTIONS] [FILEs...|DIRs...|URLs...]
 	// CLI_MODE_OPTIONS
 	//     -b, --byte                  Prints the number of bytes in each input file.
@@ -87,7 +87,10 @@ func Example_help() {
 	//     -N, --no-extract-archive    Does not extract archive files. If this option was specified,
 	//                                 wildcat treats archive files as the single binary file.
 	//     -o, --output <DEST>         Specifies the destination of the result.  Default is standard output.
+	//     -P, --progress              Shows progress bar for counting.
 	//     -S, --store-content         Sets to store the content of url targets.
+	//     -t, --with-threads <NUM>    Specifies the max thread number for counting. (Default is 10).
+	//                                 The given value is less equals than 0, sets no max.
 	//     -@, --filelist              Treats the contents of arguments as file list.
 	//
 	//     -h, --help                  Prints this message.
@@ -125,7 +128,8 @@ func TestParseOptions(t *testing.T) {
 		args := []string{"wildcat"}
 		args = append(args, td.giveArgs...)
 		reads := &wildcat.ReadOptions{}
-		_, opts, err := parseOptions(args, reads)
+		runtime := &wildcat.RuntimeOptions{}
+		_, opts, err := parseOptions(args, reads, runtime)
 		if err == nil && td.invalid || err != nil && !td.invalid {
 			t.Errorf("parseOptions(%v) wont invalid: %v, got %v, err: %v", td.giveArgs, td.invalid, err == nil, err)
 		}
@@ -135,8 +139,8 @@ func TestParseOptions(t *testing.T) {
 		if opts.isHelpRequested() != td.wantHelp {
 			t.Errorf("parseOptions(%v) help wanted: %v, got %v", td.giveArgs, td.wantHelp, opts.isHelpRequested())
 		}
-		if opts.cli.format != td.wantFormat {
-			t.Errorf("parseOptions(%v) format did not match, want %s, got %s", td.giveArgs, td.wantFormat, opts.cli.format)
+		if opts.printer.format != td.wantFormat {
+			t.Errorf("parseOptions(%v) format did not match, want %s, got %s", td.giveArgs, td.wantFormat, opts.printer.format)
 		}
 	}
 }

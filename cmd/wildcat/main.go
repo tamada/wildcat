@@ -11,7 +11,7 @@ import (
 )
 
 // VERSION represents the version of this project.
-const VERSION = "1.1.1"
+const VERSION = "1.2.0"
 
 func helpMessage(name string) string {
 	return fmt.Sprintf(`%s [CLI_MODE_OPTIONS|SERVER_MODE_OPTIONS] [FILEs...|DIRs...|URLs...]
@@ -30,7 +30,10 @@ CLI_MODE_OPTIONS
     -N, --no-extract-archive    Does not extract archive files. If this option was specified,
                                 wildcat treats archive files as the single binary file.
     -o, --output <DEST>         Specifies the destination of the result.  Default is standard output.
+    -P, --progress              Shows progress bar for counting.
     -S, --store-content         Sets to store the content of url targets.
+    -t, --with-threads <NUM>    Specifies the max thread number for counting. (Default is 10).
+                                The given value is less equals than 0, sets no max.
     -@, --filelist              Treats the contents of arguments as file list.
 
     -h, --help                  Prints this message.
@@ -76,7 +79,7 @@ func (co *countingOptions) generateCounter() wildcat.Counter {
 	return wildcat.NewCounter(ct)
 }
 
-type cliOptions struct {
+type printerOptions struct {
 	dest     string
 	format   string
 	humanize bool
@@ -92,10 +95,10 @@ func IsServerMode(so *serverOptions) bool {
 }
 
 type options struct {
-	count  *countingOptions
-	server *serverOptions
-	cli    *cliOptions
-	help   *helpOptions
+	count   *countingOptions
+	server  *serverOptions
+	printer *printerOptions
+	help    *helpOptions
 }
 
 type helpOptions struct {
@@ -107,8 +110,8 @@ func (opts *options) isHelpRequested() bool {
 	return opts.help.help || opts.help.version
 }
 
-func buildFlagSet(reads *wildcat.ReadOptions) (*flag.FlagSet, *options) {
-	opts := &options{count: &countingOptions{}, cli: &cliOptions{}, server: &serverOptions{}, help: &helpOptions{}}
+func buildFlagSet(reads *wildcat.ReadOptions, runtime *wildcat.RuntimeOptions) (*flag.FlagSet, *options) {
+	opts := &options{count: &countingOptions{}, printer: &printerOptions{}, server: &serverOptions{}, help: &helpOptions{}}
 	flags := flag.NewFlagSet("wildcat", flag.ContinueOnError)
 	flags.Usage = func() { fmt.Println(helpMessage("wildcat")) }
 	flags.BoolVarP(&opts.count.lines, "line", "l", false, "Prints the number of lines in each input file")
@@ -118,51 +121,53 @@ func buildFlagSet(reads *wildcat.ReadOptions) (*flag.FlagSet, *options) {
 	flags.BoolVarP(&reads.NoIgnore, "no-ignore", "n", false, "Does not respect ignore files (.gitignore)")
 	flags.BoolVarP(&reads.NoExtract, "no-extract-archive", "N", false, "Does not extract archive files")
 	flags.BoolVarP(&reads.FileList, "filelist", "@", false, "Treats the contents of arguments' file as file list")
-	flags.BoolVarP(&reads.StoreContent, "store-content", "S", false, "Sets to store the content of url targets")
 	flags.BoolVarP(&opts.server.server, "server", "s", false, "Launches wildcat in the server mode")
 	flags.IntVarP(&opts.server.port, "port", "p", 8080, "Specifies the port number of server")
 	flags.BoolVarP(&opts.help.help, "help", "h", false, "Prints this message")
 	flags.BoolVarP(&opts.help.version, "version", "v", false, "Prints the version of wildcat")
-	flags.StringVarP(&opts.cli.dest, "dest", "d", "", "Specifies the destination of the result")
-	flags.BoolVarP(&opts.cli.humanize, "humanize", "H", false, "Prints sizes in humanization")
-	flags.StringVarP(&opts.cli.format, "format", "f", "default", "Specifies the resultant format")
+	flags.StringVarP(&opts.printer.dest, "dest", "d", "", "Specifies the destination of the result")
+	flags.BoolVarP(&opts.printer.humanize, "humanize", "H", false, "Prints sizes in humanization")
+	flags.BoolVarP(&runtime.ShowProgress, "show-progress", "P", false, "Shows progress")
+	flags.BoolVarP(&runtime.StoreContent, "store-content", "S", false, "Sets to store the content of url targets")
+	flags.Int64VarP(&runtime.ThreadNumber, "with-threads", "t", 10, "Specifies the max thread number")
+	flags.StringVarP(&opts.printer.format, "format", "f", "default", "Specifies the resultant format")
 	return flags, opts
 }
 
-func parseOptions(args []string, reads *wildcat.ReadOptions) (*wildcat.Argf, *options, error) {
-	flags, opts := buildFlagSet(reads)
+func parseOptions(args []string, reads *wildcat.ReadOptions, runtime *wildcat.RuntimeOptions) (*wildcat.Argf, *options, error) {
+	flags, opts := buildFlagSet(reads, runtime)
 	if err := flags.Parse(args); err != nil {
 		return nil, nil, err
 	}
 	if err := validateOptions(opts); err != nil {
 		return nil, nil, err
 	}
-	return wildcat.NewArgf(flags.Args()[1:], reads), opts, nil
+	return wildcat.NewArgf(flags.Args()[1:], reads, runtime), opts, nil
 }
 
-func printAll(cli *cliOptions, rs *wildcat.ResultSet) error {
+func printAll(printerOpts *printerOptions, rs *wildcat.ResultSet) error {
 	dest := os.Stdout
-	if cli.dest != "" {
-		file, err := os.Create(cli.dest)
+	if printerOpts.dest != "" {
+		file, err := os.Create(printerOpts.dest)
 		if err != nil {
 			return err
 		}
 		dest = file
 		defer file.Close()
 	}
-	printer := wildcat.NewPrinter(dest, cli.format, wildcat.BuildSizer(cli.humanize))
+	printer := wildcat.NewPrinter(dest, printerOpts.format, wildcat.BuildSizer(printerOpts.humanize))
 	return rs.Print(printer)
 }
 
 func performImpl(argf *wildcat.Argf, opts *options) *errors.Center {
-	wildcat := wildcat.NewWildcat(argf.Options, func() wildcat.Counter {
+	wildcat := wildcat.NewWildcat(argf.Options, argf.RuntimeOpts, func() wildcat.Counter {
 		return opts.count.generateCounter()
 	})
 	rs, ec := wildcat.CountAll(argf)
 	if !ec.IsEmpty() {
 		return ec
 	}
-	ec.Push(printAll(opts.cli, rs))
+	ec.Push(printAll(opts.printer, rs))
 	return ec
 }
 
@@ -200,7 +205,8 @@ func execute(prog string, opts *options, argf *wildcat.Argf) int {
 
 func goMain(args []string) int {
 	reads := &wildcat.ReadOptions{FileList: false, NoExtract: false, NoIgnore: false}
-	argf, opts, err := parseOptions(args, reads)
+	runtime := &wildcat.RuntimeOptions{ShowProgress: false, ThreadNumber: 10, StoreContent: false}
+	argf, opts, err := parseOptions(args, reads, runtime)
 	if err != nil {
 		fmt.Println(err.Error())
 		return 1

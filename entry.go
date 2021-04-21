@@ -214,7 +214,7 @@ func createTeeReader(reader io.ReadCloser, name string) (iowrapper.ReadCloseType
 	return iowrapper.NewReader(iowrapper.NewTeeReader(reader, writer)), nil
 }
 
-func toURLEntry(arg NameAndIndex, opts *ReadOptions) Entry {
+func toURLEntry(arg NameAndIndex, opts *RuntimeOptions) Entry {
 	newEntry := &URLEntry{nai: arg}
 	if opts.StoreContent {
 		return &downloadURLEntry{entry: newEntry}

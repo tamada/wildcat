@@ -8,16 +8,22 @@ import (
 
 // ReadOptions represents the set of options about reading file.
 type ReadOptions struct {
-	FileList     bool
-	NoIgnore     bool
-	NoExtract    bool
+	FileList  bool
+	NoIgnore  bool
+	NoExtract bool
+}
+
+type RuntimeOptions struct {
+	ShowProgress bool
+	ThreadNumber int64
 	StoreContent bool
 }
 
 // Argf shows the command line arguments and stdin (if no command line arguments).
 type Argf struct {
-	Options   *ReadOptions
-	Arguments []*Arg
+	Options     *ReadOptions
+	RuntimeOpts *RuntimeOptions
+	Arguments   []*Arg
 }
 
 // Arg represents the one of command line arguments and its index.
@@ -47,12 +53,12 @@ func (arg *Arg) Index() *Order {
 }
 
 // NewArgf creates an instance of Argf for treating command line arguments.
-func NewArgf(arguments []string, opts *ReadOptions) *Argf {
+func NewArgf(arguments []string, opts *ReadOptions, runtimeOpts *RuntimeOptions) *Argf {
 	entries := []*Arg{}
 	for index, arg := range arguments {
 		entries = append(entries, NewArgWithIndex(NewOrderWithIndex(index), arg))
 	}
-	return &Argf{Arguments: entries, Options: opts}
+	return &Argf{Arguments: entries, Options: opts, RuntimeOpts: runtimeOpts}
 }
 
 // Generator is the type for generating Counter object.

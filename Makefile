@@ -1,6 +1,6 @@
 GO := go
 NAME := wildcat
-VERSION := 1.1.1
+VERSION := 1.2.0
 DIST := $(NAME)-$(VERSION)
 
 all: test build
@@ -28,7 +28,7 @@ build: setup
 
 define _createDist
 	mkdir -p dist/$(1)_$(2)/$(DIST)
-	GOOS=$1 GOARCH=$2 go build -o dist/$(1)_$(2)/$(DIST)/$(NAME) cmd/$(NAME)/*.go
+	GOOS=$1 GOARCH=$2 go build -o dist/$(1)_$(2)/$(DIST)/$(NAME)$(3) cmd/$(NAME)/*.go
 	cp -r README.md LICENSE completions dist/$(1)_$(2)/$(DIST)
 	cp -r docs/public dist/$(1)_$(2)/$(DIST)/docs
 	tar cfz dist/$(DIST)_$(1)_$(2).tar.gz -C dist/$(1)_$(2) $(DIST)
@@ -42,8 +42,8 @@ docs/public:
 dist: build docs
 	@$(call _createDist,darwin,amd64)
 	@$(call _createDist,darwin,arm64)
-	@$(call _createDist,windows,amd64)
-	@$(call _createDist,windows,386)
+	@$(call _createDist,windows,amd64,.exe)
+	@$(call _createDist,windows,386,.exe)
 	@$(call _createDist,linux,amd64)
 	@$(call _createDist,linux,386)
 

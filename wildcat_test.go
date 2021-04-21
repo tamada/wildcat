@@ -2,14 +2,22 @@ package wildcat
 
 import "testing"
 
-func opts(fileList, noIgnore, noExtract, storeContent bool) *ReadOptions {
-	return &ReadOptions{FileList: fileList, NoIgnore: noIgnore, NoExtract: noExtract, StoreContent: storeContent}
+func opts(fileList, noIgnore, noExtract, storeContent bool) *testOpts {
+	return &testOpts{
+		readOpts:    &ReadOptions{FileList: fileList, NoIgnore: noIgnore, NoExtract: noExtract},
+		runtimeOpts: &RuntimeOptions{ShowProgress: false, StoreContent: storeContent, ThreadNumber: 10},
+	}
+}
+
+type testOpts struct {
+	readOpts    *ReadOptions // filelist, noignore, noextract, storecontent
+	runtimeOpts *RuntimeOptions
 }
 
 func TestBasic(t *testing.T) {
 	testdata := []struct {
 		giveStrings    []string
-		opts           *ReadOptions // filelist, noignore, noextract, storecontent
+		opts           *testOpts
 		wontResultSize int
 		wontError      bool
 	}{
@@ -18,8 +26,8 @@ func TestBasic(t *testing.T) {
 		{[]string{"docs/static/images/demo.gif"}, opts(false, false, false, false), 1, false},
 	}
 	for _, td := range testdata {
-		argf := NewArgf(td.giveStrings, nil)
-		wildcat := NewWildcat(td.opts, DefaultGenerator)
+		argf := NewArgf(td.giveStrings, td.opts.readOpts, td.opts.runtimeOpts)
+		wildcat := NewWildcat(td.opts.readOpts, td.opts.runtimeOpts, DefaultGenerator)
 		rs, err := wildcat.CountAll(argf)
 		if td.wontError == (err == nil || err.IsEmpty()) {
 			t.Errorf("%v: wont error %v, but got %v", td.giveStrings, td.wontError, !td.wontError)
