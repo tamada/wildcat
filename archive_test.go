@@ -20,8 +20,8 @@ func TestArchives(t *testing.T) {
 	}
 
 	for _, td := range testdata {
-		argf := NewArgf([]string{td.giveFileName}, &ReadOptions{FileList: false, NoIgnore: true, NoExtract: false})
-		wc := NewWildcat(argf.Options, DefaultGenerator)
+		argf := NewArgf([]string{td.giveFileName}, &ReadOptions{FileList: false, NoIgnore: true, NoExtract: false}, &RuntimeOptions{ShowProgress: false, ThreadNumber: 10, StoreContent: false})
+		wc := NewWildcat(argf.Options, argf.RuntimeOpts, DefaultGenerator)
 		rs, _ := wc.CountAll(argf)
 		if rs.Size() != td.wontSize {
 			t.Errorf("archive (%s) size did not match, wont %d, got %d", td.giveFileName, td.wontSize, rs.Size())

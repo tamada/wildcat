@@ -43,6 +43,7 @@ func TestStdin(t *testing.T) {
 		{"testdata/wc/london_bridge_is_broken_down.txt", &ReadOptions{FileList: false, NoIgnore: true, NoExtract: true}, 1, []string{"<stdin>"}, 0},
 		{"testdata/filelist.txt", &ReadOptions{FileList: true, NoIgnore: false, NoExtract: false}, 4, []string{"humpty_dumpty.txt", "sakura_sakura.txt", "london_bridge_is_broken_down.txt", "https://www.apache.org/licenses/LICENSE-2.0.txt"}, 0},
 	}
+	runtimeOpts := &RuntimeOptions{ShowProgress: false, ThreadNumber: 10, StoreContent: false}
 	for _, td := range testdata {
 		file, _ := os.Open(td.stdinFile)
 		origStdin := os.Stdin
@@ -51,9 +52,9 @@ func TestStdin(t *testing.T) {
 			os.Stdin = origStdin
 			file.Close()
 		}()
-		argf := NewArgf([]string{}, td.opts)
+		argf := NewArgf([]string{}, td.opts, runtimeOpts)
 		ec := errors.New()
-		wc := NewWildcat(td.opts, DefaultGenerator)
+		wc := NewWildcat(td.opts, runtimeOpts, DefaultGenerator)
 		rs, err := wc.CountAll(argf)
 		ec.Push(err)
 
@@ -86,9 +87,10 @@ func TestCountAll(t *testing.T) {
 		{[]string{"https://example.com/not_found"}, &ReadOptions{FileList: false, NoIgnore: false, NoExtract: false}, 0, []string{}, 1},
 		{[]string{"https://github.com/tamada/wildcat/raw/main/testdata/archives/wc.jar"}, &ReadOptions{FileList: false, NoIgnore: false, NoExtract: false}, 4, []string{"humpty_dumpty.txt", "sakura_sakura.txt", "london_bridge_is_broken_down.txt"}, 0},
 	}
+	runtimeOpts := &RuntimeOptions{ShowProgress: false, ThreadNumber: 10, StoreContent: false}
 	for _, td := range testdata {
-		argf := NewArgf(td.args, td.opts)
-		wc := NewWildcat(td.opts, DefaultGenerator)
+		argf := NewArgf(td.args, td.opts, runtimeOpts)
+		wc := NewWildcat(td.opts, runtimeOpts, DefaultGenerator)
 		rs, ec := wc.CountAll(argf)
 
 		if len(rs.list) != td.listSize {
@@ -110,9 +112,10 @@ func TestStoreFile(t *testing.T) {
 	}{
 		{"https://github.com/tamada/wildcat/raw/main/testdata/archives/wc.jar", "wc.jar"},
 	}
+	runtimeOpts := &RuntimeOptions{ShowProgress: false, ThreadNumber: 10, StoreContent: true}
 	for _, td := range testdata {
-		argf := NewArgf([]string{td.url}, &ReadOptions{FileList: false, NoIgnore: false, NoExtract: false, StoreContent: true})
-		wc := NewWildcat(argf.Options, DefaultGenerator)
+		argf := NewArgf([]string{td.url}, &ReadOptions{FileList: false, NoIgnore: false, NoExtract: false}, runtimeOpts)
+		wc := NewWildcat(argf.Options, runtimeOpts, DefaultGenerator)
 		_, err := wc.CountAll(argf)
 		if !err.IsEmpty() {
 			t.Errorf("some error: %s", err.Error())

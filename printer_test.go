@@ -6,8 +6,8 @@ import (
 )
 
 func createResultSetForTest() *ResultSet {
-	argf := NewArgf([]string{"testdata/wc/humpty_dumpty.txt", "testdata/wc/ja/sakura_sakura.txt"}, &ReadOptions{})
-	wc := NewWildcat(argf.Options, DefaultGenerator)
+	argf := NewArgf([]string{"testdata/wc/humpty_dumpty.txt", "testdata/wc/ja/sakura_sakura.txt"}, &ReadOptions{}, &RuntimeOptions{})
+	wc := NewWildcat(argf.Options, argf.RuntimeOpts, DefaultGenerator)
 	rs, _ := wc.CountAll(argf)
 	return rs
 }

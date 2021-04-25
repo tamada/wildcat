@@ -109,8 +109,8 @@ func respondImpl(res http.ResponseWriter, statusCode int, message []byte) {
 	res.Write(message)
 }
 
-func countsBody(res http.ResponseWriter, req *http.Request, opts *wildcat.ReadOptions) (*wildcat.ResultSet, error) {
-	wc := wildcat.NewWildcat(opts, wildcat.DefaultGenerator)
+func countsBody(res http.ResponseWriter, req *http.Request, opts *wildcat.ReadOptions, runtimeOpts *wildcat.RuntimeOptions) (*wildcat.ResultSet, error) {
+	wc := wildcat.NewWildcat(opts, runtimeOpts, wildcat.DefaultGenerator)
 	fileName := req.URL.Query().Get("file-name")
 	if fileName == "" {
 		fileName = "<request>"
@@ -124,16 +124,17 @@ func counts(res http.ResponseWriter, req *http.Request) {
 	contentType := req.Header.Get("Content-Type")
 	handlers := []struct {
 		contentType string
-		execFunc    func(http.ResponseWriter, *http.Request, *wildcat.ReadOptions) (*wildcat.ResultSet, error)
+		execFunc    func(http.ResponseWriter, *http.Request, *wildcat.ReadOptions, *wildcat.RuntimeOptions) (*wildcat.ResultSet, error)
 	}{
 		{"multipart/form-data", countsMultipartBody},
 		{"*", countsBody},
 	}
 	opts := parseQueryParams(req)
 	sizer := wildcat.BuildSizer(false)
+	runtimeOpts := &wildcat.RuntimeOptions{ShowProgress: false, ThreadNumber: 10, StoreContent: false}
 	for _, handler := range handlers {
 		if handler.contentType == "*" || strings.HasPrefix(contentType, handler.contentType) {
-			rs, err := handler.execFunc(res, req, opts)
+			rs, err := handler.execFunc(res, req, opts, runtimeOpts)
 			respond(rs, err, res, sizer)
 			break
 		}
@@ -152,12 +153,12 @@ func generateEntriesFromMultipart(req *http.Request) []wildcat.Entry {
 	return entries
 }
 
-func countsMultipartBody(res http.ResponseWriter, req *http.Request, opts *wildcat.ReadOptions) (*wildcat.ResultSet, error) {
+func countsMultipartBody(res http.ResponseWriter, req *http.Request, opts *wildcat.ReadOptions, runtimeOpts *wildcat.RuntimeOptions) (*wildcat.ResultSet, error) {
 	if err := req.ParseMultipartForm(32 << 20); err != nil {
 		return nil, fmt.Errorf("ParseMultpartForm: %w", err)
 	}
 	entries := generateEntriesFromMultipart(req)
-	wc := wildcat.NewWildcat(opts, wildcat.DefaultGenerator)
+	wc := wildcat.NewWildcat(opts, runtimeOpts, wildcat.DefaultGenerator)
 	return wc.CountEntries(entries)
 }
 

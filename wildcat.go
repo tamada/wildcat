@@ -2,16 +2,13 @@ package wildcat
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
-	"sync"
 
 	"github.com/tamada/wildcat/errors"
-	"golang.org/x/sync/semaphore"
 )
 
 // Wildcat is the struct treating to count the specified files, directories, and urls.
@@ -19,28 +16,24 @@ type Wildcat struct {
 	config     *Config
 	eitherChan chan *Either
 	generator  Generator
-	group      *sync.WaitGroup
-	semaphore  *semaphore.Weighted
+	progress   Progress
 }
 
 // NewWildcat creates an instance of Wildcat.
-func NewWildcat(opts *ReadOptions, generator Generator) *Wildcat {
+func NewWildcat(opts *ReadOptions, runtimeOpts *RuntimeOptions, generator Generator) *Wildcat {
 	channel := make(chan *Either)
 	return &Wildcat{
-		config:     NewConfig(ignores(".", !opts.NoIgnore, nil), opts, errors.New()),
+		config:     NewConfig(ignores(".", !opts.NoIgnore, nil), opts, runtimeOpts, errors.New()),
 		eitherChan: channel,
 		generator:  generator,
-		semaphore:  semaphore.NewWeighted(10),
-		group:      new(sync.WaitGroup),
+		progress:   NewProgress(runtimeOpts.ShowProgress, runtimeOpts.ThreadNumber),
 	}
 }
 
 func (wc *Wildcat) run(f func(Generator, *Config) *Either) {
-	wc.semaphore.Acquire(context.Background(), 1)
-	wc.group.Add(1)
+	wc.progress.UpdateTarget()
 	go func() {
-		defer wc.group.Done()
-		defer wc.semaphore.Release(1)
+		defer wc.progress.Done()
 		either := f(wc.generator, wc.config)
 		wc.eitherChan <- either
 	}()
@@ -53,7 +46,7 @@ func (wc *Wildcat) CountEntries(entries []Entry) (*ResultSet, *errors.Center) {
 		wc.config.ec.Push(err)
 	}
 	go func() {
-		wc.group.Wait()
+		wc.progress.Wait()
 		wc.Close()
 	}()
 	return wc.receiveImpl()
@@ -61,7 +54,7 @@ func (wc *Wildcat) CountEntries(entries []Entry) (*ResultSet, *errors.Center) {
 
 // CountAll counts the arguments in the given Argf.
 func (wc *Wildcat) CountAll(argf *Argf) (*ResultSet, *errors.Center) {
-	wc.group.Add(1)
+	wc.progress.UpdateTarget()
 	go func() {
 		for _, arg := range argf.Arguments {
 			err := wc.handleItem(arg)
@@ -70,10 +63,10 @@ func (wc *Wildcat) CountAll(argf *Argf) (*ResultSet, *errors.Center) {
 		if len(argf.Arguments) == 0 {
 			wc.handleEntry(&stdinEntry{index: NewOrder()})
 		}
-		wc.group.Done()
+		wc.progress.Done()
 	}()
 	go func() {
-		wc.group.Wait()
+		wc.progress.Wait()
 		wc.Close()
 	}()
 	return wc.receiveImpl()
@@ -93,7 +86,7 @@ func (wc *Wildcat) Close() {
 }
 
 func (wc *Wildcat) updateFileList(fileList bool) *Wildcat {
-	newOpts := *wc.config.opts
+	newOpts := *wc.config.readOpts
 	newOpts.FileList = fileList
 	return wc.updateOpts(&newOpts)
 }
@@ -118,7 +111,7 @@ func (wc *Wildcat) ReadFileListFromReader(in io.Reader, index *Order) {
 }
 
 func (wc *Wildcat) handleDir(arg NameAndIndex) *Either {
-	currentIgnore := ignores(arg.Name(), !wc.config.opts.NoIgnore, wc.config.ignore)
+	currentIgnore := ignores(arg.Name(), !wc.config.readOpts.NoIgnore, wc.config.ignore)
 	fileInfos, err := ioutil.ReadDir(arg.Name())
 	if err != nil {
 		return &Either{Err: err}
@@ -126,7 +119,7 @@ func (wc *Wildcat) handleDir(arg NameAndIndex) *Either {
 	index := arg.Index().Sub()
 	for _, info := range fileInfos {
 		newName := filepath.Join(arg.Name(), info.Name())
-		if !isIgnore(wc.config.opts, currentIgnore, newName) {
+		if !isIgnore(wc.config.readOpts, currentIgnore, newName) {
 			newWc := wc.updateIgnore(currentIgnore)
 			err := newWc.handleItem(NewArgWithIndex(index, newName))
 			newWc.config.ec.Push(err)
@@ -148,11 +141,11 @@ func (wc *Wildcat) handleEntryAsFileList(entry Entry) *Either {
 
 func (wc *Wildcat) handleEntry(entry Entry) *Either {
 	targetEntry := entry
-	if !wc.config.opts.NoExtract {
+	if !wc.config.readOpts.NoExtract {
 		newEntry, _ := ConvertToArchiveEntry(entry)
 		targetEntry = newEntry
 	}
-	if wc.config.opts.FileList {
+	if wc.config.readOpts.FileList {
 		return wc.handleEntryAsFileList(targetEntry)
 	}
 	wc.run(func(arg1 Generator, arg2 *Config) *Either {
@@ -168,7 +161,7 @@ func (wc *Wildcat) handleItem(arg NameAndIndex) error {
 	case ok:
 		wc.handleEntry(entry)
 	case IsURL(name):
-		wc.handleEntry(toURLEntry(arg, wc.config.opts))
+		wc.handleEntry(toURLEntry(arg, wc.config.runtimeOpts))
 	case ExistDir(name):
 		wc.handleDir(arg)
 	case ExistFile(name):
@@ -184,8 +177,7 @@ func (wc *Wildcat) updateIgnore(newIgnore Ignore) *Wildcat {
 		config:     wc.config.updateIgnore(newIgnore),
 		eitherChan: wc.eitherChan,
 		generator:  wc.generator,
-		semaphore:  wc.semaphore,
-		group:      wc.group,
+		progress:   wc.progress,
 	}
 }
 
@@ -194,8 +186,7 @@ func (wc *Wildcat) updateOpts(newOpts *ReadOptions) *Wildcat {
 		config:     wc.config.updateOpts(newOpts),
 		eitherChan: wc.eitherChan,
 		generator:  wc.generator,
-		semaphore:  wc.semaphore,
-		group:      wc.group,
+		progress:   wc.progress,
 	}
 }
 
