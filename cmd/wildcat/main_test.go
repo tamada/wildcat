@@ -79,6 +79,7 @@ func Example_help() {
 	//                                 If the given arguments do not contain multibyte characters,
 	//                                 this option is equal to -b (--byte) option.
 	//     -w, --word                  Prints the number of words in each input file.
+	//     -a, --all                   Reads the hidden files.
 	//     -f, --format <FORMAT>       Prints results in a specified format.  Available formats are:
 	//                                 csv, json, xml, and default. Default is default.
 	//     -H, --humanize              Prints sizes in humanization.

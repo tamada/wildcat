@@ -3,6 +3,7 @@ package wildcat
 import (
 	"bufio"
 	"io"
+	"path/filepath"
 	"strings"
 )
 
@@ -11,6 +12,7 @@ type ReadOptions struct {
 	FileList  bool
 	NoIgnore  bool
 	NoExtract bool
+	AllFiles  bool
 }
 
 type RuntimeOptions struct {
@@ -90,8 +92,10 @@ func ignores(dir string, withIgnoreFile bool, parent Ignore) Ignore {
 }
 
 func isIgnore(opts *ReadOptions, ignore Ignore, name string) bool {
+	base := filepath.Base(name)
+	ignoreFlag := !opts.AllFiles && strings.HasPrefix(base, ".")
 	if !opts.NoIgnore {
-		return ignore.IsIgnore(name) || strings.HasSuffix(name, ".gitignore")
+		return ignoreFlag || ignore.IsIgnore(name)
 	}
-	return false
+	return ignoreFlag
 }

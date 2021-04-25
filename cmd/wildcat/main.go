@@ -22,6 +22,7 @@ CLI_MODE_OPTIONS
                                 If the given arguments do not contain multibyte characters,
                                 this option is equal to -b (--byte) option.
     -w, --word                  Prints the number of words in each input file.
+    -a, --all                   Reads the hidden files.
     -f, --format <FORMAT>       Prints results in a specified format.  Available formats are:
                                 csv, json, xml, and default. Default is default.
     -H, --humanize              Prints sizes in humanization.
@@ -121,6 +122,7 @@ func buildFlagSet(reads *wildcat.ReadOptions, runtime *wildcat.RuntimeOptions) (
 	flags.BoolVarP(&reads.NoIgnore, "no-ignore", "n", false, "Does not respect ignore files (.gitignore)")
 	flags.BoolVarP(&reads.NoExtract, "no-extract-archive", "N", false, "Does not extract archive files")
 	flags.BoolVarP(&reads.FileList, "filelist", "@", false, "Treats the contents of arguments' file as file list")
+	flags.BoolVarP(&reads.AllFiles, "all", "a", false, "Reads the hidden files")
 	flags.BoolVarP(&opts.server.server, "server", "s", false, "Launches wildcat in the server mode")
 	flags.IntVarP(&opts.server.port, "port", "p", 8080, "Specifies the port number of server")
 	flags.BoolVarP(&opts.help.help, "help", "h", false, "Prints this message")
@@ -204,7 +206,7 @@ func execute(prog string, opts *options, argf *wildcat.Argf) int {
 }
 
 func goMain(args []string) int {
-	reads := &wildcat.ReadOptions{FileList: false, NoExtract: false, NoIgnore: false}
+	reads := &wildcat.ReadOptions{FileList: false, NoExtract: false, NoIgnore: false, AllFiles: false}
 	runtime := &wildcat.RuntimeOptions{ShowProgress: false, ThreadNumber: 10, StoreContent: false}
 	argf, opts, err := parseOptions(args, reads, runtime)
 	if err != nil {
