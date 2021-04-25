@@ -73,15 +73,16 @@ func TestStdin(t *testing.T) {
 func TestCountAll(t *testing.T) {
 	testdata := []struct {
 		args          []string
-		opts          *ReadOptions // FileList, NoIgnore, NoExtract
+		opts          *ReadOptions // FileList, NoIgnore, NoExtract, AllFiles
 		listSize      int
 		wontFileNames []string
 		wontErrorSize int
 	}{
 		{[]string{"testdata/wc"}, &ReadOptions{FileList: false, NoIgnore: false, NoExtract: false}, 3, []string{"humpty_dumpty.txt", "sakura_sakura.txt", "london_bridge_is_broken_down.txt"}, 0},
 		{[]string{"https://www.apache.org/licenses/LICENSE-2.0.txt"}, &ReadOptions{FileList: false, NoIgnore: false, NoExtract: false}, 1, []string{"https://www.apache.org/licenses/LICENSE-2.0.txt"}, 0},
-		{[]string{"testdata/ignores"}, &ReadOptions{FileList: false, NoIgnore: false, NoExtract: false}, 2, []string{"notIgnore.txt", "notIgnore_sub.txt"}, 0},
-		{[]string{"testdata/ignores"}, &ReadOptions{FileList: false, NoIgnore: true, NoExtract: false}, 7, []string{"ignore.test", "ignore.test2", "notIgnore.txt", "notIgnore_sub.txt", "ignore_sub.test"}, 0},
+		{[]string{"testdata/ignores"}, &ReadOptions{FileList: false, NoIgnore: false, NoExtract: false, AllFiles: true}, 4, []string{"notIgnore.txt", "notIgnore_sub.txt", ".gitignore"}, 0},
+		{[]string{"testdata/ignores"}, &ReadOptions{FileList: false, NoIgnore: false, NoExtract: false, AllFiles: false}, 2, []string{"notIgnore.txt", "notIgnore_sub.txt"}, 0},
+		{[]string{"testdata/ignores"}, &ReadOptions{FileList: false, NoIgnore: true, NoExtract: false, AllFiles: false}, 5, []string{"ignore.test", "ignore.test2", "notIgnore.txt", "notIgnore_sub.txt", "ignore_sub.test"}, 0},
 		{[]string{"testdata/filelist.txt"}, &ReadOptions{FileList: true, NoIgnore: false, NoExtract: false}, 4, []string{"humpty_dumpty.txt", "sakura_sakura.txt", "london_bridge_is_broken_down.txt", "https://www.apache.org/licenses/LICENSE-2.0.txt"}, 0},
 		{[]string{"testdata/not_found.txt"}, &ReadOptions{FileList: true, NoIgnore: false, NoExtract: false}, 0, []string{}, 1},
 		{[]string{"https://example.com/not_found"}, &ReadOptions{FileList: false, NoIgnore: false, NoExtract: false}, 0, []string{}, 1},
