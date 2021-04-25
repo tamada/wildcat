@@ -1,7 +1,10 @@
 package wildcat
 
 import (
+	"fmt"
 	"sort"
+
+	"github.com/dustin/go-humanize"
 )
 
 // Either shows either the list of result or error.
@@ -92,6 +95,7 @@ func updateTotal(total *totalCounter, counter Counter) {
 	total.words += counter.Count(Words)
 	total.characters += counter.Count(Characters)
 	total.bytes += counter.Count(Bytes)
+	total.entryCount += 1
 }
 
 type totalCounter struct {
@@ -100,6 +104,11 @@ type totalCounter struct {
 	words      int64
 	characters int64
 	bytes      int64
+	entryCount int64
+}
+
+func (tc *totalCounter) Name() string {
+	return fmt.Sprintf("total (%s entries)", humanize.Comma(tc.entryCount))
 }
 
 func (tc *totalCounter) IsType(ct CounterType) bool {
