@@ -81,7 +81,7 @@ lines      words characters      bytes
     4         26        142        142 testdata/wc/humpty_dumpty.txt
    15         26        118        298 testdata/wc/ja/sakura_sakura.txt
    59        260      1,341      1,341 testdata/wc/london_bridge_is_broken_down.txt
-   78        312      1,601      1,781 total
+   78        312      1,601      1,781 total (3 entries)
 ```
 
 #### Csv

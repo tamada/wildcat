@@ -103,7 +103,7 @@ func (dp *defaultPrinter) PrintTotal(rs *ResultSet) {
 			fmt.Fprintf(dp.dest, " %10s", dp.sizer.Convert(rs.total.Count(t), t))
 		}
 	}
-	fmt.Fprintln(dp.dest, " total")
+	fmt.Fprintf(dp.dest, " %s\n", rs.total.Name())
 }
 
 func (dp *defaultPrinter) PrintFooter() {

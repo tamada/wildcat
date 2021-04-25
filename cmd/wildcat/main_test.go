@@ -64,7 +64,7 @@ func Example_wildcat() {
 	//       lines      words characters      bytes
 	//           4         26        142        142 ../../testdata/wc/humpty_dumpty.txt
 	//          15         26        118        298 ../../testdata/wc/ja/sakura_sakura.txt
-	//          19         52        260        440 total
+	//          19         52        260        440 total (2 entries)
 }
 
 func Example_help() {
