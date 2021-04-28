@@ -50,9 +50,6 @@ func hasSuffix(fileName string, suffixes ...string) bool {
 	return false
 }
 
-type tarTraverser struct {
-}
-
 type myReadCloser struct {
 	reader io.Reader
 	closer io.Closer
@@ -79,11 +76,6 @@ func wrapReader(reader iowrapper.ReadCloseTypeParser) io.ReadCloser {
 		return r
 	}
 	return reader
-}
-
-type archiver interface {
-	NameAndIndex
-	traverse(generator func() Counter) *Either
 }
 
 type archiveItem interface {
@@ -197,7 +189,6 @@ func (zf *zipItem) Count(counter Counter) error {
 
 type ZipEntry struct {
 	entry Entry
-	file  *zip.File
 }
 
 func (ze *ZipEntry) Index() *Order {

@@ -110,8 +110,7 @@ type lineCalculator struct {
 }
 
 func (lc *lineCalculator) calculate(data []byte) int64 {
-	var number int64
-	number = 0
+	var number int64 = 0
 	for _, datum := range data {
 		if datum == '\n' {
 			number++
