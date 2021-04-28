@@ -3,7 +3,18 @@ package wildcat
 import (
 	"net/url"
 	"os"
+	"strings"
 )
+
+func NormalizePath(path string) string {
+	if strings.HasSuffix(path, "\"") && strings.Index(path, "\"") == len(path)-1 {
+		newPath := strings.TrimRight(path, "\"")
+		if ExistDir(newPath) {
+			return newPath
+		}
+	}
+	return path
+}
 
 // ExistFile examines the given path is the regular file.
 // If given path is not found or is not a file, this function returns false.
