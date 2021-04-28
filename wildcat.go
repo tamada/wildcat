@@ -131,10 +131,10 @@ func (wc *Wildcat) handleDir(arg NameAndIndex) *Either {
 
 func (wc *Wildcat) handleEntryAsFileList(entry Entry) *Either {
 	reader, err := entry.Open()
-	defer reader.Close()
 	if err != nil {
 		return &Either{Err: err}
 	}
+	defer reader.Close()
 	wc.ReadFileListFromReader(reader, entry.Index())
 	return &Either{Results: []*Result{}}
 }
@@ -154,7 +154,8 @@ func (wc *Wildcat) handleEntry(entry Entry) *Either {
 	return &Either{Results: []*Result{}}
 }
 
-func (wc *Wildcat) handleItem(arg NameAndIndex) error {
+func (wc *Wildcat) handleItem(oldArg NameAndIndex) error {
+	arg := NormalizePath(oldArg)
 	name := arg.Name()
 	entry, ok := arg.(Entry)
 	switch {
