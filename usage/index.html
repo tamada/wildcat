@@ -70,15 +70,17 @@
     
   <h1>🏃‍♂️ Usage</h1>
   <h3 id="-cli-mode">👞 CLI mode</h3>
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">wildcat version 1.1.1
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">wildcat version 1.2.0
 wildcat <span style="color:#666">[</span>CLI_MODE_OPTIONS|SERVER_MODE_OPTIONS<span style="color:#666">]</span> <span style="color:#666">[</span>FILEs...|DIRs...|URLs...<span style="color:#666">]</span>
 CLI_MODE_OPTIONS
     -b, --byte                  Prints the number of bytes in each input file.
-    -l, --line                  Prints the number of lines in each input file.
     -c, --character             Prints the number of characters in each input file.
                                 If the given arguments <span style="color:#008000;font-weight:bold">do</span> not contain multibyte characters,
                                 this option is equal to -b <span style="color:#666">(</span>--byte<span style="color:#666">)</span> option.
+    -l, --line                  Prints the number of lines in each input file.
     -w, --word                  Prints the number of words in each input file.
+
+    -a, --all                   Reads the hidden files.
     -f, --format &lt;FORMAT&gt;       Prints results in a specified format.  Available formats are:
                                 csv, json, xml, and default. Default is default.
     -H, --humanize              Prints sizes in humanization.
@@ -87,7 +89,10 @@ CLI_MODE_OPTIONS
     -N, --no-extract-archive    Does not extract archive files. If this option was specified,
                                 wildcat treats archive files as the single binary file.
     -o, --output &lt;DEST&gt;         Specifies the destination of the result.  Default is standard output.
+    -P, --progress              Shows progress bar <span style="color:#008000;font-weight:bold">for</span> counting.
     -S, --store-content         Sets to store the content of url targets.
+    -t, --with-threads &lt;NUM&gt;    Specifies the max thread number <span style="color:#008000;font-weight:bold">for</span> counting. <span style="color:#666">(</span>Default is 10<span style="color:#666">)</span>.
+                                The given value is less equals than 0, sets no max.
     -@, --filelist              Treats the contents of arguments as file list.
 
     -h, --help                  Prints this message.
@@ -144,7 +149,7 @@ The examples of results are as follows by executing <code>wildcat testdata/wc --
     <span style="color:#666">4</span>         <span style="color:#666">26</span>        <span style="color:#666">142</span>        <span style="color:#666">142</span> testdata/wc/humpty_dumpty.txt
    <span style="color:#666">15</span>         <span style="color:#666">26</span>        <span style="color:#666">118</span>        <span style="color:#666">298</span> testdata/wc/ja/sakura_sakura.txt
    <span style="color:#666">59</span>        <span style="color:#666">260</span>      1,341      1,341 testdata/wc/london_bridge_is_broken_down.txt
-   <span style="color:#666">78</span>        <span style="color:#666">312</span>      1,601      1,781 total
+   <span style="color:#666">78</span>        <span style="color:#666">312</span>      1,601      1,781 total <span style="color:#666">(</span><span style="color:#666">3</span> entries<span style="color:#666">)</span>
 </code></pre></div><h4 id="csv">Csv</h4>
 <pre><code class="language-csv" data-lang="csv">file name,lines,words,characters,bytes
 testdata/wc/humpty_dumpty.txt,&quot;4&quot;,&quot;26&quot;,&quot;142&quot;,&quot;142&quot;
@@ -223,13 +228,14 @@ total,&quot;78&quot;,&quot;312&quot;,&quot;1,601&quot;,&quot;1,781&quot;
   <span style="color:#008000;font-weight:bold">&lt;/results&gt;</span>
 <span style="color:#008000;font-weight:bold">&lt;/wildcat&gt;</span>
 </code></pre></div><h3 id="-docker">🐳 Docker</h3>
-<p><a href="https://github.com/users/tamada/packages/container/package/wildcat"><img src="https://img.shields.io/badge/Docker-ghcr.io%2Ftamada%2Fwildcat%3A1.1.1-green?logo=docker" alt="Docker"></a></p>
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ docker run -v <span style="color:#19177c">$PWD</span>:/home/wildcat ghcr.io/tamada/wildcat:1.1.1 testdata/wc
+<p><a href="https://github.com/users/tamada/packages/container/package/wildcat"><img src="https://img.shields.io/badge/Docker-ghcr.io%2Ftamada%2Fwildcat%3A1.2.0-green?logo=docker" alt="Docker"></a></p>
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ docker run -v <span style="color:#19177c">$PWD</span>:/home/wildcat ghcr.io/tamada/wildcat:1.2.0 testdata/wc
 </code></pre></div><p>If you run <code>wildcat</code> on server mode, run the following command.</p>
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ docker run -p 8080:8080 -v <span style="color:#19177c">$PWD</span>:/home/wildcat ghcr.io/tamada/wildcat:1.1.1 --server
+<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ docker run -p 8080:8080 -v <span style="color:#19177c">$PWD</span>:/home/wildcat ghcr.io/tamada/wildcat:1.2.0 --server
 </code></pre></div><h4 id="versions">versions</h4>
 <ul>
-<li><code>1.1.1</code>, <code>latest</code></li>
+<li><code>1.2.0</code>, <code>latest</code></li>
+<li><code>1.1.1</code></li>
 <li><code>1.1.0</code></li>
 <li><code>1.0.3</code></li>
 <li><code>1.0.2</code></li>
