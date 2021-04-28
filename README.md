@@ -25,12 +25,12 @@ Another implementation of `wc` (word count).
 Also, it respects the ignore files, such as `.gitignore`.
 The excellent points than `wc` are as follows.
 
-* handles the files in the directories,
-* respects the `.gitignore` file,
-* reads files in the archive file such as jar, tar.gz, and etc.,
-* supports the several output formats,
-* accepts file list from file and stdin, and
-* includes REST API server.
+- handles the files in the directories,
+- respects the `.gitignore` file,
+- reads files in the archive file such as jar, tar.gz, and etc.,
+- supports the several output formats,
+- accepts file list from file and stdin, and
+- includes REST API server.
 
 Note that this product is an example project for implementing Open Source Software.
 
@@ -47,11 +47,12 @@ wildcat version 1.2.0
 wildcat [CLI_MODE_OPTIONS|SERVER_MODE_OPTIONS] [FILEs...|DIRs...|URLs...]
 CLI_MODE_OPTIONS
     -b, --byte                  Prints the number of bytes in each input file.
-    -l, --line                  Prints the number of lines in each input file.
     -c, --character             Prints the number of characters in each input file.
                                 If the given arguments do not contain multibyte characters,
                                 this option is equal to -b (--byte) option.
+    -l, --line                  Prints the number of lines in each input file.
     -w, --word                  Prints the number of words in each input file.
+
     -a, --all                   Reads the hidden files.
     -f, --format <FORMAT>       Prints results in a specified format.  Available formats are:
                                 csv, json, xml, and default. Default is default.
@@ -94,16 +95,16 @@ gives the files in the request body, then returns the results in the JSON format
 The example of results is shown in [Json](#json).
 Available query parameters are as follows.
 
-* `file-name=<FILENAME>`
-    * this query param gives filename of the content in the request body.
-* `readAs=no-extract`
-    * By specifying this query parameter, if client gives archive files, `wildcat` server does not extract archive files, and reads them as binary files.
-* `readAs=file-list`
-    * By specifying this query parameter, client gives url list as input for `wildcat` server.
-* `readAs=no-extract,file-list` or `readAs=no-extract&readAs=file-list`
-    * This query parameter means the client requests the above both parameters.
-      That is, the request body is url list, and archive files in the url list are treats as binary files.
-      Note that, the order of `no-extract` and `file-list` does not care.
+- `file-name=<FILENAME>`
+  - this query param gives filename of the content in the request body.
+- `readAs=no-extract`
+  - By specifying this query parameter, if client gives archive files, `wildcat` server does not extract archive files, and reads them as binary files.
+- `readAs=file-list`
+  - By specifying this query parameter, client gives url list as input for `wildcat` server.
+- `readAs=no-extract,file-list` or `readAs=no-extract&readAs=file-list`
+  - This query parameter means the client requests the above both parameters.
+    That is, the request body is url list, and archive files in the url list are treats as binary files.
+    Note that, the order of `no-extract` and `file-list` does not care.
 
 ### :envelope: Results
 
@@ -229,13 +230,13 @@ $ docker run -p 8080:8080 -v $PWD:/home/wildcat ghcr.io/tamada/wildcat:1.2.0 --s
 
 #### versions
 
-* `1.2.0`, `latest`
-* `1.1.1`
-* `1.1.0`
-* `1.0.3`
-* `1.0.2`
-* `1.0.1`
-* `1.0.0`
+- `1.2.0`, `latest`
+- `1.1.1`
+- `1.1.0`
+- `1.0.3`
+- `1.0.2`
+- `1.0.1`
+- `1.0.0`
 
 ### :surfer: Heroku
 
@@ -299,4 +300,4 @@ Wildcat can abbreviate as `wc`, too.
 
 ### :man_office_worker: Developers :woman_office_worker:
 
-* [tamada](https://tamada.github.io)
+- [tamada](https://tamada.github.io)
