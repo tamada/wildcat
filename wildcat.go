@@ -154,9 +154,9 @@ func (wc *Wildcat) handleEntry(entry Entry) *Either {
 	return &Either{Results: []*Result{}}
 }
 
-func (wc *Wildcat) handleItem(arg NameAndIndex) error {
-	newArg := NormalizePath(arg)
-	name := newArg.Name()
+func (wc *Wildcat) handleItem(oldArg NameAndIndex) error {
+	arg := NormalizePath(oldArg)
+	name := arg.Name()
 	entry, ok := arg.(Entry)
 	switch {
 	case ok:
