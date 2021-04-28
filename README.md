@@ -7,7 +7,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?logo=spdx)](https://github.com/tamada/wildcat/blob/main/LICENSE)
 [![Version](https://img.shields.io/badge/Version-1.2.0-blue.svg)](https://github.com/tamada/tjdoe/releases/tag/v1.2.0)
-[![DOI](https://zenodo.org/badge/338797861.svg)](https://zenodo.org/badge/latestdoi/338797861)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4724442.svg)](https://doi.org/10.5281/zenodo.4724442)
 
 [![Docker](https://img.shields.io/badge/Docker-ghcr.io%2Ftamada%2Fwildcat%3A1.2.0-green?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
 [![Heroku](https://img.shields.io/badge/Heroku-secret--coast--70208-green?logo=heroku)](https://secret-coast-70208.herokuapp.com/wildcat/)
