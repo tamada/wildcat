@@ -74,11 +74,12 @@ func Example_help() {
 	// wildcat [CLI_MODE_OPTIONS|SERVER_MODE_OPTIONS] [FILEs...|DIRs...|URLs...]
 	// CLI_MODE_OPTIONS
 	//     -b, --byte                  Prints the number of bytes in each input file.
-	//     -l, --line                  Prints the number of lines in each input file.
 	//     -c, --character             Prints the number of characters in each input file.
 	//                                 If the given arguments do not contain multibyte characters,
 	//                                 this option is equal to -b (--byte) option.
+	//     -l, --line                  Prints the number of lines in each input file.
 	//     -w, --word                  Prints the number of words in each input file.
+	//
 	//     -a, --all                   Reads the hidden files.
 	//     -f, --format <FORMAT>       Prints results in a specified format.  Available formats are:
 	//                                 csv, json, xml, and default. Default is default.
