@@ -26,8 +26,8 @@ func TestBasic(t *testing.T) {
 		{[]string{"docs/static/images/demo.gif"}, opts(false, false, false, false), 1, false},
 	}
 	for _, td := range testdata {
-		argf := NewArgf(td.giveStrings, td.opts.readOpts, td.opts.runtimeOpts)
-		wildcat := NewWildcat(td.opts.readOpts, td.opts.runtimeOpts, DefaultGenerator)
+		argf := NewArgfWithOptions(td.giveStrings, td.opts.readOpts, td.opts.runtimeOpts)
+		wildcat := newWildcatImpl(td.opts.readOpts, td.opts.runtimeOpts, DefaultGenerator)
 		rs, err := wildcat.CountAll(argf)
 		if td.wontError == (err == nil || err.IsEmpty()) {
 			t.Errorf("%v: wont error %v, but got %v", td.giveStrings, td.wontError, !td.wontError)

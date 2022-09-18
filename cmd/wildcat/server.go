@@ -110,7 +110,8 @@ func respondImpl(res http.ResponseWriter, statusCode int, message []byte) {
 }
 
 func countsBody(res http.ResponseWriter, req *http.Request, opts *wildcat.ReadOptions, runtimeOpts *wildcat.RuntimeOptions) (*wildcat.ResultSet, error) {
-	wc := wildcat.NewWildcat(opts, runtimeOpts, wildcat.DefaultGenerator)
+	argf := wildcat.NewArgfWithOptions([]string{}, opts, runtimeOpts)
+	wc := wildcat.NewWildcat(argf, wildcat.DefaultGenerator)
 	fileName := req.URL.Query().Get("file-name")
 	if fileName == "" {
 		fileName = "<request>"
@@ -158,7 +159,8 @@ func countsMultipartBody(res http.ResponseWriter, req *http.Request, opts *wildc
 		return nil, fmt.Errorf("ParseMultpartForm: %w", err)
 	}
 	entries := generateEntriesFromMultipart(req)
-	wc := wildcat.NewWildcat(opts, runtimeOpts, wildcat.DefaultGenerator)
+	argf := wildcat.NewArgfWithOptions([]string{}, opts, runtimeOpts)
+	wc := wildcat.NewWildcat(argf, wildcat.DefaultGenerator)
 	return wc.CountEntries(entries)
 }
 

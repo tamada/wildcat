@@ -54,13 +54,19 @@ func (arg *Arg) Index() *Order {
 	return arg.index
 }
 
-// NewArgf creates an instance of Argf for treating command line arguments.
-func NewArgf(arguments []string, opts *ReadOptions, runtimeOpts *RuntimeOptions) *Argf {
+func NewArgfWithOptions(arguments []string, opts *ReadOptions, runtimeOpts *RuntimeOptions) *Argf {
 	entries := []*Arg{}
 	for index, arg := range arguments {
 		entries = append(entries, NewArgWithIndex(NewOrderWithIndex(index), arg))
 	}
 	return &Argf{Arguments: entries, Options: opts, RuntimeOpts: runtimeOpts}
+}
+
+// NewArgf creates an instance of Argf for treating command line arguments.
+func NewArgf(arguments []string) *Argf {
+	readOpts := &ReadOptions{false, false, false, false}
+	runtimeOpts := &RuntimeOptions{ShowProgress: false, ThreadNumber: 10, StoreContent: false}
+	return NewArgfWithOptions(arguments, readOpts, runtimeOpts)
 }
 
 // Generator is the type for generating Counter object.

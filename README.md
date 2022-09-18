@@ -6,10 +6,10 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/tamada/wildcat)](https://goreportcard.com/report/github.com/tamada/wildcat)
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?logo=spdx)](https://github.com/tamada/wildcat/blob/main/LICENSE)
-[![Version](https://img.shields.io/badge/Version-1.2.0-blue.svg)](https://github.com/tamada/tjdoe/releases/tag/v1.2.0)
+[![Version](https://img.shields.io/badge/Version-1.3.0-blue.svg)](https://github.com/tamada/tjdoe/releases/tag/v1.3.0)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4724442.svg)](https://doi.org/10.5281/zenodo.4724442)
 
-[![Docker](https://img.shields.io/badge/Docker-ghcr.io%2Ftamada%2Fwildcat%3A1.2.0-green?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
+[![Docker](https://img.shields.io/badge/Docker-ghcr.io%2Ftamada%2Fwildcat%3A1.3.0-green?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
 [![Heroku](https://img.shields.io/badge/Heroku-secret--coast--70208-green?logo=heroku)](https://secret-coast-70208.herokuapp.com/wildcat/)
 [![tamada/brew/wildcat](https://img.shields.io/badge/Homebrew-tamada%2Fbrew%2Fwildcat-green?logo=homebrew)](https://github.com/tamada/homebrew-brew)
 
@@ -105,6 +105,19 @@ Available query parameters are as follows.
   - This query parameter means the client requests the above both parameters.
     That is, the request body is url list, and archive files in the url list are treats as binary files.
     Note that, the order of `no-extract` and `file-list` does not care.
+
+### :: Use Wildcat as an API
+
+1. Run `go get https://github.com/tamada/wildcat@1.3.0`.
+2. Import `github.com/tamada/wildcat` in your code.
+3. Use wildcat in your code like as follows.
+
+```go
+argf := wildcat.NewArgf(arguments)  // gives slice of target files.
+wildcat := wildcat.NewWildcat(argf) // create an instance of Wildcat.
+rs, err := wildcat.CountAll(argf)
+```
+
 
 ### :envelope: Results
 
@@ -216,21 +229,22 @@ The following xml is formatted by `xmllint --format -`
 
 ### :whale: Docker
 
-[![Docker](https://img.shields.io/badge/Docker-ghcr.io%2Ftamada%2Fwildcat%3A1.2.0-green?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
+[![Docker](https://img.shields.io/badge/Docker-ghcr.io%2Ftamada%2Fwildcat%3A1.3.0-green?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
 
 ```shell
-$ docker run -v $PWD:/home/wildcat ghcr.io/tamada/wildcat:1.2.0 testdata/wc
+$ docker run -v $PWD:/home/wildcat ghcr.io/tamada/wildcat:latest testdata/wc
 ```
 
 If you run `wildcat` on server mode, run the following command.
 
 ```shell
-$ docker run -p 8080:8080 -v $PWD:/home/wildcat ghcr.io/tamada/wildcat:1.2.0 --server
+$ docker run -p 8080:8080 -v $PWD:/home/wildcat ghcr.io/tamada/wildcat:latest --server
 ```
 
 #### versions
 
 - `1.2.0`, `latest`
+- `1.3.0`
 - `1.1.1`
 - `1.1.0`
 - `1.0.3`

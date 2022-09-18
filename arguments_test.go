@@ -52,9 +52,9 @@ func TestStdin(t *testing.T) {
 			os.Stdin = origStdin
 			file.Close()
 		}()
-		argf := NewArgf([]string{}, td.opts, runtimeOpts)
+		argf := NewArgfWithOptions([]string{}, td.opts, runtimeOpts)
 		ec := errors.New()
-		wc := NewWildcat(td.opts, runtimeOpts, DefaultGenerator)
+		wc := newWildcatImpl(td.opts, runtimeOpts, DefaultGenerator)
 		rs, err := wc.CountAll(argf)
 		ec.Push(err)
 
@@ -90,8 +90,8 @@ func TestCountAll(t *testing.T) {
 	}
 	runtimeOpts := &RuntimeOptions{ShowProgress: false, ThreadNumber: 10, StoreContent: false}
 	for _, td := range testdata {
-		argf := NewArgf(td.args, td.opts, runtimeOpts)
-		wc := NewWildcat(td.opts, runtimeOpts, DefaultGenerator)
+		argf := NewArgfWithOptions(td.args, td.opts, runtimeOpts)
+		wc := newWildcatImpl(td.opts, runtimeOpts, DefaultGenerator)
 		rs, ec := wc.CountAll(argf)
 
 		if len(rs.list) != td.listSize {
@@ -115,8 +115,8 @@ func TestStoreFile(t *testing.T) {
 	}
 	runtimeOpts := &RuntimeOptions{ShowProgress: false, ThreadNumber: 10, StoreContent: true}
 	for _, td := range testdata {
-		argf := NewArgf([]string{td.url}, &ReadOptions{FileList: false, NoIgnore: false, NoExtract: false}, runtimeOpts)
-		wc := NewWildcat(argf.Options, runtimeOpts, DefaultGenerator)
+		argf := NewArgfWithOptions([]string{td.url}, &ReadOptions{FileList: false, NoIgnore: false, NoExtract: false}, runtimeOpts)
+		wc := NewWildcat(argf, DefaultGenerator)
 		_, err := wc.CountAll(argf)
 		if !err.IsEmpty() {
 			t.Errorf("some error: %s", err.Error())

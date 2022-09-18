@@ -37,6 +37,13 @@ func (ec *Center) Push(err error) bool {
 	return true
 }
 
+func (ec *Center) SelfOrNil() error {
+	if ec.Size() == 0 {
+		return nil
+	}
+	return ec
+}
+
 // IsEmpty confirms the errors in the receiver error center instance is zero.
 func (ec *Center) IsEmpty() bool {
 	return len(ec.errs) == 0

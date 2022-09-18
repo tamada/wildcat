@@ -11,7 +11,7 @@ import (
 )
 
 // VERSION represents the version of this project.
-const VERSION = "1.2.0"
+const VERSION = "1.3.0"
 
 func helpMessage(name string) string {
 	return fmt.Sprintf(`%s [CLI_MODE_OPTIONS|SERVER_MODE_OPTIONS] [FILEs...|DIRs...|URLs...]
@@ -145,7 +145,7 @@ func parseOptions(args []string, reads *wildcat.ReadOptions, runtime *wildcat.Ru
 	if err := validateOptions(opts); err != nil {
 		return nil, nil, err
 	}
-	return wildcat.NewArgf(flags.Args()[1:], reads, runtime), opts, nil
+	return wildcat.NewArgfWithOptions(flags.Args()[1:], reads, runtime), opts, nil
 }
 
 func printAll(printerOpts *printerOptions, rs *wildcat.ResultSet) error {
@@ -163,7 +163,7 @@ func printAll(printerOpts *printerOptions, rs *wildcat.ResultSet) error {
 }
 
 func performImpl(argf *wildcat.Argf, opts *options) *errors.Center {
-	wildcat := wildcat.NewWildcat(argf.Options, argf.RuntimeOpts, func() wildcat.Counter {
+	wildcat := wildcat.NewWildcat(argf, func() wildcat.Counter {
 		return opts.count.generateCounter()
 	})
 	rs, ec := wildcat.CountAll(argf)

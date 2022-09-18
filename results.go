@@ -19,6 +19,14 @@ type Result struct {
 	counter   Counter
 }
 
+func (r *Result) Name() string {
+	return r.nameIndex.Name()
+}
+
+func (r *Result) Count(t CounterType) int64 {
+	return r.counter.Count(t)
+}
+
 func newResult(entry NameAndIndex, counter Counter) *Result {
 	return &Result{
 		nameIndex: entry,
@@ -33,9 +41,35 @@ type ResultSet struct {
 	total   *totalCounter
 }
 
+type Iterator struct {
+	rs    *ResultSet
+	index int
+}
+
+func (i *Iterator) HasNext() bool {
+	return len(i.rs.list) > i.index
+}
+
+func (i *Iterator) Next() *Result {
+	if !i.HasNext() {
+		return nil
+	}
+	nameIndex := i.rs.list[i.index]
+	i.index++
+	return newResult(nameIndex, i.rs.Counter(nameIndex.Name()))
+}
+
 // NewResultSet creates an instance of ResultSet.
 func NewResultSet() *ResultSet {
 	return &ResultSet{results: map[string]Counter{}, list: []NameAndIndex{}, total: &totalCounter{}}
+}
+
+func (rs *ResultSet) Iterator() *Iterator {
+	return &Iterator{rs: rs, index: 0}
+}
+
+func (rs *ResultSet) Total() Counter {
+	return rs.total
 }
 
 // Size returns the file count in the ResultSet.
@@ -61,8 +95,10 @@ func (rs *ResultSet) Print(printer Printer) error {
 	rs.sort()
 	index := 0
 	printer.PrintHeader(rs.total.ct)
-	for _, name := range rs.list {
-		printer.PrintEach(name.Name(), rs.Counter(name.Name()), index)
+	iterator := rs.Iterator()
+	for iterator.HasNext() {
+		r := iterator.Next()
+		printer.PrintEach(r.Name(), r.counter, index)
 		index++
 	}
 	if index > 1 {

@@ -20,7 +20,11 @@ type Wildcat struct {
 }
 
 // NewWildcat creates an instance of Wildcat.
-func NewWildcat(opts *ReadOptions, runtimeOpts *RuntimeOptions, generator Generator) *Wildcat {
+func NewWildcat(argf *Argf, generator Generator) *Wildcat {
+	return newWildcatImpl(argf.Options, argf.RuntimeOpts, generator)
+}
+
+func newWildcatImpl(opts *ReadOptions, runtimeOpts *RuntimeOptions, generator Generator) *Wildcat {
 	channel := make(chan *Either)
 	return &Wildcat{
 		config:     NewConfig(ignores(".", !opts.NoIgnore, nil), opts, runtimeOpts, errors.New()),

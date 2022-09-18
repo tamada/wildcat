@@ -97,13 +97,7 @@ func (dp *defaultPrinter) PrintEach(fileName string, counter Counter, index int)
 }
 
 func (dp *defaultPrinter) PrintTotal(rs *ResultSet) {
-	ct := rs.CounterType()
-	for _, t := range types {
-		if ct.IsType(t) {
-			fmt.Fprintf(dp.dest, " %10s", dp.sizer.Convert(rs.total.Count(t), t))
-		}
-	}
-	fmt.Fprintf(dp.dest, " %s\n", rs.total.Name())
+	dp.PrintEach(rs.total.Name(), rs.total, 1)
 }
 
 func (dp *defaultPrinter) PrintFooter() {
