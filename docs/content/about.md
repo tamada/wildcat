@@ -1,14 +1,15 @@
 ---
 title: ":smile: About"
+date: 2021-04-21
 ---
 
-### :scroll: License
+## :scroll: License
 
 Apache License version 2.0
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?logo=spdx)](https://github.com/tamada/tjdoe/blob/master/LICENSE)
 
-### Cite `wildcat` in the academic papers
+## Cite `wildcat` in the academic papers
 
 [![DOI](https://zenodo.org/badge/338797861.svg)](https://zenodo.org/badge/latestdoi/338797861)
 
@@ -24,18 +25,18 @@ To cite this product, use the following BibTeX entry.
 }
 ```
 
-### :jack_o_lantern: Icon
+## :jack_o_lantern: Icon
 
 ![wildcat](../images/logo.svg)
 
 This icon is obtained from [freesvg.org](https://freesvg.org/1527045310).
 
-### :name_badge: The project name (`wildcat`) comes from?
+## :name_badge: The project name (`wildcat`) comes from?
 
 This project origin is `wc` command, and `wc` is the abbrev of 'word count.'
 
 Wildcat can abbreviate as `wc`, too.
 
-### :man_office_worker: Developers :woman_office_worker:
+## :man_office_worker: Developers :woman_office_worker:
 
 * [tamada](https://tamada.github.io) [![buy me a coffee](https://img.shields.io/badge/Buy%20me-a%20coffee!-ffdd00?logo=buy%20me%20a%20coffee)](https://www.buymeacoffee.com/KP27ij5)

@@ -1,19 +1,20 @@
 ---
 title: ":cat2: wildcat"
+date: 2021-04-21
 ---
 
+{{< keywordList markdownify="true" >}}
 ![build](https://github.com/tamada/wildcat/workflows/build/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/tamada/wildcat/badge.svg?branch=main)](https://coveralls.io/github/tamada/wildcat?branch=main)
 [![codebeat badge](https://codebeat.co/badges/ad4259ff-15bc-48e6-b5a5-e23fda711d25)](https://codebeat.co/projects/github-com-tamada-wildcat-main)
 [![Go Report Card](https://goreportcard.com/badge/github.com/tamada/wildcat)](https://goreportcard.com/report/github.com/tamada/wildcat)
-
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?logo=spdx)](https://github.com/tamada/tjdoe/blob/master/LICENSE)
 [![Version](https://img.shields.io/badge/Version-1.2.0-blue.svg)](https://github.com/tamada/tjdoe/releases/tag/v1.2.0)
 [![DOI](https://zenodo.org/badge/338797861.svg)](https://zenodo.org/badge/latestdoi/338797861)
-
 [![Docker](https://img.shields.io/badge/Docker-ghcr.io%2Ftamada%2Fwildcat%3A1.2.0-green?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
 [![Heroku](https://img.shields.io/badge/Heroku-secret--coast--70208-green?logo=heroku)](https://secret-coast-70208.herokuapp.com/wildcat/)
 [![tamada/brew/wildcat](https://img.shields.io/badge/Homebrew-tamada%2Fbrew%2Fwildcat-green?logo=homebrew)](https://github.com/tamada/homebrew-brew)
+{{< /keywordList >}}
 
 ## :speaking_head: Overview
 

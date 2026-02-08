@@ -1,0 +1,40 @@
+baseURL = "https://tamada.github.io/wildcat"
+languageCode = "en-us"
+defaultContentLanguage = "en"
+title = "Wildcat"
+googleAnalytics = ""
+theme = ["github.com/tamada/hugo_theme_mod", "github.com/nunocoracao/blowfish/v2"]
+
+[params]
+logo = "icons/logo.svg"
+description = "Another implementation of wc (word count)."
+dateFormat = "2006-01-02"
+copyright = "Copyright &copy; 2021 by Haruaki Tamada. Made with [Hugo](https://gohugo.io/). Deployed to [GitHub Pages](https://pages.github.com/)."
+
+[menus]
+[[menus.main]]
+    name = "🏃 Usage"
+    pageRef = "/usage"
+    weight = 30
+[[menus.main]]
+    name = "⚓️ Install"
+    pageRef = "/install"
+    weight = 50
+[[menus.main]]
+    identifier = "haruaki-tamada"
+    pre = "haruaki-tamada"
+    url = "https://tamada.github.io"
+    weight = 100
+[[menus.main]]
+    identifier = "github"
+    pre = "github"
+    url = "https://github.com/tamada/wildcat"
+    weight = 200
+[[menus.footer]]
+    name = ":smile: About"
+    pageRef = "/about"
+    weight = 50
+
+[module]
+[[module.imports]]
+path = "github.com/tamada/hugo_theme_mod"

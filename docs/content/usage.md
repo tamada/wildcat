@@ -1,8 +1,9 @@
 ---
 title: ":runner: Usage"
+date: 2021-04-21
 ---
 
-### :shoe: CLI mode
+## :shoe: CLI mode
 
 ```shell
 wildcat version 1.2.0
@@ -46,12 +47,12 @@ If no arguments are specified, the standard input is used.
 Moreover, -@ option is specified, the content of given files are the target files.
 ```
 
-### :high_heel: Server Mode
+## :high_heel: Server Mode
 
 To run `wildcat` with `--server` option, the wildcat start REST API server on port 8080 (default).
 Then, `wildcat` readies for the following endpoints.
 
-#### `POST /api/wildcat/counts`
+### `POST /api/wildcat/counts`
 
 gives the files in the request body, then returns the results in the JSON format.
 The example of results is shown in [Json](#json).
@@ -68,12 +69,12 @@ Available query parameters are as follows.
     That is, the request body is url list, and archive files in the url list are treats as binary files.
     Note that, the order of `no-extract` and `file-list` does not care.
 
-### :envelope: Results
+## :envelope: Results
 
 The available result formats are default, csv, json and xml.
 The examples of results are as follows by executing `wildcat testdata/wc --format <FORMAT>`.
 
-#### Default
+### Default
 
 Default format is almost same as the result of `wc`.
 
@@ -85,7 +86,7 @@ lines      words characters      bytes
    78        312      1,601      1,781 total (3 entries)
 ```
 
-#### Csv
+### Csv
 
 ```csv
 file name,lines,words,characters,bytes
@@ -95,7 +96,7 @@ testdata/wc/london_bridge_is_broken_down.txt,"59","260","1,341","1,341"
 total,"78","312","1,601","1,781"
 ```
 
-#### Json
+### Json
 
 The following json is formatted by `jq .`.
 
@@ -135,7 +136,7 @@ The following json is formatted by `jq .`.
 }
 ```
 
-#### Xml
+### Xml
 
 The following xml is formatted by `xmllint --format -`
 
@@ -176,7 +177,7 @@ The following xml is formatted by `xmllint --format -`
 </wildcat>
 ```
 
-### :whale: Docker
+## :whale: Docker
 
 [![Docker](https://img.shields.io/badge/Docker-ghcr.io%2Ftamada%2Fwildcat%3A1.2.0-green?logo=docker)](https://github.com/users/tamada/packages/container/package/wildcat)
 
@@ -190,7 +191,7 @@ If you run `wildcat` on server mode, run the following command.
 $ docker run -p 8080:8080 -v $PWD:/home/wildcat ghcr.io/tamada/wildcat:1.2.0 --server
 ```
 
-#### versions
+### versions
 
 - `1.2.0`, `latest`
 - `1.1.1`
@@ -200,13 +201,13 @@ $ docker run -p 8080:8080 -v $PWD:/home/wildcat ghcr.io/tamada/wildcat:1.2.0 --s
 - `1.0.1`
 - `1.0.0`
 
-### :surfer: Heroku
+## :surfer: Heroku
 
 [![Heroku](https://img.shields.io/badge/Heroku-secret--coast--70208-green?logo=heroku)](https://secret-coast-70208.herokuapp.com/wildcat/)
 
 Post the files to `https://secret-coast-70208.herokuapp.com/wildcat/api/counts`, like below.
 
-```
+```shell
 $ curl -X POST --data-binary @testdata/archives/wc.jar https://secret-coast-70208.herokuapp.com/wildcat/api/counts
 {"timestamp":"2021-02-22T02:40:35+09:00","results":[{"filename":"<request>!humpty_dumpty.txt","lines":4,"words":26,"characters":142,"bytes":142},{"filename":"<request>!ja/","lines":0,"words":0,"characters":0,"bytes":0},{"filename":"<request>!ja/sakura_sakura.txt","lines":15,"words":26,"characters":118,"bytes":298},{"filename":"<request>!london_bridge_is_broken_down.txt","lines":59,"words":260,"characters":1341,"bytes":1341},{"filename":"total","lines":78,"words":312,"characters":1601,"bytes":1781}]}
 ```
